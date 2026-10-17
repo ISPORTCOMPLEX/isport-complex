@@ -10,7 +10,7 @@ const ITEMS = [
   { href: '/ucet/sukromie', label: 'Súkromie a údaje' },
 ];
 
-export function AccountNav() {
+export function AccountNav({ staff = false }: { staff?: boolean }) {
   const pathname = usePathname() ?? '/ucet';
   return (
     <nav aria-label="Môj účet" className="acct__nav">
@@ -19,6 +19,11 @@ export function AccountNav() {
           {i.label}
         </Link>
       ))}
+      {staff ? (
+        <Link href="/admin" className="acct__nav-admin">
+          Administrácia →
+        </Link>
+      ) : null}
     </nav>
   );
 }

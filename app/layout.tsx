@@ -3,6 +3,7 @@ import { Archivo } from 'next/font/google';
 import { headers } from 'next/headers';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { SiteChrome } from '@/components/SiteChrome';
 import './globals.css';
 
 // Archivo s osou šírky (wdth) – úzky šikmý rez na nadpisy, normálny na text.
@@ -39,9 +40,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a href="#obsah" className="sr-only skip">
           Preskočiť na obsah
         </a>
-        <Header />
-        <main id="obsah">{children}</main>
-        <Footer />
+        <SiteChrome header={<Header />} footer={<Footer />}>
+          {children}
+        </SiteChrome>
       </body>
     </html>
   );

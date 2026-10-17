@@ -1,15 +1,10 @@
 import { requireUser } from '@/lib/session';
 import { AccountNav } from '@/components/account/AccountNav';
 import { logoutAction } from '@/lib/actions/auth';
+import { isStaff, ROLE_LABEL } from '@/lib/staff';
 
 export const metadata = { robots: { index: false } };
 
-const ROLE_LABEL: Record<string, string> = {
-  ADMIN: 'Administrátor',
-  RECEPTION: 'Recepcia',
-  ACCOUNTANT: 'Účtovníctvo',
-  CLUB_MANAGER: 'Manažér klubu',
-};
 
 export default async function UcetLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser('/ucet');
@@ -30,7 +25,7 @@ export default async function UcetLayout({ children }: { children: React.ReactNo
               {user.role !== 'CUSTOMER' ? <span className="role-badge">{ROLE_LABEL[user.role] ?? user.role}</span> : null}
             </div>
           </div>
-          <AccountNav />
+          <AccountNav staff={isStaff(user.role)} />
           <form action={logoutAction}>
             <button type="submit" className="acct__logout">
               Odhlásiť sa

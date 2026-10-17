@@ -50,3 +50,12 @@ Podľa špecifikácie I-SPORT (prevzaté z KrálFilmu, bez QR prihlásenia). Vo 
 - Môj účet: prehľad, osobné údaje, zmena hesla, 2FA, história prihlásení, odhlásenie ostatných zariadení, export údajov (JSON), zmazanie účtu (anonymizácia).
 
 Premenné: `AUTH_SECRET`, `APP_URL`, `RESEND_API_KEY`, `EMAIL_FROM` (pozri `.env.example`). Bez `RESEND_API_KEY` sa pri vývoji e-maily vypíšu do terminálu.
+
+## Administrácia (/admin)
+
+- Prístup len pre personál (ADMIN, RECEPTION, ACCOUNTANT) so zapnutým 2FA; ostatní dostanú 404.
+- Prehľad (štatistiky účtov, nové registrácie, čo vyžaduje pozornosť), Zákazníci (hľadanie, filtre, detail),
+  Bezpečnosť (udalosti, podozrivé IP), Záznam zmien (kto čo zmenil).
+- Zásahy administrátora: overiť e-mail, odomknúť, zablokovať/odblokovať, odhlásiť všade, poslať obnovu hesla,
+  zrušiť 2FA, zmeniť rolu. Nedajú sa robiť na vlastnom účte, posledný administrátor sa nedá odobrať.
+- Prvý administrátor: `node --env-file=.env scripts/ucet.mjs admin`.

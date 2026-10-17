@@ -31,6 +31,10 @@ export default async function ZabezpeceniePage({ searchParams }: Props) {
         <h1 className="display acct__title">Zabezpečenie</h1>
       </header>
 
+      {sp.stav === 'admin-2fa' ? (
+        <FormAlert error="Do administrácie sa personál dostane len so zapnutým dvojstupňovým overením. Zapni si ho nižšie a potom pokračuj do administrácie." />
+      ) : null}
+
       <div className="card acct__panel">
         <TwoFactorPanel enabled={Boolean(user.twoFactorEnabledAt)} backupLeft={extra?.twoFactorBackupHashes.length ?? 0} />
       </div>
