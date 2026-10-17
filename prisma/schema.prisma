@@ -1,0 +1,68 @@
+// I-SPORT COMPLEX – databázová schéma
+// Fáza 1: základ pre účty, limity a audit log (využijú sa vo fáze 2).
+// Rezervácie, plochy a platby pribudnú vo fáze 3 a 4.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  CUSTOMER
+  CLUB_MANAGER
+  RECEPTION
+  ACCOUNTANT
+  ADMIN
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  passwordHash       String?
+  firstName          String
+  lastName           String
+  phone              String?
+  role               Role      @default(CUSTOMER)
+  emailVerifiedAt    DateTime?
+  failedLoginCount   Int       @default(0)
+  lockedUntil        DateTime?
+  passwordChangedAt  DateTime?
+  twoFactorSecretEnc String?
+  twoFactorEnabledAt DateTime?
+  bannedAt           DateTime?
+  deletedAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  auditLogs AuditLog[]
+}
+
+// Zdieľaný limit požiadaviek (pevné okno) – platí pre všetky inštancie na Verceli
+model RateLimit {
+  key       String   @id
+  count     Int
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
+// Kto, čo a kedy urobil v administrácii
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action    String
+  target    String?
+  affected  Int?
+  meta      Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId])
+}

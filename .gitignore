@@ -1,0 +1,20 @@
+# závislosti
+/node_modules
+
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# tajné premenné – NIKDY do gitu
+.env
+.env*.local
+
+# systém
+.DS_Store
+Thumbs.db
+npm-debug.log*
+
+# Vercel
+.vercel
