@@ -32,11 +32,13 @@ function esc(s: string): string {
 }
 
 function layout(title: string, intro: string, buttonText: string, url: string, outro: string): { html: string; text: string } {
+  // Erb sa načíta z webu (e-mailové programy nezobrazujú SVG).
+  const origin = new URL(url).origin;
   const html = `<!doctype html><html lang="sk"><body style="margin:0;background:#070708;font-family:Arial,Helvetica,sans-serif;color:#F4F6F7">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#070708;padding:32px 12px"><tr><td align="center">
 <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#111114;border:1px solid #25252A;border-radius:18px;overflow:hidden">
 <tr><td style="height:4px;background:#E3121B"></td></tr>
-<tr><td style="padding:32px 32px 8px"><div style="font-size:22px;font-weight:900;font-style:italic;letter-spacing:.02em">I-SPORT <span style="font-size:11px;letter-spacing:.4em;color:#9AA1A8;font-style:normal;font-weight:600">COMPLEX</span></div></td></tr>
+<tr><td style="padding:28px 32px 8px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="padding-right:12px;vertical-align:middle"><img src="${esc(origin)}/brand/erb-email.png" width="36" height="42" alt="" style="display:block;border:0"></td><td style="vertical-align:middle"><div style="font-size:24px;font-weight:900;font-style:italic;letter-spacing:.01em;line-height:1">I<span style="color:#E3121B">-</span>SPORT</div><div style="font-size:10px;letter-spacing:.45em;color:#9AA1A8;font-weight:700;margin-top:4px">COMPLEX</div></td></tr></table></td></tr>
 <tr><td style="padding:16px 32px 0"><h1 style="margin:0;font-size:24px;line-height:1.3;color:#F4F6F7">${esc(title)}</h1></td></tr>
 <tr><td style="padding:12px 32px 0;font-size:16px;line-height:1.6;color:#C8CDD2">${esc(intro)}</td></tr>
 <tr><td style="padding:24px 32px"><a href="${esc(url)}" style="display:inline-block;background:#E3121B;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 26px;border-radius:999px">${esc(buttonText)}</a></td></tr>

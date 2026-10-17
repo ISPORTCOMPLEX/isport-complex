@@ -17,6 +17,7 @@ const archivo = Archivo({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.APP_URL ?? 'http://localhost:3000'),
   title: {
     default: 'I-SPORT COMPLEX – tréningová hokejová hala Košice',
     template: '%s · I-SPORT COMPLEX',

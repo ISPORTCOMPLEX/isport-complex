@@ -114,9 +114,12 @@ img, svg { display: block; max-width: 100%; }
 /* ---------- logo ---------- */
 .logo { display: flex; align-items: center; gap: 11px; color: var(--text); }
 .logo:hover { color: var(--text); }
+.logo__mark { flex-shrink: 0; display: block; }
 .logo__words { display: flex; flex-direction: column; line-height: 1; }
-.logo__brand { font-stretch: 62%; font-style: italic; font-weight: 900; font-size: 25px; letter-spacing: 0.01em; }
-.logo__sub { font-weight: 600; font-size: 10px; letter-spacing: 0.42em; color: var(--muted); margin-top: 3px; }
+.logo__brand { font-stretch: 62%; font-style: italic; font-weight: 900; font-size: 27px; letter-spacing: 0.005em; line-height: 0.86; white-space: nowrap; }
+.logo__dash { color: var(--red); }
+.logo__sub { font-weight: 700; font-size: 9.5px; letter-spacing: 0.5em; color: var(--muted); margin-top: 5px; }
+@media (max-width: 640px) { .header .logo__sub { display: none; } .header .logo__brand { font-size: 24px; } }
 
 /* ---------- sklo ---------- */
 .glass {
@@ -527,8 +530,8 @@ a.acct__cta:hover .round-arrow { background: #fff; color: var(--red); border-col
 .adm__side { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 22px; padding: 22px 14px; background: #040405; border-right: 1px solid var(--edge); overflow-y: auto; }
 .adm__brand { display: flex; align-items: center; gap: 11px; padding: 0 8px; color: var(--text); }
 .adm__brand span { display: flex; flex-direction: column; line-height: 1.05; }
-.adm__brand strong { font-stretch: 62%; font-style: italic; font-weight: 900; font-size: 23px; }
-.adm__brand small { font-size: 12px; color: var(--muted); }
+.adm__wm { font-size: 23px; }
+.adm__brand small { font-size: 12px; color: var(--muted); margin-top: 3px; }
 .adm__brand:hover { color: var(--text); }
 .adm__nav { display: flex; flex-direction: column; gap: 2px; }
 .adm__link { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 12px; color: #b4bac0; font-weight: 500; font-size: 15px; }

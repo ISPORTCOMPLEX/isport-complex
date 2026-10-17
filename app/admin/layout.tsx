@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { requireStaff, can, ROLE_LABEL } from '@/lib/staff';
 import { AdminNav, type AdminNavItem } from '@/components/admin/AdminNav';
-import { LogoMark } from '@/components/Logo';
+import { LogoMark, Wordmark } from '@/components/Logo';
 import { logoutAction } from '@/lib/actions/auth';
 
 export const metadata: Metadata = { title: { default: 'Administrácia', template: '%s · Administrácia' }, robots: { index: false, follow: false } };
@@ -26,9 +26,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="adm">
       <aside className="adm__side">
         <Link href="/admin" className="adm__brand">
-          <LogoMark size={34} />
+          <LogoMark size={32} />
           <span>
-            <strong>I-SPORT</strong>
+            <Wordmark className="adm__wm" />
             <small>Administrácia</small>
           </span>
         </Link>
