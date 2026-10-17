@@ -10,16 +10,23 @@
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "typecheck": "tsc --noEmit",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "ucet": "node --env-file=.env scripts/ucet.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.16.0",
+    "bcryptjs": "^2.4.3",
+    "jose": "^5.9.6",
     "next": "^16.0.0",
+    "qrcode": "^1.5.4",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.0.0",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "prisma": "^6.16.0",

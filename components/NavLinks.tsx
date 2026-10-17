@@ -30,7 +30,7 @@ export function NavLinks() {
 }
 
 // Mobilné menu na <details> – funguje aj bez JavaScriptu. Po zmene stránky sa zavrie (key).
-export function MobileNav() {
+export function MobileNav({ loggedIn = false }: { loggedIn?: boolean }) {
   const pathname = usePathname() ?? '/';
   return (
     <details className="mnav" key={pathname}>
@@ -43,7 +43,7 @@ export function MobileNav() {
             {item.label}
           </Link>
         ))}
-        <Link href="/prihlasenie">Prihlásiť sa</Link>
+        {loggedIn ? <Link href="/ucet">Môj účet</Link> : <Link href="/prihlasenie">Prihlásiť sa</Link>}
         <Link href="/rezervacia" className="btn btn--icon">
           Rezervovať ľad
           <span className="btn__ic">

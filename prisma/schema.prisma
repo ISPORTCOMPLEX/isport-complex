@@ -1,5 +1,5 @@
 // I-SPORT COMPLEX – databázová schéma
-// Fáza 1: základ pre účty, limity a audit log (využijú sa vo fáze 2).
+// Fáza 2: účty, overenie e-mailu, obnova hesla, 2FA, limity a bezpečnostné záznamy.
 // Rezervácie, plochy a platby pribudnú vo fáze 3 a 4.
 
 generator client {
@@ -20,26 +20,52 @@ enum Role {
   ADMIN
 }
 
-model User {
-  id                 String    @id @default(cuid())
-  email              String    @unique
-  passwordHash       String?
-  firstName          String
-  lastName           String
-  phone              String?
-  role               Role      @default(CUSTOMER)
-  emailVerifiedAt    DateTime?
-  failedLoginCount   Int       @default(0)
-  lockedUntil        DateTime?
-  passwordChangedAt  DateTime?
-  twoFactorSecretEnc String?
-  twoFactorEnabledAt DateTime?
-  bannedAt           DateTime?
-  deletedAt          DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+enum TokenType {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+}
 
-  auditLogs AuditLog[]
+model User {
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  passwordHash          String?
+  firstName             String
+  lastName              String
+  phone                 String?
+  role                  Role      @default(CUSTOMER)
+  emailVerifiedAt       DateTime?
+  termsAcceptedAt       DateTime?
+  ageConfirmedAt        DateTime?
+  marketingOptIn        Boolean   @default(false)
+  failedLoginCount      Int       @default(0)
+  lockedUntil           DateTime?
+  passwordChangedAt     DateTime?
+  sessionsRevokedAt     DateTime?
+  twoFactorSecretEnc    String?
+  twoFactorEnabledAt    DateTime?
+  twoFactorLastStep     Int?
+  twoFactorBackupHashes String[]  @default([])
+  bannedAt              DateTime?
+  deletedAt             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  auditLogs  AuditLog[]
+  authTokens AuthToken[]
+}
+
+// Jednorazové odkazy z e-mailov (overenie e-mailu, obnova hesla). V DB je len odtlačok tokenu.
+model AuthToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      TokenType
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, type])
 }
 
 // Zdieľaný limit požiadaviek (pevné okno) – platí pre všetky inštancie na Verceli
@@ -49,6 +75,22 @@ model RateLimit {
   expiresAt DateTime
 
   @@index([expiresAt])
+}
+
+// Pokusy o registráciu, prihlásenie a iné bezpečnostné udalosti (pre Administrácia → Bezpečnosť)
+model SecurityEvent {
+  id        String   @id @default(cuid())
+  type      String
+  ok        Boolean
+  reason    String?
+  email     String?
+  userId    String?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([type, createdAt])
 }
 
 // Kto, čo a kedy urobil v administrácii

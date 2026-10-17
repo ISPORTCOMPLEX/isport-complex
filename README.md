@@ -39,3 +39,14 @@ Podľa špecifikácie I-SPORT (prevzaté z KrálFilmu, bez QR prihlásenia). Vo 
 - Content-Security-Policy s nonce a `strict-dynamic` (proxy.ts)
 - X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy, COOP, HSTS
 - `.env` nikdy v gite, kľúče len vo Verceli
+
+## Fáza 2 – účty
+
+- Registrácia: CAPTCHA (vlastná), honeypot, časová pasca, limity na IP, blokovanie dočasných e-mailov (zoznam + MX), 16+ a súhlas s podmienkami.
+- Overenie e-mailu jednorazovým odkazom (24 h), v DB len odtlačok tokenu.
+- Prihlásenie: limity na IP aj e-mail, zámok účtu po 5 chybách na 15 min, rovnaká odpoveď a čas pre neexistujúci účet.
+- 2FA (TOTP, RFC 6238) s QR kódom, šifrované tajomstvo (AES-256-GCM), 8 záložných kódov, ochrana proti opakovaniu kódu.
+- Zabudnuté heslo / obnova (1 h, jednorazové), po zmene hesla odhlásenie všetkých zariadení.
+- Môj účet: prehľad, osobné údaje, zmena hesla, 2FA, história prihlásení, odhlásenie ostatných zariadení, export údajov (JSON), zmazanie účtu (anonymizácia).
+
+Premenné: `AUTH_SECRET`, `APP_URL`, `RESEND_API_KEY`, `EMAIL_FROM` (pozri `.env.example`). Bez `RESEND_API_KEY` sa pri vývoji e-maily vypíšu do terminálu.
