@@ -119,6 +119,30 @@ export async function sendBookingCancelledEmail(to: string, firstName: string, u
   await sendMail({ to, subject: `Rezervácia zrušená – ${rows[0]?.value ?? ''}`, ...m });
 }
 
+export async function sendPaymentExpiredEmail(to: string, firstName: string, url: string, rows: Row[]) {
+  const m = layout(
+    'Rezervácia nebola dokončená',
+    `Ahoj ${firstName}, platba kartou neprišla včas, preto sme podržaný čas uvoľnili. Žiadne peniaze sme nestiahli.`,
+    'Rezervovať znova',
+    url,
+    'Ak je termín stále voľný, môžeš si ho rezervovať znova a zaplatiť aj na recepcii alebo prevodom.',
+    rows,
+  );
+  await sendMail({ to, subject: `Rezervácia nebola dokončená – ${rows[0]?.value ?? ''}`, ...m });
+}
+
+export async function sendRefundEmail(to: string, firstName: string, url: string, rows: Row[], amount: string) {
+  const m = layout(
+    'Vrátili sme ti peniaze',
+    `Ahoj ${firstName}, na tvoju kartu sme vrátili ${amount}. Na účte sa peniaze zvyčajne objavia do 5 až 10 pracovných dní, podľa banky.`,
+    'Zobraziť rezerváciu',
+    url,
+    'Ak peniaze do 10 pracovných dní neprídu, kontaktuj nás a pošleme ti potvrdenie o vrátení.',
+    rows,
+  );
+  await sendMail({ to, subject: `Vrátenie platby – ${rows[0]?.value ?? ''}`, ...m });
+}
+
 // Dopyt z webu: upozornenie pre halu a potvrdenie pre odosielateľa.
 export async function sendInquiryNotification(to: string, adminUrl: string, rows: Row[], message: string) {
   const m = layout('Nový dopyt z webu', message.slice(0, 1500), 'Otvoriť v administrácii', adminUrl, 'Odpovedz zákazníkovi e-mailom alebo telefonicky a dopyt označ ako vybavený.', rows);

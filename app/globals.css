@@ -1886,3 +1886,45 @@ a.cal__item:hover { color: var(--text); filter: brightness(1.15); }
 .md-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 .md-meta { flex-wrap: wrap; row-gap: 6px; }
 .md-actions { flex-wrap: wrap; margin-left: auto; }
+
+/* ───────────── Prístupnosť – WCAG 2.2 AA (v9) ─────────────
+   Kontrast textu min. 4,5 : 1, rámčeky ovládacích prvkov min. 3 : 1 (1.4.3, 1.4.11),
+   fokus neschovaný pod lepiacou hlavičkou a spodnou lištou (2.4.11).
+   Hodnoty prepočítané voči pozadiam #070708 (tma), #eef3f6 (ľad) a #ffffff. */
+html { scroll-padding-top: 96px; }
+@media (max-width: 1000px) { html:has(.rz-mbar) { scroll-padding-bottom: 110px; } }
+
+:root { --faint: #868d94; }
+.ice { --faint: #5f6a74; }
+.ft__bottom, .ft__bottom a, .cx__note, .adm__group-title { color: #868d94; }
+.adm__search input::placeholder { color: #868d94; }
+
+/* zelená, oranžová a červená na svetlom pozadí */
+.ice .v3-ok, .au .auth__done-ic--ok, .ice .status--ok, .adm__main .adm-stat--ok .adm-stat__value, .adm__main .chip--ok, .kpi__up, .md-progress .is-ok .md-progress__st { color: #0f7340; }
+.adm__main .adm-stat--warn .adm-stat__value { color: #9a5b00; }
+.ice .link-red, .adm__main .link-red, .ice .kicker, .adm__main .kicker, .ice .field__err, .adm__main .field__err { color: #c40f17; }
+
+/* rámčeky polí, zaškrtávacích políčok a možností platby */
+.field input, .textarea, .check input, .adm-search input, .adm-input, .adm-select, .pay__opt { border-color: #64686e; }
+.ice .field input, .ice .textarea, .ice .check input, .ice .pay__opt, .adm__main .adm-search input, .adm__main .adm-input, .adm__main .adm-select { border-color: #7f8b97; }
+/* stavy musia ostať silnejšie ako základný rámček */
+.field--error input, .field--error .textarea, .check--error input { border-color: var(--red-text); }
+.ice .field--error input, .ice .field--error .textarea, .ice .check--error input { border-color: #c40f17; }
+.check input:checked, .ice .check input:checked, .pay__opt:has(input:checked), .ice .pay__opt:has(input:checked) { border-color: var(--red); }
+.field input:focus, .textarea:focus, .ice .field input:focus, .ice .textarea:focus, .adm-search input:focus, .adm-input:focus, .adm-select:focus,
+.adm__main .adm-search input:focus, .adm__main .adm-input:focus, .adm__main .adm-select:focus { border-color: var(--red); }
+/* viditeľný fokus aj na poliach (pôvodne len červený rámček) */
+.field input:focus-visible, .textarea:focus-visible, .adm-input:focus-visible, .adm-select:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.pay__opt:has(input:focus-visible) { outline: 2px solid var(--text); outline-offset: 2px; }
+
+/* odkazy v texte rozoznateľné aj bez farby (1.4.1) */
+.legal__body a, .rz-lead a, .alert a { text-decoration: underline; text-underline-offset: 3px; }
+
+/* vynútené farby (Windows – vysoký kontrast) */
+@media (forced-colors: active) {
+  .btn, .hd__cta, .hd__mcta, .rz-cta, .qb__cta, .pay__opt, .check input { border: 1px solid ButtonText; }
+  .skip:focus { outline: 2px solid Highlight; }
+}
+.pay__opt input:not(:checked) { border-color: #64686e; }
+.ice .pay__opt input:not(:checked) { border-color: #7f8b97; }
+.rz-switch:not(:checked):not(.rz-switch--dark) { background: #7f8b97; }

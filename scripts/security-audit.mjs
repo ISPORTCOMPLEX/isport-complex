@@ -60,7 +60,8 @@ const PUBLIC_API = new Set(['app/api/a/route.ts', 'app/api/security-txt/route.ts
 for (const f of code.filter((f) => /^app\/api\/.*route\.ts$/.test(rel(f)))) {
   const s = read(f);
   if (PUBLIC_API.has(rel(f))) continue;
-  if (!/getSessionUser\(|CRON_SECRET/.test(s)) add('KRITICKÉ', rel(f), 'API bez overenia');
+  // webhook platobnej brány sa overuje podpisom (parseWebhook → verifyStripeSignature)
+  if (!/getSessionUser\(|CRON_SECRET|parseWebhook\(/.test(s)) add('KRITICKÉ', rel(f), 'API bez overenia');
 }
 
 // 5) Tajomstvá v súboroch projektu

@@ -5,6 +5,7 @@ import { getBaseUrl } from '@/lib/requestInfo';
 import { bookingRows } from '@/lib/booking/format';
 import { addDays, hallTime, todayIso } from '@/lib/booking/time';
 import { sendBookingReminderEmail } from '@/lib/email';
+import { sweepExpiredHolds } from '@/lib/payments/service';
 
 // Denná údržba (Vercel Cron, 1× denne): pripomienky na zajtrajšie rezervácie,
 // uzavretie odohraných rezervácií a upratanie starých limitov a odkazov.
@@ -23,7 +24,7 @@ export async function GET(req: Request) {
   const base = await getBaseUrl();
 
   const upcoming = await prisma.booking.findMany({
-    where: { status: 'CONFIRMED', reminderSentAt: null, startsAt: { gte: from, lt: to } },
+    where: { status: 'CONFIRMED', reminderSentAt: null, paymentStatus: { not: 'PENDING' }, startsAt: { gte: from, lt: to } },
     include: { user: { select: { email: true, firstName: true, deletedAt: true } } },
   });
   let reminders = 0;
@@ -39,6 +40,14 @@ export async function GET(req: Request) {
     }
   }
 
+  // Nezaplatené podržané termíny (platba kartou) – zladíme s bránou a uvoľníme.
+  let holds = 0;
+  try {
+    holds = await sweepExpiredHolds(base, 200);
+  } catch (err) {
+    console.error('[cron:payments]', err);
+  }
+
   const completed = await prisma.booking.updateMany({ where: { status: 'CONFIRMED', endsAt: { lt: now }, checkedInAt: { not: null } }, data: { status: 'COMPLETED' } });
   const limits = await purgeExpiredLimits();
   const tokens = await prisma.authToken.deleteMany({ where: { expiresAt: { lt: new Date(now.getTime() - 7 * 86400000) } } });
@@ -49,11 +58,12 @@ export async function GET(req: Request) {
   const inquiries = await prisma.inquiry.deleteMany({ where: { status: { in: ['DONE', 'SPAM'] }, updatedAt: { lt: new Date(now.getTime() - 730 * 86400000) } } });
   // Štatistiky návštevnosti sa uchovávajú 13 mesiacov (porovnanie s minulým rokom).
   const sessions = await prisma.session.deleteMany({ where: { expiresAt: { lt: new Date(now.getTime() - 7 * 86400000) } } });
+  const payEvents = await prisma.paymentEvent.deleteMany({ where: { receivedAt: { lt: new Date(now.getTime() - 90 * 86400000) } } });
   const views = await prisma.pageView.deleteMany({ where: { createdAt: { lt: new Date(now.getTime() - 400 * 86400000) } } });
   // Neaktivované účty staršie ako 14 dní bez rezervácií sa zmažú (často boti alebo preklepy v e-maile).
   const stale = await prisma.user.deleteMany({
     where: { emailVerifiedAt: null, deletedAt: null, role: 'CUSTOMER', createdAt: { lt: new Date(now.getTime() - 14 * 86400000) }, bookings: { none: {} } },
   });
 
-  return Response.json({ ok: true, reminders, completed: completed.count, limits, tokens: tokens.count, events: events.count, inquiries: inquiries.count, staleAccounts: stale.count, pageViews: views.count, sessions: sessions.count });
+  return Response.json({ ok: true, reminders, completed: completed.count, limits, tokens: tokens.count, events: events.count, inquiries: inquiries.count, staleAccounts: stale.count, pageViews: views.count, sessions: sessions.count, releasedHolds: holds, paymentEvents: payEvents.count });
 }

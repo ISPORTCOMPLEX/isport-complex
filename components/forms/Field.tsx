@@ -63,9 +63,13 @@ export function Check({ name, children, defaultChecked, error }: { name: string;
   const id = useId();
   return (
     <div className={`check${error ? ' check--error' : ''}`}>
-      <input id={id} type="checkbox" name={name} defaultChecked={defaultChecked} aria-invalid={error ? true : undefined} />
+      <input id={id} type="checkbox" name={name} defaultChecked={defaultChecked} aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-err` : undefined} />
       <label htmlFor={id}>{children}</label>
-      {error ? <small className="field__err">{error}</small> : null}
+      {error ? (
+        <small id={`${id}-err`} className="field__err">
+          {error}
+        </small>
+      ) : null}
     </div>
   );
 }

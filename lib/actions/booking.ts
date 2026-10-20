@@ -14,8 +14,12 @@ import { isIsoDate } from '@/lib/booking/time';
 import { bookingRows, transferRows } from '@/lib/booking/format';
 import { getSite } from '@/lib/siteSettings';
 import { sendBookingCancelledEmail, sendBookingConfirmedEmail } from '@/lib/email';
+import { cardPaymentsEnabled } from '@/lib/payments';
+import { closeOpenCheckouts, holdDeadline, refundBooking, startCheckout, sweepExpiredHolds } from '@/lib/payments/service';
 
-const METHODS: PaymentMethod[] = ['ONSITE', 'TRANSFER'];
+function allowedMethods(): PaymentMethod[] {
+  return cardPaymentsEnabled() ? ['ONSITE', 'TRANSFER', 'CARD'] : ['ONSITE', 'TRANSFER'];
+}
 
 export async function createBookingAction(_prev: FormState, form: FormData): Promise<FormState> {
   const user = await getSessionUser();
@@ -36,14 +40,18 @@ export async function createBookingAction(_prev: FormState, form: FormData): Pro
   if (!isIsoDate(iso) || !Number.isInteger(startHour) || !Number.isInteger(hours)) return { error: 'Neplatný termín. Vyber ho znova.' };
   if (values.contactName.length < 3 || !isName(values.contactName.split(' ')[0] ?? '')) errors.contactName = 'Zadaj meno a priezvisko.';
   if (!values.contactPhone || !isPhone(values.contactPhone)) errors.contactPhone = 'Zadaj telefón, aby sme ťa vedeli kontaktovať.';
-  const method = METHODS.includes(values.platba as PaymentMethod) ? (values.platba as PaymentMethod) : null;
+  const method = allowedMethods().includes(values.platba as PaymentMethod) ? (values.platba as PaymentMethod) : null;
   if (!method) errors.platba = 'Vyber spôsob platby.';
+  if (method === 'CARD' && str(form, 'presun', 12)) errors.platba = 'Pri presune zvoľ platbu na recepcii alebo prevodom.';
   if (!checked(form, 'terms')) errors.terms = 'Potvrď obchodné podmienky a storno podmienky.';
   if (Object.keys(errors).length) return { error: 'Skontroluj označené polia.', errors, values };
 
   const limit = await hitLimit(`booking:create:${user.id}`, 10, 60 * 60);
   if (!limit.ok) return { error: `Príliš veľa rezervácií za krátky čas. Skús to o ${minutes(limit.retryAfterSec)} min.`, values };
 
+  const base = await getBaseUrl();
+  // nezaplatené podržané termíny po lehote uvoľníme skôr, ako budeme kontrolovať voľný čas
+  await sweepExpiredHolds(base).catch((err) => console.error('[payments:sweep]', err));
   const settings = await getBookingSettings();
   const presun = str(form, 'presun', 12);
   const old = presun ? await prisma.booking.findUnique({ where: { code: presun } }) : null;
@@ -67,8 +75,27 @@ export async function createBookingAction(_prev: FormState, form: FormData): Pro
     teamName: values.teamName || null,
     note: values.note || null,
     paymentMethod: method!,
+    cardPending: method === 'CARD',
+    holdUntil: method === 'CARD' ? holdDeadline() : undefined,
   });
   if (!result.ok) return { error: result.error, values };
+
+  if (method === 'CARD') {
+    // Potvrdzujúci e-mail pošleme až po zaplatení (lib/payments/service.ts → markPaid).
+    let checkout: Awaited<ReturnType<typeof startCheckout>>;
+    try {
+      checkout = await startCheckout(result.id, base);
+    } catch (err) {
+      console.error('[payments:checkout]', err);
+      checkout = { ok: false, error: 'Platobná brána teraz neodpovedá.' };
+    }
+    if (!checkout.ok) {
+      await cancelBooking(result.id, 'system', 'Platobná brána nedostupná');
+      await prisma.booking.update({ where: { id: result.id }, data: { paymentStatus: 'UNPAID', payDeadline: null } });
+      return { error: `${checkout.error} Termín sme uvoľnili – skús to znova alebo zvoľ platbu na recepcii.`, values };
+    }
+    redirect(checkout.url);
+  }
   if (old) {
     const cancelled = await cancelBooking(old.id, 'customer', `Presunuté na ${result.code}`);
     if (!cancelled) {
@@ -79,7 +106,6 @@ export async function createBookingAction(_prev: FormState, form: FormData): Pro
 
   const booking = await prisma.booking.findUnique({ where: { id: result.id } });
   if (booking) {
-    const base = await getBaseUrl();
     try {
       const site = await getSite();
       await sendBookingConfirmedEmail(user.email, user.firstName, `${base}/rezervacia/${booking.code}`, [...bookingRows(booking), ...transferRows(booking, site.iban)]);
@@ -100,17 +126,52 @@ export async function cancelMyBookingAction(_prev: FormState, form: FormData): P
 
   const settings = await getBookingSettings();
   const hoursLeft = (booking.startsAt.getTime() - Date.now()) / 3600000;
-  if (hoursLeft < settings.cancelFreeHours) {
+  // nezaplatenú rezerváciu čakajúcu na kartu sa dá zrušiť kedykoľvek
+  if (hoursLeft < settings.cancelFreeHours && booking.paymentStatus !== 'PENDING') {
     return { error: `Online sa dá zrušiť najneskôr ${settings.cancelFreeHours} hodín pred začiatkom. Kontaktuj recepciu.` };
   }
   const ok = await cancelBooking(booking.id, 'customer', str(form, 'reason', 300) || null);
   if (!ok) return { error: 'Rezerváciu sa nepodarilo zrušiť. Skús to znova.' };
 
   const base = await getBaseUrl();
+  let refund = '';
+  if (booking.paymentStatus === 'PENDING') {
+    await closeOpenCheckouts(booking.id);
+    await prisma.booking.update({ where: { id: booking.id }, data: { paymentStatus: 'UNPAID', payDeadline: null } });
+  } else if (booking.paymentMethod === 'CARD' && (booking.paymentStatus === 'PAID' || booking.paymentStatus === 'PARTIALLY_REFUNDED')) {
+    // zrušenie v lehote zadarmo → celá suma späť na kartu
+    try {
+      const r = await refundBooking(booking.id, null, 'Zrušené zákazníkom v lehote', null, base);
+      refund = r.ok ? '&vratene=1' : '&vratenie=recepcia';
+      if (!r.ok) console.error('[payments:refund-customer]', booking.code, r.error);
+    } catch (err) {
+      console.error('[payments:refund-customer]', booking.code, err);
+      refund = '&vratenie=recepcia';
+    }
+  }
   try {
     await sendBookingCancelledEmail(user.email, user.firstName, `${base}/rezervacia`, bookingRows(booking), false);
   } catch (err) {
     console.error('[email:booking-cancel]', err);
   }
-  redirect(`/rezervacia/${booking.code}?zrusena=1`);
+  redirect(`/rezervacia/${booking.code}?zrusena=1${refund}`);
+}
+
+// „Zaplatiť znova“ – zákazník sa vrátil z platobnej stránky bez zaplatenia a termín je ešte podržaný.
+export async function payAgainAction(form: FormData): Promise<void> {
+  const user = await getSessionUser();
+  const code = str(form, 'code', 20);
+  if (!user) redirect(`/prihlasenie?next=${encodeURIComponent(`/rezervacia/${code}`)}`);
+  const booking = await prisma.booking.findUnique({ where: { code } });
+  if (!booking || booking.userId !== user.id) redirect('/ucet/rezervacie');
+  const limit = await hitLimit(`booking:payagain:${user.id}`, 10, 60 * 60);
+  if (!limit.ok) redirect(`/rezervacia/${code}?platba=limit`);
+  let r: Awaited<ReturnType<typeof startCheckout>>;
+  try {
+    r = await startCheckout(booking.id, await getBaseUrl());
+  } catch (err) {
+    console.error('[payments:pay-again]', code, err);
+    r = { ok: false, error: '' };
+  }
+  redirect(r.ok ? r.url : `/rezervacia/${code}?platba=chyba`);
 }

@@ -15,6 +15,8 @@ import { getBookingSettings, normalizeSettings, saveBookingSettings } from '@/li
 import { hallTime, isIsoDate } from '@/lib/booking/time';
 import { sendBookingCancelledEmail, sendBookingConfirmedEmail } from '@/lib/email';
 import { getSite, saveSite } from '@/lib/siteSettings';
+import { closeOpenCheckouts, refundBooking } from '@/lib/payments/service';
+import { parseEuroInput } from '@/lib/payments/math';
 
 // Zásahy recepcie a administrátora do rezervácií. Každý zásah ide do záznamu zmien.
 
@@ -45,8 +47,13 @@ function back(id: string, stav: string): never {
 export async function adminMarkPaid(form: FormData): Promise<void> {
   const actor = await staff('payments.manage');
   const b = await loadBooking(form);
-  if (b.paymentStatus !== 'PAID') {
-    await prisma.booking.update({ where: { id: b.id }, data: { paymentStatus: 'PAID', paidAt: new Date() } });
+  if (b.paymentStatus === 'UNPAID' || b.paymentStatus === 'PENDING') {
+    // zákazník čakal na platbu kartou, ale zaplatil inak → otvorenú platobnú stránku zavrieme
+    if (b.paymentStatus === 'PENDING') await closeOpenCheckouts(b.id);
+    await prisma.booking.update({
+      where: { id: b.id },
+      data: { paymentStatus: 'PAID', paidAt: new Date(), payDeadline: null, ...(b.paymentStatus === 'PENDING' ? { paymentMethod: 'ONSITE' as const } : {}) },
+    });
     await audit(actor.id, 'booking.paid', b.id, { code: b.code });
   }
   back(b.id, 'zaplatena');
@@ -55,9 +62,32 @@ export async function adminMarkPaid(form: FormData): Promise<void> {
 export async function adminMarkUnpaid(form: FormData): Promise<void> {
   const actor = await staff('payments.manage');
   const b = await loadBooking(form);
+  // platbu kartou cez bránu nejde len „odznačiť“ – peniaze sa musia vrátiť
+  const card = await prisma.payment.count({ where: { bookingId: b.id, state: 'SUCCEEDED' } });
+  if (card > 0) back(b.id, 'karta-vratit');
   await prisma.booking.update({ where: { id: b.id }, data: { paymentStatus: 'UNPAID', paidAt: null } });
   await audit(actor.id, 'booking.unpaid', b.id, { code: b.code });
   back(b.id, 'nezaplatena');
+}
+
+// Vrátenie peňazí na kartu (celá suma alebo časť). Peniaze vracia brána, nie my.
+export async function adminRefundAction(form: FormData): Promise<void> {
+  const actor = await staff('payments.manage');
+  const b = await loadBooking(form);
+  const raw = str(form, 'amount', 20);
+  const amount = raw ? parseEuroInput(raw) : null;
+  if (raw && amount === null) back(b.id, 'suma-neplatna');
+  const reason = str(form, 'reason', 300) || null;
+  const limit = await hitLimit(`admin:refund:${actor.id}`, 20, 60 * 60);
+  if (!limit.ok) back(b.id, 'limit');
+  let r: Awaited<ReturnType<typeof refundBooking>>;
+  try {
+    r = await refundBooking(b.id, amount, reason, actor.id, await getBaseUrl());
+  } catch (err) {
+    console.error('[payments:admin-refund]', b.code, err);
+    r = { ok: false, error: '' };
+  }
+  back(b.id, r.ok ? 'vratene' : 'vratenie-zlyhalo');
 }
 
 export async function adminCheckIn(form: FormData): Promise<void> {
@@ -86,6 +116,19 @@ export async function adminCancelBooking(form: FormData): Promise<void> {
   const ok = await cancelBooking(b.id, 'staff', reason);
   if (!ok) back(b.id, 'nie-aktivna');
   await audit(actor.id, 'booking.cancel', b.id, { code: b.code, reason });
+  let refundFailed = false;
+  if (b.paymentStatus === 'PENDING') {
+    await closeOpenCheckouts(b.id);
+    await prisma.booking.update({ where: { id: b.id }, data: { paymentStatus: 'UNPAID', payDeadline: null } });
+  } else if (checked(form, 'refund') && (b.paymentStatus === 'PAID' || b.paymentStatus === 'PARTIALLY_REFUNDED')) {
+    try {
+      const r = await refundBooking(b.id, null, reason, actor.id, await getBaseUrl());
+      refundFailed = !r.ok;
+    } catch (err) {
+      console.error('[payments:cancel-refund]', b.code, err);
+      refundFailed = true;
+    }
+  }
   if (checked(form, 'notify')) {
     const user = b.userId ? await prisma.user.findUnique({ where: { id: b.userId } }) : null;
     const to = user && !user.deletedAt ? user.email : b.guestEmail;
@@ -98,7 +141,7 @@ export async function adminCancelBooking(form: FormData): Promise<void> {
       }
     }
   }
-  back(b.id, 'zrusena');
+  back(b.id, refundFailed ? 'zrusena-bez-vratenia' : 'zrusena');
 }
 
 // ───────────────────────── Blokovanie času ─────────────────────────

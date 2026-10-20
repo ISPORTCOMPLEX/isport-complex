@@ -1,5 +1,6 @@
 'use server';
 
+import { closeOpenCheckouts } from '@/lib/payments/service';
 import { prisma } from '@/lib/prisma';
 import { requireStaff, can } from '@/lib/staff';
 import { getRequestInfo } from '@/lib/requestInfo';
@@ -59,8 +60,12 @@ export async function receptionAction(_prev: ReceptionState, form: FormData): Pr
       }
     } else {
       if (!can(me.role, 'payments.manage')) return { error: 'Na označenie platby nemáš oprávnenie.' };
-      if (b.paymentStatus !== 'PAID') {
-        await prisma.booking.update({ where: { id: b.id }, data: { paymentStatus: 'PAID', paidAt: new Date() } });
+      if (b.paymentStatus === 'UNPAID' || b.paymentStatus === 'PENDING') {
+        if (b.paymentStatus === 'PENDING') await closeOpenCheckouts(b.id);
+        await prisma.booking.update({
+          where: { id: b.id },
+          data: { paymentStatus: 'PAID', paidAt: new Date(), payDeadline: null, ...(b.paymentStatus === 'PENDING' ? { paymentMethod: 'ONSITE' as const } : {}) },
+        });
         await prisma.auditLog.create({ data: { actorId: me.id, action: 'booking.paid', target: b.id, meta: { code: b.code, via: 'recepcia' }, ip } });
       }
     }

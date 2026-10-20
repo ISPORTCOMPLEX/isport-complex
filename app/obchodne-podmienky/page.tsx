@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import { LegalPage } from '@/components/LegalPage';
 import { getBookingSettings } from '@/lib/booking/settings';
+import { cardPaymentsEnabled, PAY_WINDOW_MIN } from '@/lib/payments/config';
 
 export const metadata: Metadata = { title: 'Obchodné podmienky' };
 
 export default async function ObchodnePodmienkyPage() {
   const s = await getBookingSettings();
+  const card = cardPaymentsEnabled();
   return (
     <LegalPage title="Obchodné podmienky" updated="1. 11. 2026">
       <h2>1. Úvodné ustanovenia</h2>
@@ -27,6 +29,14 @@ export default async function ObchodnePodmienkyPage() {
         Ceny sú uvedené v cenníku na webe v eurách vrátane DPH a zahŕňajú šatňu a úpravu ľadu. Pre rezerváciu platí cena zobrazená pri jej potvrdení. Platiť je možné
         na recepcii pri príchode alebo bankovým prevodom podľa údajov v potvrdení rezervácie. Pri platbe prevodom je potrebné uhradiť cenu pred začiatkom rezervácie.
       </p>
+      {card ? (
+        <p>
+          Pri platbe kartou online (karta, Apple Pay, Google Pay) zákazník platí na zabezpečenej stránke platobnej brány; údaje o karte prevádzkovateľ nevidí ani
+          neukladá. Termín je počas platby podržaný {PAY_WINDOW_MIN} minút. Ak platba v tomto čase neprebehne, rezervácia sa automaticky zruší a peniaze sa
+          nestiahnu. Rezervácia zaplatená kartou je potvrdená okamihom prijatia platby. Pri bezplatnom zrušení v lehote podľa bodu 4 sa celá suma automaticky vráti
+          na kartu, ktorou bola zaplatená; na účte zákazníka býva spravidla do 5 až 10 pracovných dní.
+        </p>
+      ) : null}
       <h2>4. Zrušenie a presun</h2>
       <p>
         Zákazník môže rezerváciu zrušiť alebo presunúť bezplatne v časti Môj účet najneskôr {s.cancelFreeHours} hodín pred jej začiatkom. Neskoršie zrušenie

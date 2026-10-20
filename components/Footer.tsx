@@ -40,12 +40,12 @@ export async function Footer() {
             <Link href="/kontakt">Napísať nám</Link>
             {site.social.facebook ? (
               <a href={site.social.facebook} target="_blank" rel="noopener noreferrer">
-                Facebook
+                Facebook<span className="sr-only"> (otvorí sa v novom okne)</span>
               </a>
             ) : null}
             {site.social.instagram ? (
               <a href={site.social.instagram} target="_blank" rel="noopener noreferrer">
-                Instagram
+                Instagram<span className="sr-only"> (otvorí sa v novom okne)</span>
               </a>
             ) : null}
           </div>
@@ -60,6 +60,7 @@ export async function Footer() {
           <span className="ft__legal">
             <Link href="/obchodne-podmienky">Obchodné podmienky</Link>
             <Link href="/ochrana-osobnych-udajov">Ochrana osobných údajov</Link>
+            <Link href="/vyhlasenie-o-pristupnosti">Prístupnosť</Link>
           </span>
         </div>
       </div>

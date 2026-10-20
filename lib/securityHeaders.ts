@@ -29,7 +29,8 @@ export function buildCsp(nonce: string, isDev: boolean): string {
     `connect-src 'self' https://api.cloudinary.com${isDev ? ' ws: wss:' : ''}`,
     "object-src 'none'",
     "base-uri 'self'",
-    "form-action 'self'",
+    // Stripe Checkout: po odoslaní rezervácie presmerujeme na platobnú stránku brány
+    "form-action 'self' https://checkout.stripe.com",
     "frame-ancestors 'none'",
     "frame-src 'none'",
     "worker-src 'self' blob:",

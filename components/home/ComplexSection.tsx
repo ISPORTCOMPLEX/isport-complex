@@ -241,14 +241,11 @@ export function ComplexSection() {
               y={z.y}
               width={z.w}
               height={z.h}
-              tabIndex={0}
-              role="button"
-              aria-label={z.label}
-              aria-pressed={active === z.zone}
+              // Len pre myš a dotyk. Klávesnica a čítačky oživia tú istú časť cez odkaz s názvom (fokus na .cx__label) –
+              // vnútri obrázka (role="img") nesmú byť ovládacie prvky (WCAG 4.1.2).
+              aria-hidden="true"
               onMouseEnter={on(z.zone)}
               onMouseLeave={off}
-              onFocus={() => setActive(z.zone)}
-              onBlur={() => setActive(null)}
               onPointerDown={tap(z.zone)}
             />
           ))}

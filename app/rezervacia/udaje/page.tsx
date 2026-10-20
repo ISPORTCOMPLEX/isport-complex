@@ -8,6 +8,7 @@ import { validateSlot } from '@/lib/booking/create';
 import { iceCents, showerCents } from '@/lib/booking/pricing';
 import { euros, fmtDayLong, hallTime, isIsoDate, pad2 } from '@/lib/booking/time';
 import { BookingForm } from '@/components/booking/BookingForm';
+import { getProvider } from '@/lib/payments';
 import { RzBand } from '@/components/booking/RzBand';
 
 export const metadata: Metadata = { title: 'Údaje k rezervácii', robots: { index: false } };
@@ -22,6 +23,7 @@ export default async function UdajePage({ searchParams }: Props) {
   const hours = Number.parseInt(one(sp.hodiny), 10);
   const presun = /^ISP-[A-Z0-9]{6}$/.test(one(sp.presun)) ? one(sp.presun) : null;
   const settings = await getBookingSettings();
+  const card = getProvider();
   const showers = settings.showersEnabled && one(sp.sprchy) === '1';
   const sp1 = showers ? 1 : 0;
   const self = `/rezervacia/udaje?datum=${iso}&od=${startHour}&hodiny=${hours}&sprchy=${sp1}${presun ? `&presun=${presun}` : ''}`;
@@ -85,6 +87,8 @@ export default async function UdajePage({ searchParams }: Props) {
                   teamName: last?.teamName ?? '',
                 }}
                 cancelFreeHours={settings.cancelFreeHours}
+                cardEnabled={card !== null}
+                cardTest={card?.test ?? false}
               />
             </div>
           </div>

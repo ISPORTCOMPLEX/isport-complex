@@ -133,6 +133,7 @@ export function auditText(action: string, meta: unknown): string {
   const m = (meta ?? {}) as Record<string, unknown>;
   if (action === 'user.role' && m.from && m.to) return `${base}: ${String(m.from)} → ${String(m.to)}`;
   if (action === 'user.ban' && m.reason) return `${base} (${String(m.reason)})`;
+  if (action === 'payment.refund' && typeof m.amount === 'number') return `${base}: ${(m.amount / 100).toFixed(2).replace('.', ',')} €${m.reason ? ` (${String(m.reason)})` : ''}`;
   return base;
 }
 
@@ -152,6 +153,13 @@ Object.assign(AUDIT_LABEL, {
   'photo.upload': 'Nahral fotku',
   'photo.update': 'Upravil fotku',
   'photo.delete': 'Zmazal fotku',
+  'payment.succeeded': 'Platba kartou prijatá',
+  'payment.expired': 'Platba kartou vypršala – termín uvoľnený',
+  'payment.failed': 'Platba kartou zlyhala – termín uvoľnený',
+  'payment.refund': 'Vrátil peniaze na kartu',
+  'payment.refund-synced': 'Vrátenie zladené z platobnej brány',
+  'payment.auto-refund': 'Automatické vrátenie (rezervácia nebola aktívna)',
+  'payment.amount-mismatch': 'Pozor: zaplatená suma sa líši od ceny',
 });
 
 export const INQUIRY_STATUS: Record<string, { label: string; tone: 'ok' | 'warn' | 'red' | 'blue' | 'muted' }> = {

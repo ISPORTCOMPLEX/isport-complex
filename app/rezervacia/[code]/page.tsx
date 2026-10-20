@@ -13,41 +13,86 @@ import { FormAlert } from '@/components/forms/FormAlert';
 import { getSite } from '@/lib/siteSettings';
 import { emailEnabled } from '@/lib/email';
 import { RzBand } from '@/components/booking/RzBand';
+import { getBaseUrl } from '@/lib/requestInfo';
+import { reconcileBooking } from '@/lib/payments/service';
+import { payAgainAction } from '@/lib/actions/booking';
 
 export const metadata: Metadata = { title: 'Rezervácia', robots: { index: false } };
 
-type Props = { params: Promise<{ code: string }>; searchParams: Promise<{ nova?: string; zrusena?: string }> };
+type Props = { params: Promise<{ code: string }>; searchParams: Promise<{ nova?: string; zrusena?: string; platba?: string; vratene?: string; vratenie?: string }> };
 
 export default async function BookingDetail({ params, searchParams }: Props) {
   const { code } = await params;
   const sp = await searchParams;
   const user = await requireUser(`/rezervacia/${code}`);
   if (!/^ISP-[A-Z0-9]{6}$/.test(code)) notFound();
-  const booking = await prisma.booking.findUnique({ where: { code } });
+  let booking = await prisma.booking.findUnique({ where: { code } });
   if (!booking || (booking.userId !== user.id && !isStaff(user.role))) notFound();
+  // Návrat z platobnej stránky: webhook môže prísť o pár sekúnd neskôr, preto sa opýtame brány priamo.
+  if (booking.paymentStatus === 'PENDING') {
+    try {
+      await reconcileBooking(booking.id, await getBaseUrl());
+      booking = (await prisma.booking.findUnique({ where: { code } }))!;
+    } catch (err) {
+      console.error('[payments:reconcile]', code, err);
+    }
+  }
+  const pending = booking.paymentStatus === 'PENDING' && booking.status === 'CONFIRMED';
+  const checkout = pending
+    ? await prisma.payment.findFirst({ where: { bookingId: booking.id, state: 'CREATED', expiresAt: { gt: new Date() } }, orderBy: { createdAt: 'desc' }, select: { checkoutUrl: true, expiresAt: true } })
+    : null;
 
   const settings = await getBookingSettings();
   const site = await getSite();
   const active = booking.status === 'CONFIRMED' && booking.endsAt > new Date();
-  const canCancel = booking.status === 'CONFIRMED' && booking.startsAt.getTime() - Date.now() >= settings.cancelFreeHours * 3600000;
-  const qr = active ? await QRCode.toDataURL(`ISP:${booking.code}:${booking.qrToken}`, { margin: 1, width: 280, color: { dark: '#000000', light: '#ffffff' } }) : null;
+  const canCancel = booking.status === 'CONFIRMED' && (booking.paymentStatus === 'PENDING' || booking.startsAt.getTime() - Date.now() >= settings.cancelFreeHours * 3600000);
+  const qr = active && !pending ? await QRCode.toDataURL(`ISP:${booking.code}:${booking.qrToken}`, { margin: 1, width: 280, color: { dark: '#000000', light: '#ffffff' } }) : null;
 
   return (
     <>
     <RzBand
       crumbs={[{ href: '/', label: 'Komplex' }, { href: '/ucet/rezervacie', label: 'Moje rezervácie' }, { label: booking.code }]}
-      step={booking.status === 'CONFIRMED' ? (active ? 'Potvrdená rezervácia' : 'Odohraná rezervácia') : STATUS_LABEL[booking.status]}
+      step={pending ? 'Čaká na platbu kartou' : booking.status === 'CONFIRMED' ? (active ? 'Potvrdená rezervácia' : 'Odohraná rezervácia') : STATUS_LABEL[booking.status]}
       title={booking.code}
     />
     <section className="ice rz-ice bk">
       <div className="wrap bk__in">
         {sp.nova ? <FormAlert success={emailEnabled() ? 'Hotovo! Rezervácia je potvrdená. Potvrdenie sme poslali aj e-mailom.' : 'Hotovo! Rezervácia je potvrdená. QR kód nájdeš tu aj v Moje rezervácie.'} /> : null}
         {sp.zrusena ? <FormAlert success="Rezervácia je zrušená a čas je opäť voľný." /> : null}
+        {sp.vratene ? <FormAlert success="Peniaze sme vrátili na tvoju kartu. Na účte budú zvyčajne do 5 až 10 pracovných dní." /> : null}
+        {sp.vratenie ? <FormAlert error="Peniaze sa nepodarilo vrátiť automaticky. Recepcia ti ich vráti ručne – nemusíš nič robiť." /> : null}
+        {sp.platba === 'ok' && booking.paymentStatus === 'PAID' ? <FormAlert success={emailEnabled() ? 'Zaplatené. Rezervácia je potvrdená a potvrdenie sme poslali e-mailom.' : 'Zaplatené. Rezervácia je potvrdená.'} /> : null}
+        {sp.platba === 'ok' && pending ? <FormAlert success="Platbu overujeme. Obnov stránku o pár sekúnd." /> : null}
+        {sp.platba === 'zrusena' && pending ? <FormAlert error="Platba nebola dokončená. Termín ti ešte chvíľu podržíme – môžeš zaplatiť znova." /> : null}
+        {sp.platba === 'chyba' && pending ? <FormAlert error="Platobná brána teraz neodpovedá. Skús to o chvíľu znova." /> : null}
+        {sp.platba === 'limit' && pending ? <FormAlert error="Príliš veľa pokusov o platbu. Skús to neskôr alebo kontaktuj recepciu." /> : null}
+        {sp.platba === 'zlyhala' || (sp.platba && booking.status === 'CANCELLED' && booking.paymentStatus === 'UNPAID') ? (
+          <FormAlert error="Platba nebola dokončená, preto sme termín uvoľnili. Žiadne peniaze sme nestiahli." />
+        ) : null}
+        {pending ? (
+          <div className="card bk__paynow" role="region" aria-label="Platba kartou">
+            <h2 className="h-card">Dokonči platbu kartou</h2>
+            <p className="muted">
+              Termín ti držíme do {booking.payDeadline ? booking.payDeadline.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Bratislava' }) : 'konca lehoty'}. Ak platba
+              dovtedy nepríde, rezervácia sa zruší sama a peniaze ti nestiahneme.
+            </p>
+            {checkout?.checkoutUrl ? (
+              <a href={checkout.checkoutUrl} className="btn btn--sm" style={{ alignSelf: 'flex-start' }}>
+                Zaplatiť {euros(booking.priceCents)} kartou
+              </a>
+            ) : (
+              <form action={payAgainAction}>
+                <input type="hidden" name="code" value={booking.code} />
+                <button className="btn btn--sm">Zaplatiť {euros(booking.priceCents)} kartou</button>
+              </form>
+            )}
+          </div>
+        ) : null}
 
         <div className="bk__ticket">
           <div className="bk__info">
-            <span className="kicker">{booking.status === 'CONFIRMED' ? (active ? 'Potvrdená rezervácia' : 'Odohraná rezervácia') : STATUS_LABEL[booking.status]}</span>
-            <h1 className="display bk__title">{fmtDayLong(booking.startsAt)}</h1>
+            <span className="kicker">{pending ? 'Čaká na platbu' : booking.status === 'CONFIRMED' ? (active ? 'Potvrdená rezervácia' : 'Odohraná rezervácia') : STATUS_LABEL[booking.status]}</span>
+            <h2 className="display bk__title">{fmtDayLong(booking.startsAt)}</h2>
             <p className="bk__time num">{fmtRange(booking.startsAt, booking.endsAt)}</p>
             <dl className="rez__dl bk__dl">
               <div>
@@ -70,6 +115,7 @@ export default async function BookingDetail({ params, searchParams }: Props) {
                 <dt>Platba</dt>
                 <dd>
                   {METHOD_LABEL[booking.paymentMethod]} · {PAYMENT_LABEL[booking.paymentStatus]}
+                  {booking.refundedCents > 0 ? ` · vrátené ${euros(booking.refundedCents)}` : ''}
                 </dd>
               </div>
               {booking.teamName ? (
@@ -142,7 +188,7 @@ export default async function BookingDetail({ params, searchParams }: Props) {
             <h2 className="h-card">Presun a zrušenie</h2>
             {canCancel ? (
               <>
-                {booking.paymentStatus !== 'PAID' ? (
+                {booking.paymentStatus === 'UNPAID' ? (
                   <Link
                     href={`/rezervacia?presun=${booking.code}&sprchy=${booking.showers > 0 ? 1 : 0}`}
                     className="btn btn--sm btn--ghost"
@@ -151,9 +197,9 @@ export default async function BookingDetail({ params, searchParams }: Props) {
                     Presunúť na iný termín
                   </Link>
                 ) : (
-                  <p className="muted">Zaplatenú rezerváciu presunie recepcia.</p>
+                  <p className="muted">{pending ? 'Rezerváciu čakajúcu na platbu nemožno presunúť – zruš ju a vytvor novú.' : 'Zaplatenú rezerváciu presunie recepcia.'}</p>
                 )}
-                <CancelBookingForm code={booking.code} cancelFreeHours={settings.cancelFreeHours} />
+                <CancelBookingForm code={booking.code} cancelFreeHours={settings.cancelFreeHours} paidByCard={booking.paymentMethod === 'CARD' && (booking.paymentStatus === 'PAID' || booking.paymentStatus === 'PARTIALLY_REFUNDED')} />
               </>
             ) : (
               <p className="muted">

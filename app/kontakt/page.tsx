@@ -41,7 +41,7 @@ export default async function KontaktPage() {
               </strong>
               {site.hall.mapUrl ? (
                 <a href={site.hall.mapUrl} className="ulink" rel="noopener noreferrer" target="_blank" style={{ marginTop: 8, fontSize: 15 }}>
-                  Navigovať
+                  Navigovať<span className="sr-only"> (otvorí sa v novom okne)</span>
                 </a>
               ) : null}
             </div>

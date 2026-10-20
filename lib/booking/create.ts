@@ -22,6 +22,8 @@ export type CreateInput = {
   createdById?: string | null;
   movedFromCode?: string | null;
   paid?: boolean;
+  cardPending?: boolean; // platba kartou online – čas podržíme do holdUntil, potom sa rezervácia zruší
+  holdUntil?: Date;
   staff?: boolean;
   iso: string;
   startHour: number;
@@ -78,6 +80,7 @@ export async function createBooking(s: BookingSettings, input: CreateInput): Pro
           createdById: input.createdById ?? null,
           movedFromCode: input.movedFromCode ?? null,
           ...(input.paid ? { paymentStatus: 'PAID' as const, paidAt: new Date() } : {}),
+          ...(input.cardPending && !input.paid ? { paymentStatus: 'PENDING' as const, payDeadline: input.holdUntil ?? new Date(Date.now() + 45 * 60000) } : {}),
           area: 'FULL' as Area,
           startsAt,
           endsAt,
@@ -107,7 +110,7 @@ export async function createBooking(s: BookingSettings, input: CreateInput): Pro
 }
 
 // Zrušenie: uvoľní hodiny (zmaže sloty) a označí rezerváciu ako zrušenú.
-export async function cancelBooking(id: string, by: 'customer' | 'staff', reason: string | null): Promise<boolean> {
+export async function cancelBooking(id: string, by: 'customer' | 'staff' | 'system', reason: string | null): Promise<boolean> {
   const r = await prisma.$transaction(async (tx) => {
     const updated = await tx.booking.updateMany({
       where: { id, status: 'CONFIRMED' },

@@ -7,7 +7,8 @@ import { AREA_LABEL, METHOD_LABEL, PAYMENT_LABEL, STATUS_LABEL } from '@/lib/boo
 import { euros, fmtDayLong, fmtRange } from '@/lib/booking/time';
 import { AdmHead, Chip, Empty, Panel, ago, auditText, fmtDateTime } from '@/components/admin/ui';
 import { FormAlert } from '@/components/forms/FormAlert';
-import { adminCancelBooking, adminCheckIn, adminMarkPaid, adminMarkUnpaid, adminNoShow } from '@/lib/actions/adminBooking';
+import { adminCancelBooking, adminCheckIn, adminMarkPaid, adminMarkUnpaid, adminNoShow, adminRefundAction } from '@/lib/actions/adminBooking';
+import { getProvider } from '@/lib/payments';
 
 export const metadata: Metadata = { title: 'Detail rezervácie' };
 
@@ -20,7 +21,15 @@ const NOTICE: Record<string, { ok: boolean; text: string }> = {
   zrusena: { ok: true, text: 'Rezervácia je zrušená a čas je opäť voľný.' },
   'nie-aktivna': { ok: false, text: 'Rezervácia už nie je aktívna.' },
   'este-nezacala': { ok: false, text: '„Neprišiel“ sa dá označiť až po začiatku rezervácie.' },
+  vratene: { ok: true, text: 'Peniaze sú vrátené na kartu zákazníka. Zákazník dostal e-mail.' },
+  'vratenie-zlyhalo': { ok: false, text: 'Vrátenie sa nepodarilo. Skontroluj platobnú bránu alebo vráť peniaze priamo v jej administrácii – stav sa zladí sám.' },
+  'zrusena-bez-vratenia': { ok: false, text: 'Rezervácia je zrušená, ale peniaze sa nepodarilo vrátiť automaticky. Vráť ich v sekcii Platby kartou nižšie.' },
+  'karta-vratit': { ok: false, text: 'Rezervácia je zaplatená kartou online. Namiesto zrušenia označenia vráť peniaze v sekcii Platby kartou.' },
+  'suma-neplatna': { ok: false, text: 'Neplatná suma. Zadaj napr. 25 alebo 12,50.' },
+  limit: { ok: false, text: 'Príliš veľa vrátení za krátky čas. Skús to neskôr.' },
 };
+
+const PAY_STATE: Record<string, string> = { CREATED: 'čaká na zákazníka', SUCCEEDED: 'zaplatené', FAILED: 'zlyhala', EXPIRED: 'vypršala', CANCELED: 'zrušená' };
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ stav?: string | string[] }> };
 
@@ -28,7 +37,10 @@ export default async function AdminBookingDetail({ params, searchParams }: Props
   const { id } = await params;
   const me = await requireStaff('bookings.view', `/admin/rezervacie/${id}`);
   const sp = await searchParams;
-  const b = await prisma.booking.findUnique({ where: { id }, include: { user: { select: { id: true, email: true, firstName: true, lastName: true, phone: true } } } });
+  const b = await prisma.booking.findUnique({
+    where: { id },
+    include: { user: { select: { id: true, email: true, firstName: true, lastName: true, phone: true } }, payments: { orderBy: { createdAt: 'desc' }, include: { refunds: { orderBy: { createdAt: 'desc' } } } } },
+  });
   if (!b) notFound();
   const changes = await prisma.auditLog.findMany({ where: { target: b.id }, orderBy: { createdAt: 'desc' }, take: 10, include: { actor: { select: { firstName: true, lastName: true } } } });
   const manage = can(me.role, 'bookings.manage');
@@ -37,6 +49,9 @@ export default async function AdminBookingDetail({ params, searchParams }: Props
   const started = b.startsAt <= new Date();
   const notice = typeof sp.stav === 'string' ? NOTICE[sp.stav] : undefined;
   const hidden = <input type="hidden" name="bookingId" value={b.id} />;
+  const provider = getProvider();
+  const cardPaid = b.payments.filter((p) => p.state === 'SUCCEEDED').reduce((a, p) => a + p.amountCents, 0);
+  const cardLeft = cardPaid - b.payments.reduce((a, p) => a + (p.state === 'SUCCEEDED' ? p.refundedCents : 0), 0);
 
   return (
     <div className="adm__stack">
@@ -59,7 +74,7 @@ export default async function AdminBookingDetail({ params, searchParams }: Props
                 <button className="btn btn--sm">Potvrdiť príchod</button>
               </form>
             ) : null}
-            {pay && b.paymentStatus !== 'PAID' ? (
+            {pay && (b.paymentStatus === 'UNPAID' || b.paymentStatus === 'PENDING') ? (
               <form action={adminMarkPaid}>
                 {hidden}
                 <button className="btn btn--sm btn--ghost">Označiť ako zaplatenú ({euros(b.priceCents)})</button>
@@ -91,6 +106,12 @@ export default async function AdminBookingDetail({ params, searchParams }: Props
                   <input type="checkbox" name="notify" defaultChecked />
                   <span>Poslať zákazníkovi e-mail o zrušení</span>
                 </label>
+                {pay && cardLeft > 0 ? (
+                  <label className="check" style={{ flex: '1 1 100%' }}>
+                    <input type="checkbox" name="refund" defaultChecked />
+                    <span>Vrátiť {euros(cardLeft)} na kartu zákazníka</span>
+                  </label>
+                ) : null}
                 <button className="btn btn--sm btn--danger">Zrušiť rezerváciu</button>
               </form>
             </details>
@@ -110,7 +131,7 @@ export default async function AdminBookingDetail({ params, searchParams }: Props
               <dd>{b.hours} h</dd>
             </div>
             <div>
-              <dt>Šatne</dt>
+              <dt>Sprchy</dt>
               <dd>{b.showers ? `áno (${euros(b.showerCents)})` : 'nie'}</dd>
             </div>
             <div>
@@ -125,6 +146,18 @@ export default async function AdminBookingDetail({ params, searchParams }: Props
               <dt>Zaplatené</dt>
               <dd>{b.paidAt ? fmtDateTime(b.paidAt) : 'Nie'}</dd>
             </div>
+            {b.refundedCents > 0 ? (
+              <div>
+                <dt>Vrátené</dt>
+                <dd>{euros(b.refundedCents)}</dd>
+              </div>
+            ) : null}
+            {b.paymentStatus === 'PENDING' && b.payDeadline ? (
+              <div>
+                <dt>Termín držíme do</dt>
+                <dd>{fmtDateTime(b.payDeadline)}</dd>
+              </div>
+            ) : null}
             <div>
               <dt>Príchod</dt>
               <dd>{b.checkedInAt ? fmtDateTime(b.checkedInAt) : '—'}</dd>
@@ -179,6 +212,72 @@ export default async function AdminBookingDetail({ params, searchParams }: Props
           </dl>
         </Panel>
       </div>
+
+      {b.payments.length > 0 ? (
+        <Panel title="Platby kartou">
+          <div className="adm-table-wrap">
+            <table className="adm-table">
+              <caption className="sr-only">Platby kartou k rezervácii {b.code}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Vytvorená</th>
+                  <th scope="col">Brána</th>
+                  <th scope="col">Suma</th>
+                  <th scope="col">Stav</th>
+                  <th scope="col">Vrátené</th>
+                </tr>
+              </thead>
+              <tbody>
+                {b.payments.map((p) => (
+                  <tr key={p.id}>
+                    <td>{fmtDateTime(p.createdAt)}</td>
+                    <td>
+                      {p.provider}
+                      {p.livemode ? '' : ' · test'}
+                    </td>
+                    <td>{euros(p.amountCents)}</td>
+                    <td>
+                      {PAY_STATE[p.state] ?? p.state}
+                      {p.paidAt ? ` · ${fmtDateTime(p.paidAt)}` : ''}
+                      {p.failureReason ? ` · ${p.failureReason}` : ''}
+                    </td>
+                    <td>
+                      {p.refundedCents > 0 ? euros(p.refundedCents) : '—'}
+                      {p.refunds.map((r) => (
+                        <small key={r.id} className="muted" style={{ display: 'block' }}>
+                          {fmtDateTime(r.createdAt)} · {euros(r.amountCents)} · {r.status}
+                          {r.reason ? ` · ${r.reason}` : ''}
+                        </small>
+                      ))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {pay && cardLeft > 0 ? (
+            provider ? (
+              <details className="tfa__more">
+                <summary>Vrátiť peniaze na kartu</summary>
+                <form action={adminRefundAction} className="adm-inline-form">
+                  {hidden}
+                  <label className="adm-label">
+                    Suma v € (prázdne = celých {euros(cardLeft)})
+                    <input name="amount" className="adm-input" inputMode="decimal" maxLength={20} placeholder={(cardLeft / 100).toFixed(2).replace('.', ',')} />
+                  </label>
+                  <label className="adm-label">
+                    Dôvod
+                    <input name="reason" className="adm-input" maxLength={300} placeholder="napr. skrátený tréning, porucha rolby" />
+                  </label>
+                  <button className="btn btn--sm btn--danger">Vrátiť peniaze</button>
+                </form>
+              </details>
+            ) : (
+              <p className="muted">Platobná brána je teraz vypnutá. Peniaze vráť priamo v jej administrácii – stav sa zladí, keď ju znova zapneš.</p>
+            )
+          ) : null}
+        </Panel>
+      ) : null}
 
       <Panel title="Zásahy personálu">
         {changes.length === 0 ? (

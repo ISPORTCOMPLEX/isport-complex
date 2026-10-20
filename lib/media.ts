@@ -15,6 +15,8 @@ export const SLOTS = [
 ] as const;
 export type SlotKey = (typeof SLOTS)[number]['key'];
 export const isSlot = (v: string): v is SlotKey => SLOTS.some((s) => s.key === v);
+// Náhradný alternatívny text, kým personál nenapíše vlastný (WCAG 1.1.1 – fotka nesmie byť pre čítačku prázdna).
+export const slotAlt = (slot: string) => `${SLOTS.find((s) => s.key === slot)?.label ?? 'I-SPORT COMPLEX'} – fotka z I-SPORT COMPLEX Košice`;
 
 export type WebPhoto = { id: string; alt: string; width: number; height: number; src: string; srcSet: string };
 
@@ -26,7 +28,7 @@ export function toWebPhoto(p: { id: string; publicId: string; version: number; a
   const widths = WIDTHS.filter((w) => w <= Math.max(p.width, 480));
   return {
     id: p.id,
-    alt: p.alt,
+    alt: p.alt || 'Fotka z I-SPORT COMPLEX Košice',
     width: p.width,
     height: p.height,
     src: imageUrl(cloud, p.publicId, p.version, 1200, ratio),

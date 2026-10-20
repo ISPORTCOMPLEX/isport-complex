@@ -224,7 +224,7 @@ export default async function HomePage() {
             </svg>
             {site.hall.mapUrl ? (
               <a href={site.hall.mapUrl} target="_blank" rel="noopener noreferrer" className="vx__nav">
-                Navigovať v Mapách
+                Navigovať v Mapách<span className="sr-only"> (otvorí sa v novom okne)</span>
               </a>
             ) : null}
             <span className="vx__note">Ilustračná mapa</span>

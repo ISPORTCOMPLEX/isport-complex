@@ -23,6 +23,7 @@ enum Role {
 enum TokenType {
   VERIFY_EMAIL
   RESET_PASSWORD
+  LOGIN_LINK // prihlásenie odkazom z e-mailu (prístupná alternatíva k CAPTCHA)
 }
 
 model User {
@@ -162,7 +163,9 @@ enum BookingStatus {
 
 enum PaymentStatus {
   UNPAID
+  PENDING // čaká na platbu kartou online (čas je podržaný do payDeadline)
   PAID
+  PARTIALLY_REFUNDED
   REFUNDED
 }
 
@@ -193,6 +196,8 @@ model Booking {
   paymentStatus PaymentStatus @default(UNPAID)
   paymentMethod PaymentMethod @default(ONSITE)
   paidAt        DateTime?
+  payDeadline   DateTime? // do kedy musí prísť platba kartou, inak sa rezervácia zruší
+  refundedCents Int           @default(0)
   contactName   String
   contactPhone  String
   teamName      String?
@@ -205,11 +210,74 @@ model Booking {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  slots BookingSlot[]
+  slots    BookingSlot[]
+  payments Payment[]
 
   @@index([startsAt])
   @@index([userId, startsAt])
   @@index([status, startsAt])
+  @@index([paymentStatus, payDeadline])
+}
+
+// ───────────────────────── Platby kartou online ─────────────────────────
+// Brána je pripravená, ale vypnutá (PAYMENTS_PROVIDER=off). Postup zapnutia: docs/PLATBY.md.
+// Číslo karty ani iné údaje o karte sa sem nikdy neukladajú – platbu spracúva brána na svojej stránke.
+
+enum PaymentState {
+  CREATED // platobná relácia vytvorená, zákazník platí
+  SUCCEEDED
+  FAILED
+  EXPIRED
+  CANCELED
+}
+
+model Payment {
+  id            String       @id @default(cuid())
+  bookingId     String
+  booking       Booking      @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  provider      String // stripe | mock | …
+  sessionRef    String       @unique // id platobnej relácie u brány (Stripe: cs_…)
+  intentRef     String?      @unique // id samotnej platby (Stripe: pi_…), potrebné na vrátenie peňazí
+  amountCents   Int
+  currency      String       @default("EUR")
+  state         PaymentState @default(CREATED)
+  refundedCents Int          @default(0)
+  checkoutUrl   String?
+  expiresAt     DateTime?
+  paidAt        DateTime?
+  failureReason String?
+  livemode      Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  refunds Refund[]
+
+  @@index([bookingId])
+  @@index([state, expiresAt])
+}
+
+model Refund {
+  id          String   @id @default(cuid())
+  paymentId   String
+  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  providerRef String   @unique // Stripe: re_…
+  amountCents Int
+  reason      String?
+  status      String // succeeded | pending | failed
+  createdById String? // personál; null = automaticky (zrušenie zákazníkom)
+  createdAt   DateTime @default(now())
+
+  @@index([paymentId])
+}
+
+// Prijaté udalosti z brány – každú spracujeme práve raz (brány posielajú udalosti aj opakovane).
+model PaymentEvent {
+  id         String   @id // <provider>:<id udalosti>
+  provider   String
+  type       String
+  receivedAt DateTime @default(now())
+
+  @@index([receivedAt])
 }
 
 // Obsadené hodiny po polovicach ľadu (A, B). Unikátny index zaručí, že tú istú polovicu v tú istú hodinu

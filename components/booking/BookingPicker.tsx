@@ -112,7 +112,7 @@ export function BookingPicker({ days, iso, slots, initialHour, initialShowers, m
                 <strong>Sprchy po tréningu</strong>
                 <span>{eur(showerPrice)} jednorazovo pre celý tím. Šatňa je v cene prenájmu.</span>
               </div>
-              <input type="checkbox" className="rz-switch" checked={showers} onChange={(e) => setShowers(e.target.checked)} />
+              <input type="checkbox" role="switch" className="rz-switch" checked={showers} onChange={(e) => setShowers(e.target.checked)} />
             </label>
           </section>
         ) : null}
@@ -158,7 +158,7 @@ export function BookingPicker({ days, iso, slots, initialHour, initialShowers, m
             </button>
           </div>
         </div>
-        <div className="rz-total">
+        <div className="rz-total" aria-live="polite" aria-atomic="true">
           <span>Spolu s DPH</span>
           <strong>{valid ? eur(ice + extra) : '—'}</strong>
         </div>

@@ -6,7 +6,7 @@ import { requireStaff } from '@/lib/staff';
 import { hitLimit } from '@/lib/rateLimit';
 import { getRequestInfo } from '@/lib/requestInfo';
 import { cloudinaryConfig, destroyResource, getResource, uploadParams, verifyUploadSignature, MAX_BYTES } from '@/lib/cloudinary';
-import { isSlot } from '@/lib/media';
+import { isSlot, slotAlt } from '@/lib/media';
 
 // Správa fotiek. Súbor ide z prehliadača priamo do Cloudinary; sem prídu len podpísané údaje o ňom.
 
@@ -60,7 +60,7 @@ export async function savePhotoAction(input: { slot: string; publicId: string; v
   const max = await prisma.photo.aggregate({ where: { slot }, _max: { sort: true } });
   await prisma.photo.upsert({
     where: { publicId: r.public_id },
-    create: { publicId: r.public_id, version: r.version, slot, alt: String(input?.alt ?? '').slice(0, 200), width: r.width, height: r.height, format: r.format, bytes: r.bytes, sort: (max._max.sort ?? -1) + 1, createdById: me.id },
+    create: { publicId: r.public_id, version: r.version, slot, alt: String(input?.alt ?? '').trim().slice(0, 200) || slotAlt(slot), width: r.width, height: r.height, format: r.format, bytes: r.bytes, sort: (max._max.sort ?? -1) + 1, createdById: me.id },
     update: {},
   });
   await audit(me.id, 'photo.upload', r.public_id, { slot, bytes: r.bytes });
@@ -75,8 +75,8 @@ export async function updatePhotoAction(form: FormData): Promise<void> {
   const photo = await prisma.photo.findUnique({ where: { id } });
   if (!photo) return;
   if (op === 'alt') {
-    const alt = String(form.get('alt') ?? '').trim().slice(0, 200);
-    await prisma.photo.update({ where: { id }, data: { alt } });
+    const typed = String(form.get('alt') ?? '').trim().slice(0, 200);
+    await prisma.photo.update({ where: { id }, data: { alt: typed || slotAlt(photo.slot) } });
   } else if (op === 'up' || op === 'down' || op === 'first') {
     const list = await prisma.photo.findMany({ where: { slot: photo.slot }, orderBy: [{ sort: 'asc' }, { createdAt: 'asc' }], select: { id: true } });
     const ids = list.map((p) => p.id);

@@ -63,11 +63,11 @@ export function RegisterForm({ captcha, stamp }: { captcha: CaptchaData; stamp: 
         <Check name="terms" error={e.terms}>
           Súhlasím s{' '}
           <Link href="/obchodne-podmienky" target="_blank" className="link-red">
-            obchodnými podmienkami
+            obchodnými podmienkami<span className="sr-only"> (otvorí sa v novom okne)</span>
           </Link>{' '}
           a beriem na vedomie{' '}
           <Link href="/ochrana-osobnych-udajov" target="_blank" className="link-red">
-            ochranu osobných údajov
+            ochranu osobných údajov<span className="sr-only"> (otvorí sa v novom okne)</span>
           </Link>
           .
         </Check>
