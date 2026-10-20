@@ -52,7 +52,14 @@ export function MobileNav({ loggedIn = false }: { loggedIn?: boolean }) {
   return (
     <details className="mnav" key={pathname} ref={ref}>
       <summary aria-label="Menu">
-        <IconMenu />
+        <span className="mnav__ic mnav__ic--open" aria-hidden="true">
+          <IconMenu />
+        </span>
+        <span className="mnav__ic mnav__ic--close" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+          </svg>
+        </span>
       </summary>
       <nav className="mnav__panel" aria-label="Mobilné menu">
         {NAV.map((item) => (
@@ -60,6 +67,9 @@ export function MobileNav({ loggedIn = false }: { loggedIn?: boolean }) {
             {item.label}
           </Link>
         ))}
+        <Link href="/fotky" aria-current={pathname === '/fotky' || pathname.startsWith('/fotky/') ? 'page' : undefined}>
+          Fotky
+        </Link>
         {loggedIn ? <Link href="/ucet">Môj účet</Link> : <Link href="/prihlasenie">Prihlásiť sa</Link>}
         <Link href="/rezervacia" className="btn btn--icon">
           Rezervovať ľad

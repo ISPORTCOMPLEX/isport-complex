@@ -2106,3 +2106,51 @@ picture.ph > source { display: none; }
 }
 .pp__plink { display: block; cursor: zoom-in; border-radius: 18px; }
 .pp__plink:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+
+/* ───────────── Mobilná verzia (v12) ───────────── */
+:root { --hd-h: 72px; }
+@media (max-width: 640px) { :root { --hd-h: 64px; } }
+/* nič nesmie posúvať stránku do strany (napr. veľký nápis v päte) */
+html, body { overflow-x: clip; }
+.ft__word { font-size: clamp(40px, 16.4vw, 236px); overflow: hidden; max-width: 100%; }
+
+/* Menu: rozmazanie pozadia hlavičky (backdrop-filter) z nej robí obal pre position: fixed,
+   takže panel menu mal výšku 0 a nebol vidieť. Pri otvorenom menu rozmazanie vypneme. */
+.hd:has(.mnav[open]) { -webkit-backdrop-filter: none; backdrop-filter: none; background: #050506; }
+html:has(.mnav[open]) { overflow: hidden; }
+.mnav__ic { display: grid; place-items: center; }
+.mnav__ic--close { display: none; }
+.mnav[open] .mnav__ic--open { display: none; }
+.mnav[open] .mnav__ic--close { display: grid; }
+@media (max-width: 1180px) {
+  .mnav__panel { top: var(--hd-h); padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
+  .mnav[open] .mnav__panel { animation: mnav-in 0.18s ease-out; }
+}
+@keyframes mnav-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 700px) {
+  /* svetlé „ľadové“ sekcie: modrý pruh vľavo zaberal miesto a posúval obsah */
+  .rz-ice { padding: 32px 0 64px; }
+  .rz-ice::before { width: 4px; left: 0; }
+  .rz-ice > .wrap { padding-left: var(--gutter); }
+  .au__dark::before { width: 4px; left: 0; }
+  .au__dark-in { padding: 32px var(--gutter) 28px; }
+  .au__title { font-size: 56px; }
+
+  /* päta: kompaktnejšia, dva stĺpce odkazov */
+  .ft { padding: 48px 0 calc(24px + env(safe-area-inset-bottom)); }
+  .ft__in { gap: 32px; }
+  .ft__cols { grid-template-columns: 1fr 1fr; gap: 28px 20px; }
+  .ft__brand { grid-column: 1 / -1; }
+  .ft__brand .logo__lockup, .ft__brand svg { max-width: 220px; height: auto; }
+  .ft__col { font-size: 15px; gap: 10px; }
+  .ft__bottom { flex-direction: column; gap: 10px; }
+}
+@media (max-width: 700px) {
+  .ft__word { font-size: 11.4vw; }
+  /* cenník: tri ceny vedľa seba sa na úzkom displeji tlačili */
+  .pt__row--head strong { font-size: 22px; }
+  .pt__row--head small { font-size: 12px; }
+  .pt__row .cond { font-size: 34px; }
+  .pt__row > span { padding: 14px 10px; }
+}
