@@ -52,6 +52,7 @@ model User {
 
   auditLogs  AuditLog[]
   authTokens AuthToken[]
+  bookings   Booking[]
 }
 
 // Jednorazové odkazy z e-mailov (overenie e-mailu, obnova hesla). V DB je len odtlačok tokenu.
@@ -107,4 +108,103 @@ model AuditLog {
 
   @@index([createdAt])
   @@index([actorId])
+}
+
+// ───────────────────────── Fáza 3: rezervácie ─────────────────────────
+
+enum Area {
+  FULL
+  HALF_A
+  HALF_B
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
+enum PaymentMethod {
+  ONSITE
+  TRANSFER
+  CARD
+}
+
+model Booking {
+  id            String        @id @default(cuid())
+  code          String        @unique
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  area          Area
+  startsAt      DateTime
+  endsAt        DateTime
+  hours         Int
+  priceCents    Int
+  status        BookingStatus @default(CONFIRMED)
+  paymentStatus PaymentStatus @default(UNPAID)
+  paymentMethod PaymentMethod @default(ONSITE)
+  paidAt        DateTime?
+  contactName   String
+  contactPhone  String
+  teamName      String?
+  note          String?
+  qrToken       String        @unique
+  checkedInAt   DateTime?
+  cancelledAt   DateTime?
+  cancelReason  String?
+  cancelledBy   String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  slots BookingSlot[]
+
+  @@index([startsAt])
+  @@index([userId, startsAt])
+  @@index([status, startsAt])
+}
+
+// Obsadené hodiny po polovicach ľadu (A, B). Unikátny index zaručí, že tú istú polovicu v tú istú hodinu
+// nemôžu obsadiť dvaja naraz – ani pri súbežných rezerváciách. Celá plocha = obe polovice.
+model BookingSlot {
+  id        String   @id @default(cuid())
+  slotStart DateTime
+  half      String
+  bookingId String?
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  blockId   String?
+  block     Block?   @relation(fields: [blockId], references: [id], onDelete: Cascade)
+
+  @@unique([slotStart, half])
+  @@index([bookingId])
+  @@index([blockId])
+}
+
+// Blokovaný čas (úprava ľadu, údržba, turnaj) – zadáva administrácia.
+model Block {
+  id        String   @id @default(cuid())
+  area      Area
+  startsAt  DateTime
+  endsAt    DateTime
+  reason    String
+  createdBy String?
+  createdAt DateTime @default(now())
+
+  slots BookingSlot[]
+
+  @@index([startsAt])
+}
+
+// Nastavenia (cenník, otváracie hodiny…) ako JSON pod kľúčom.
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+  updatedBy String?
 }

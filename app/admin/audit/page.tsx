@@ -53,7 +53,19 @@ export default async function AuditPage({ searchParams }: Props) {
                     <td className="nowrap">{fmtDateTime(r.createdAt)}</td>
                     <td>{r.actor ? `${r.actor.firstName} ${r.actor.lastName}` : <span className="muted">zmazaný účet</span>}</td>
                     <td>{auditText(r.action, r.meta)}</td>
-                    <td>{r.target ? <Link href={`/admin/zakaznici/${r.target}`}>{targetEmail.get(r.target) ?? 'účet'}</Link> : '—'}</td>
+                    <td>
+                      {!r.target ? (
+                        '—'
+                      ) : r.action.startsWith('user.') ? (
+                        <Link href={`/admin/zakaznici/${r.target}`}>{targetEmail.get(r.target) ?? 'účet'}</Link>
+                      ) : r.action.startsWith('booking.') ? (
+                        <Link href={`/admin/rezervacie/${r.target}`}>{String((r.meta as Record<string, unknown> | null)?.code ?? 'rezervácia')}</Link>
+                      ) : r.action.startsWith('block.') ? (
+                        'kalendár'
+                      ) : (
+                        'nastavenia'
+                      )}
+                    </td>
                     <td>{r.ip ?? '—'}</td>
                   </tr>
                 ))}

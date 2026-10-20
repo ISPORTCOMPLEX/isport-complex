@@ -195,9 +195,17 @@ export async function deleteAccountAction(_prev: FormState, form: FormData): Pro
     return { error: 'Kód z aplikácie nie je správny.', errors: { code: 'Kód nie je správny.' } };
   }
 
-  // Anonymizácia: osobné údaje sa odstránia, záznam ostane kvôli účtovníctvu budúcich rezervácií.
+  // Anonymizácia: osobné údaje sa odstránia, záznam ostane kvôli účtovníctvu rezervácií.
+  // Budúce rezervácie sa zrušia a ich čas sa uvoľní.
   const now = new Date();
+  const future = await prisma.booking.findMany({ where: { userId: user.id, status: 'CONFIRMED', startsAt: { gt: now } }, select: { id: true } });
   await prisma.$transaction([
+    prisma.bookingSlot.deleteMany({ where: { bookingId: { in: future.map((f) => f.id) } } }),
+    prisma.booking.updateMany({
+      where: { id: { in: future.map((f) => f.id) } },
+      data: { status: 'CANCELLED', cancelledAt: now, cancelledBy: 'customer', cancelReason: 'Zmazanie účtu' },
+    }),
+    prisma.booking.updateMany({ where: { userId: user.id }, data: { contactName: 'Zmazaný používateľ', contactPhone: '', note: null } }),
     prisma.authToken.deleteMany({ where: { userId: user.id } }),
     prisma.user.update({
       where: { id: user.id },

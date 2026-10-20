@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 
 const ITEMS = [
   { href: '/ucet', label: 'Prehľad' },
+  { href: '/ucet/rezervacie', label: 'Moje rezervácie' },
   { href: '/ucet/profil', label: 'Osobné údaje' },
   { href: '/ucet/zabezpecenie', label: 'Zabezpečenie' },
   { href: '/ucet/sukromie', label: 'Súkromie a údaje' },

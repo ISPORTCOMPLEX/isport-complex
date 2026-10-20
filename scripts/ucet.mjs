@@ -4,6 +4,7 @@
 //   node --env-file=.env scripts/ucet.mjs overit EMAIL      označí e-mail ako overený
 //   node --env-file=.env scripts/ucet.mjs odomknut EMAIL    zruší zámok po neúspešných prihláseniach
 //   node --env-file=.env scripts/ucet.mjs rola EMAIL ROLA   CUSTOMER | CLUB_MANAGER | RECEPTION | ACCOUNTANT | ADMIN
+//   node --env-file=.env scripts/ucet.mjs heslo EMAIL       nastaví nové heslo (opýta sa naň), odomkne účet
 //   node --env-file=.env scripts/ucet.mjs zoznam            vypíše posledných 50 účtov
 
 import { PrismaClient } from '@prisma/client';
@@ -117,6 +118,21 @@ async function main() {
       console.log(`Hotovo: účet ${u.email} je odomknutý a limity prihlásenia vynulované.`);
       break;
     }
+    case 'heslo': {
+      const u = await findUser(a);
+      const pw = await askHidden('Nové heslo (nezobrazuje sa): ');
+      const problem = passwordProblem(pw);
+      if (problem) throw new Error(problem);
+      const pw2 = await askHidden('Nové heslo znova: ');
+      if (pw !== pw2) throw new Error('Heslá sa nezhodujú.');
+      await prisma.user.update({
+        where: { id: u.id },
+        data: { passwordHash: await bcrypt.hash(pw, 10), passwordChangedAt: new Date(), failedLoginCount: 0, lockedUntil: null, emailVerifiedAt: u.emailVerifiedAt ?? new Date() },
+      });
+      await prisma.rateLimit.deleteMany({ where: { key: { startsWith: 'login:' } } });
+      console.log(`Hotovo: ${u.email} má nové heslo, účet je odomknutý. Prihlás sa na /prihlasenie.`);
+      break;
+    }
     case 'rola': {
       const role = String(b ?? '').toUpperCase();
       if (!ROLES.includes(role)) throw new Error(`Rola musí byť jedna z: ${ROLES.join(', ')}`);
@@ -135,7 +151,7 @@ async function main() {
       break;
     }
     default:
-      console.log('Príkazy: admin | overit EMAIL | odomknut EMAIL | rola EMAIL ROLA | zoznam');
+      console.log('Príkazy: admin | heslo EMAIL | overit EMAIL | odomknut EMAIL | rola EMAIL ROLA | zoznam');
   }
 }
 

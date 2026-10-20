@@ -2,11 +2,19 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { requireUser } from '@/lib/session';
 import { ArrowUpRight } from '@/components/Icons';
+import { prisma } from '@/lib/prisma';
+import { AREA_LABEL } from '@/lib/booking/format';
+import { fmtDayShort, fmtRange } from '@/lib/booking/time';
 
 export const metadata: Metadata = { title: 'Môj účet' };
 
 export default async function UcetPage() {
   const user = await requireUser('/ucet');
+  const nextBookings = await prisma.booking.findMany({
+    where: { userId: user.id, status: 'CONFIRMED', endsAt: { gt: new Date() } },
+    orderBy: { startsAt: 'asc' },
+    take: 3,
+  });
   const since = new Intl.DateTimeFormat('sk-SK', { month: 'long', year: 'numeric', timeZone: 'Europe/Bratislava' }).format(user.createdAt);
   return (
     <div className="acct__stack">
@@ -30,10 +38,21 @@ export default async function UcetPage() {
       </Link>
 
       <div className="acct__grid">
-        <div className="card acct__tile">
+        <Link href="/ucet/rezervacie" className="card acct__tile">
           <h2 className="h-card">Moje rezervácie</h2>
-          <p className="muted">Zatiaľ nemáš žiadne rezervácie. Tu uvidíš nadchádzajúce tréningy, QR vstup a faktúry.</p>
-        </div>
+          {nextBookings.length === 0 ? (
+            <p className="muted">Nemáš žiadne nadchádzajúce rezervácie.</p>
+          ) : (
+            <ul className="acct__mini">
+              {nextBookings.map((b) => (
+                <li key={b.id}>
+                  <strong>{fmtDayShort(b.startsAt)}</strong> <span className="num">{fmtRange(b.startsAt, b.endsAt)}</span>
+                  <small>{AREA_LABEL[b.area]}</small>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Link>
         <Link href="/ucet/zabezpecenie" className="card acct__tile">
           <h2 className="h-card">Zabezpečenie</h2>
           <p className="muted">Dvojstupňové overenie:</p>

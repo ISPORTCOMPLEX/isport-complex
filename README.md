@@ -59,3 +59,12 @@ Premenné: `AUTH_SECRET`, `APP_URL`, `RESEND_API_KEY`, `EMAIL_FROM` (pozri `.env
 - Zásahy administrátora: overiť e-mail, odomknúť, zablokovať/odblokovať, odhlásiť všade, poslať obnovu hesla,
   zrušiť 2FA, zmeniť rolu. Nedajú sa robiť na vlastnom účte, posledný administrátor sa nedá odobrať.
 - Prvý administrátor: `node --env-file=.env scripts/ucet.mjs admin`.
+
+## Fáza 3 – rezervácie
+
+- /rezervacia: výber plochy (celá / polovica), dňa a začiatku, 1 – N hodín, cena podľa cenníka.
+- Obsadenie hodín chráni unikátny index (BookingSlot) – dvojitá rezervácia toho istého času nie je možná ani pri súbežných požiadavkách.
+- Potvrdenie s QR kódom, e-mail, súbor do kalendára (.ics), Moje rezervácie, zrušenie online do X hodín vopred.
+- Administrácia: Kalendár ľadu (deň, polovice A/B, blokovanie času), Rezervácie (filtre, hľadanie, detail:
+  príchod, zaplatené, neprišiel, zrušenie s e-mailom), Cenník a nastavenia (uložené v DB, tabuľka Setting).
+- Platba zatiaľ na recepcii alebo prevodom; online karta príde vo fáze 4.

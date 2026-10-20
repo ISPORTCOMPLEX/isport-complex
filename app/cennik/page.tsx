@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { price, site } from '@/lib/site';
+import { price } from '@/lib/site';
+import { getBookingSettings } from '@/lib/booking/settings';
 
 export const metadata: Metadata = { title: 'Cenník' };
 
-export default function CennikPage() {
-  const p = site.prices;
-  const peak = site.peakFrom;
+export default async function CennikPage() {
+  const settings = await getBookingSettings();
+  const p = settings.prices;
+  const peak = `${String(settings.peakFromHour).padStart(2, '0')}:00`;
   return (
     <>
       <section className="page-head">
@@ -86,12 +88,12 @@ export default function CennikPage() {
             <h2 className="display h2">Zrušenie rezervácie</h2>
             <dl className="dl-rows">
               <div>
-                <dt>Viac ako {site.cancelFreeHours} hodín pred začiatkom</dt>
+                <dt>Viac ako {settings.cancelFreeHours} hodín pred začiatkom</dt>
                 <dd style={{ color: 'var(--green)' }}>Bez poplatku</dd>
               </div>
               <div>
                 <dt>Neskôr</dt>
-                <dd className="tbd">Podmienky doplníme</dd>
+                <dd>Len cez recepciu</dd>
               </div>
             </dl>
             <p className="muted" style={{ margin: 0, fontSize: 15 }}>

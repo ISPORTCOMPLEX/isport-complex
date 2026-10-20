@@ -38,10 +38,15 @@ export async function GET() {
     select: { type: true, ok: true, reason: true, ip: true, userAgent: true, createdAt: true },
   });
 
+  const reservations = await prisma.booking.findMany({
+    where: { userId: session.id },
+    orderBy: { startsAt: 'desc' },
+    select: { code: true, area: true, startsAt: true, endsAt: true, priceCents: true, status: true, paymentStatus: true, paymentMethod: true, teamName: true, contactName: true, contactPhone: true, note: true, createdAt: true, cancelledAt: true },
+  });
   const { ip, userAgent } = await getRequestInfo();
   await logSecurity({ type: 'export', ok: true, userId: session.id, ip, userAgent });
 
-  const body = JSON.stringify({ exportedAt: new Date().toISOString(), controller: 'I - SPORT COMPLEX s.r.o., Fejova 1527/2, 040 01 Košice', user, securityEvents: events, reservations: [] }, null, 2);
+  const body = JSON.stringify({ exportedAt: new Date().toISOString(), controller: 'I - SPORT COMPLEX s.r.o., Fejova 1527/2, 040 01 Košice', user, securityEvents: events, reservations }, null, 2);
   const date = new Date().toISOString().slice(0, 10);
   return new Response(body, {
     headers: {

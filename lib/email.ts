@@ -31,7 +31,9 @@ function esc(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string);
 }
 
-function layout(title: string, intro: string, buttonText: string, url: string, outro: string): { html: string; text: string } {
+export type Row = { label: string; value: string };
+
+function layout(title: string, intro: string, buttonText: string, url: string, outro: string, rows: Row[] = []): { html: string; text: string } {
   // Erb sa načíta z webu (e-mailové programy nezobrazujú SVG).
   const origin = new URL(url).origin;
   const html = `<!doctype html><html lang="sk"><body style="margin:0;background:#070708;font-family:Arial,Helvetica,sans-serif;color:#F4F6F7">
@@ -41,13 +43,14 @@ function layout(title: string, intro: string, buttonText: string, url: string, o
 <tr><td style="padding:28px 32px 8px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="padding-right:12px;vertical-align:middle"><img src="${esc(origin)}/brand/erb-email.png" width="36" height="42" alt="" style="display:block;border:0"></td><td style="vertical-align:middle"><div style="font-size:24px;font-weight:900;font-style:italic;letter-spacing:.01em;line-height:1">I<span style="color:#E3121B">-</span>SPORT</div><div style="font-size:10px;letter-spacing:.45em;color:#9AA1A8;font-weight:700;margin-top:4px">COMPLEX</div></td></tr></table></td></tr>
 <tr><td style="padding:16px 32px 0"><h1 style="margin:0;font-size:24px;line-height:1.3;color:#F4F6F7">${esc(title)}</h1></td></tr>
 <tr><td style="padding:12px 32px 0;font-size:16px;line-height:1.6;color:#C8CDD2">${esc(intro)}</td></tr>
+${rows.length ? `<tr><td style="padding:20px 32px 0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #25252A;border-radius:12px">${rows.map((r, i) => `<tr><td style="padding:12px 16px;font-size:13px;color:#9AA1A8;${i ? 'border-top:1px solid #25252A;' : ''}">${esc(r.label)}</td><td style="padding:12px 16px;font-size:15px;font-weight:700;color:#F4F6F7;text-align:right;${i ? 'border-top:1px solid #25252A;' : ''}">${esc(r.value)}</td></tr>`).join('')}</table></td></tr>` : ''}
 <tr><td style="padding:24px 32px"><a href="${esc(url)}" style="display:inline-block;background:#E3121B;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 26px;border-radius:999px">${esc(buttonText)}</a></td></tr>
 <tr><td style="padding:0 32px 8px;font-size:13px;line-height:1.6;color:#9AA1A8">Ak tlačidlo nefunguje, skopíruj do prehliadača:<br><span style="color:#C8CDD2;word-break:break-all">${esc(url)}</span></td></tr>
 <tr><td style="padding:16px 32px 32px;font-size:13px;line-height:1.6;color:#9AA1A8">${esc(outro)}</td></tr>
 </table>
 <div style="padding:16px;font-size:12px;color:#6E747A">I - SPORT COMPLEX s.r.o., Fejova 1527/2, 040 01 Košice</div>
 </td></tr></table></body></html>`;
-  const text = `${title}\n\n${intro}\n\n${buttonText}: ${url}\n\n${outro}\n\nI - SPORT COMPLEX s.r.o., Fejova 1527/2, 040 01 Košice`;
+  const text = `${title}\n\n${intro}\n\n${rows.map((r) => `${r.label}: ${r.value}`).join('\n')}${rows.length ? '\n\n' : ''}${buttonText}: ${url}\n\n${outro}\n\nI - SPORT COMPLEX s.r.o., Fejova 1527/2, 040 01 Košice`;
   return { html, text };
 }
 
@@ -82,4 +85,30 @@ export async function sendAlreadyRegisteredEmail(to: string, firstName: string, 
     'Ak si to nebol ty, nemusíš nič robiť.',
   );
   await sendMail({ to, subject: 'Tvoj účet v I-SPORT COMPLEX už existuje', ...m });
+}
+
+export async function sendBookingConfirmedEmail(to: string, firstName: string, url: string, rows: Row[]) {
+  const m = layout(
+    'Rezervácia je potvrdená',
+    `Ahoj ${firstName}, tvoj čas na ľade je rezervovaný. Na recepcii ukáž QR kód z detailu rezervácie.`,
+    'Zobraziť rezerváciu a QR kód',
+    url,
+    'Príď aspoň 30 minút pred začiatkom. Rezerváciu zrušíš v časti Môj účet → Moje rezervácie.',
+    rows,
+  );
+  await sendMail({ to, subject: `Rezervácia potvrdená – ${rows[0]?.value ?? ''}`, ...m });
+}
+
+export async function sendBookingCancelledEmail(to: string, firstName: string, url: string, rows: Row[], byStaff: boolean) {
+  const m = layout(
+    'Rezervácia je zrušená',
+    byStaff
+      ? `Ahoj ${firstName}, tvoju rezerváciu zrušila recepcia haly. Ak máš otázky, kontaktuj nás.`
+      : `Ahoj ${firstName}, tvoja rezervácia bola zrušená podľa tvojej žiadosti.`,
+    'Rezervovať iný termín',
+    url,
+    'Ak si rezerváciu nerušil ty, kontaktuj nás čo najskôr.',
+    rows,
+  );
+  await sendMail({ to, subject: `Rezervácia zrušená – ${rows[0]?.value ?? ''}`, ...m });
 }

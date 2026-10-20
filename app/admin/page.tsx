@@ -3,6 +3,9 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { requireStaff, can } from '@/lib/staff';
 import { AdmHead, Chip, Empty, Panel, Stat, ago, fmtDateTime } from '@/components/admin/ui';
+import { getBookingSettings } from '@/lib/booking/settings';
+import { AREA_SHORT } from '@/lib/booking/format';
+import { addDays, euros, fmtRange, hallTime, todayIso } from '@/lib/booking/time';
 
 export const metadata: Metadata = { title: 'Prehľad' };
 
@@ -45,7 +48,25 @@ export default async function AdminHome() {
       })
     : [];
 
+  const showBookings = can(me.role, 'bookings.view');
+  const t = todayIso();
+  const todayStart = hallTime(t, 0);
+  const todayEnd = hallTime(addDays(t, 1), 0);
+  const weekStart = new Date(now - 6 * 24 * 3600 * 1000);
+  const settings = await getBookingSettings();
+  const todays = showBookings
+    ? await prisma.booking.findMany({ where: { startsAt: { gte: todayStart, lt: todayEnd }, status: { not: 'CANCELLED' } }, orderBy: { startsAt: 'asc' } })
+    : [];
+  const weekCents = showBookings
+    ? ((await prisma.booking.aggregate({ where: { startsAt: { gte: weekStart, lt: new Date(now) }, status: { in: ['CONFIRMED', 'COMPLETED'] } }, _sum: { priceCents: true } }))._sum.priceCents ?? 0)
+    : 0;
+  const unpaidPast = showBookings ? await prisma.booking.count({ where: { status: 'CONFIRMED', paymentStatus: 'UNPAID', endsAt: { lt: new Date(now) } } }) : 0;
+  const halfHoursToday = (settings.closeHour - settings.openHour) * 2;
+  const usedToday = todays.reduce((sum, b) => sum + b.hours * (b.area === 'FULL' ? 2 : 1), 0);
+  const waiting = todays.filter((b) => b.status === 'CONFIRMED' && !b.checkedInAt && b.endsAt > new Date(now)).length;
+
   const attention: { text: string; sub: string; href?: string }[] = [];
+  if (showBookings && unpaidPast > 0) attention.push({ text: `${unpaidPast} odohraných rezervácií bez platby`, sub: 'Skontroluj platby na recepcii alebo prevodom', href: '/admin/rezervacie?f=nezaplatene' });
   for (const u of locked) attention.push({ text: `Zamknutý účet ${u.email}`, sub: `Po neúspešných prihláseniach, do ${fmtDateTime(u.lockedUntil)}`, href: `/admin/zakaznici/${u.id}` });
   for (const ip of suspiciousIps) attention.push({ text: `Veľa neúspešných pokusov z IP ${ip.ip}`, sub: `${ip._count._all} za posledných 24 hodín`, href: `/admin/bezpecnost?ip=${encodeURIComponent(ip.ip ?? '')}` });
   if (!me.twoFactorEnabledAt) attention.push({ text: 'Zapni si dvojstupňové overenie', sub: 'Povinné pre personál', href: '/ucet/zabezpecenie' });
@@ -53,10 +74,21 @@ export default async function AdminHome() {
   return (
     <div className="adm__stack">
       <AdmHead title="Prehľad" sub={<span style={{ textTransform: 'capitalize' }}>{today.format(new Date())}</span>}>
-        <span className="btn btn--sm adm-disabled" aria-disabled="true" title="Pribudne s rezerváciami">
-          Nová rezervácia
-        </span>
+        {showBookings ? (
+          <Link href="/admin/kalendar" className="btn btn--sm">
+            Kalendár ľadu
+          </Link>
+        ) : null}
       </AdmHead>
+
+      {showBookings ? (
+        <div className="adm-stats">
+          <Stat label="Rezervácie dnes" value={todays.length} note={`${waiting} ešte čakajú na príchod`} />
+          <Stat label="Obsadenosť dnes" value={`${halfHoursToday ? Math.round((usedToday / halfHoursToday) * 100) : 0} %`} note={`${settings.openHour}:00 – ${settings.closeHour}:00`} />
+          <Stat label="Tržby za 7 dní" value={euros(weekCents)} note="odohrané rezervácie" />
+          <Stat label="Nezaplatené po termíne" value={unpaidPast} tone={unpaidPast > 0 ? 'warn' : undefined} />
+        </div>
+      ) : null}
 
       <div className="adm-stats">
         <Stat label="Registrovaní zákazníci" value={total} note={`+${newWeek} za posledných 7 dní`} />
@@ -135,9 +167,48 @@ export default async function AdminHome() {
         </Panel>
       </div>
 
-      <Panel title="Dnes na ľade" className="adm-panel--soon">
-        <Empty>Rezervácie, obsadenosť a tržby sa tu zobrazia po spustení rezervačného systému (ďalšia fáza).</Empty>
-      </Panel>
+      {showBookings ? (
+        <Panel title="Dnes na ľade" action={{ href: '/admin/kalendar', label: 'Otvoriť kalendár' }}>
+          {todays.length === 0 ? (
+            <Empty>Dnes nie sú žiadne rezervácie.</Empty>
+          ) : (
+            <div className="adm-table-wrap">
+              <table className="adm-table adm-table--rows">
+                <thead>
+                  <tr>
+                    <th>Čas</th>
+                    <th>Zákazník</th>
+                    <th>Plocha</th>
+                    <th>Platba</th>
+                    <th>Stav</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {todays.map((b) => (
+                    <tr key={b.id}>
+                      <td className="nowrap">
+                        <Link href={`/admin/rezervacie/${b.id}`} className="adm-person">
+                          <strong>{fmtRange(b.startsAt, b.endsAt)}</strong>
+                          <small>{b.code}</small>
+                        </Link>
+                      </td>
+                      <td>
+                        <span className="adm-person">
+                          <strong>{b.teamName || b.contactName}</strong>
+                          <small>{b.contactPhone}</small>
+                        </span>
+                      </td>
+                      <td>{AREA_SHORT[b.area]}</td>
+                      <td>{b.paymentStatus === 'PAID' ? <Chip tone="ok">Zaplatená</Chip> : <Chip tone="warn">{euros(b.priceCents)}</Chip>}</td>
+                      <td>{b.status === 'NO_SHOW' ? <Chip tone="red">Neprišiel</Chip> : b.checkedInAt ? <Chip tone="ok">Prišiel</Chip> : <Chip tone="blue">Čaká</Chip>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Panel>
+      ) : null}
     </div>
   );
 }

@@ -4,22 +4,25 @@ import { ArrowUpRight, IconCard, IconQr, IconUndo } from '@/components/Icons';
 import { RinkPerspective, RinkPlan } from '@/components/Rink';
 import { nextDays } from '@/lib/dates';
 import { lowestPrice, site } from '@/lib/site';
+import { getBookingSettings } from '@/lib/booking/settings';
 
-const FAQ = [
+const faq = (cancelFreeHours: number) => [
   {
     q: 'Môžem rezerváciu zrušiť alebo presunúť?',
-    a: `Áno. Do ${site.cancelFreeHours} hodín pred začiatkom ju zrušíš alebo presunieš bez poplatku v časti Moje rezervácie.`,
+    a: `Áno. Najneskôr ${cancelFreeHours} hodín pred začiatkom ju zrušíš alebo presunieš bez poplatku v časti Moje rezervácie.`,
   },
   { q: 'Je v cene aj šatňa?', a: 'Áno, šatňa je súčasťou každej rezervácie. Číslo šatne nájdeš v potvrdení.' },
   { q: 'Môžem si rezervovať len polovicu plochy?', a: 'Áno. Polovica je ideálna na individuálny tréning, brankárov alebo korčuliarsku techniku.' },
   { q: 'Vystavíte faktúru na firmu alebo klub?', a: 'Áno. Pri rezervácii zadáš fakturačné údaje a faktúru dostaneš e-mailom aj v účte.' },
 ];
 
-export default function HomePage() {
-  const p = site.prices;
+export default async function HomePage() {
+  const settings = await getBookingSettings();
+  const p = settings.prices;
   const hours: number[] = [];
-  for (let h = site.iceHours.from; h < site.iceHours.to; h++) hours.push(h);
-  const peakFromHour = Number.parseInt(site.peakFrom, 10);
+  for (let h = settings.openHour; h < settings.closeHour; h++) hours.push(h);
+  const peakFromHour = settings.peakFromHour;
+  const FAQ = faq(settings.cancelFreeHours);
 
   return (
     <>
@@ -158,7 +161,7 @@ export default function HomePage() {
               </span>
               <div>
                 <h3>Zrušenie zadarmo</h3>
-                <p>Do {site.cancelFreeHours} hodín pred tréningom.</p>
+                <p>Do {settings.cancelFreeHours} hodín pred tréningom.</p>
               </div>
             </div>
           </div>

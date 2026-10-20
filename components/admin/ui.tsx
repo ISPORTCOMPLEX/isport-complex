@@ -133,3 +133,14 @@ export function auditText(action: string, meta: unknown): string {
   if (action === 'user.ban' && m.reason) return `${base} (${String(m.reason)})`;
   return base;
 }
+
+Object.assign(AUDIT_LABEL, {
+  'booking.paid': 'Označil rezerváciu ako zaplatenú',
+  'booking.unpaid': 'Zrušil označenie platby',
+  'booking.check-in': 'Potvrdil príchod',
+  'booking.no-show': 'Označil „neprišiel“',
+  'booking.cancel': 'Zrušil rezerváciu',
+  'block.create': 'Zablokoval čas',
+  'block.delete': 'Zrušil blokovanie',
+  'settings.booking': 'Zmenil cenník a nastavenia',
+});

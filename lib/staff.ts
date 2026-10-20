@@ -7,12 +7,21 @@ import { getSessionUser, type SessionUser } from './session';
 
 export const STAFF_ROLES = ['ADMIN', 'RECEPTION', 'ACCOUNTANT'] as const;
 
-export type Permission = 'dashboard' | 'users.view' | 'users.manage' | 'security.view' | 'audit.view';
+export type Permission =
+  | 'dashboard'
+  | 'users.view'
+  | 'users.manage'
+  | 'security.view'
+  | 'audit.view'
+  | 'bookings.view'
+  | 'bookings.manage'
+  | 'payments.manage'
+  | 'settings.manage';
 
 const PERMS: Record<string, Permission[]> = {
-  ADMIN: ['dashboard', 'users.view', 'users.manage', 'security.view', 'audit.view'],
-  RECEPTION: ['dashboard', 'users.view'],
-  ACCOUNTANT: ['dashboard', 'users.view'],
+  ADMIN: ['dashboard', 'users.view', 'users.manage', 'security.view', 'audit.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'settings.manage'],
+  RECEPTION: ['dashboard', 'users.view', 'bookings.view', 'bookings.manage', 'payments.manage'],
+  ACCOUNTANT: ['dashboard', 'users.view', 'bookings.view', 'payments.manage'],
 };
 
 export const ROLE_LABEL: Record<string, string> = {

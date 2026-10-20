@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { RinkPlan } from '@/components/Rink';
 import { lowestPrice, orTbd, site } from '@/lib/site';
+import { getBookingSettings } from '@/lib/booking/settings';
 
 export const metadata: Metadata = { title: 'Hokejová hala' };
 
@@ -20,8 +21,8 @@ const BEFORE = [
   'Šatňu uvoľni do 30 minút po skončení tréningu.',
 ];
 
-export default function HalaPage() {
-  const p = site.prices;
+export default async function HalaPage() {
+  const p = (await getBookingSettings()).prices;
   return (
     <>
       <section className="page-head">
