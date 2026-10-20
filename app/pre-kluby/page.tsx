@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { orTbd, site } from '@/lib/site';
+import { orTbd } from '@/lib/site';
+import { getSite } from '@/lib/siteSettings';
+import { InquiryForm } from '@/components/InquiryForm';
+import { createFormStamp } from '@/lib/formGuard';
 
 export const metadata: Metadata = { title: 'Pre kluby' };
 
@@ -10,7 +13,8 @@ const BENEFITS = [
   ['Rozpis pre celý tím', 'Tréneri a hráči vidia tréningy v aplikácii a dostanú pripomienku.'],
 ];
 
-export default function PreKlubyPage() {
+export default async function PreKlubyPage() {
+  const site = await getSite();
   return (
     <>
       <section className="page-head" style={{ position: 'relative', overflow: 'hidden' }}>
@@ -53,31 +57,21 @@ export default function PreKlubyPage() {
           <div style={{ flex: '1 1 380px', display: 'flex', flexDirection: 'column', gap: 20 }}>
             <h2 className="display h2">Dopyt na prenájom</h2>
             <p className="muted" style={{ margin: 0 }}>
-              Napíš nám názov klubu, preferované dni a časy a od kedy chceš ľad. Do 24 hodín ti pošleme ponuku s voľnými časmi a cenou.
+              Napíš nám názov klubu, preferované dni a časy a od kedy chceš ľad. Najneskôr do 2 pracovných dní ti pošleme ponuku s voľnými časmi a cenou.
             </p>
-            <p className="muted" style={{ margin: 0, fontSize: 15 }}>
-              Online formulár s ochranou proti spamu spustíme spolu s účtami v ďalšej fáze.
-            </p>
-          </div>
-          <div className="price-tile price-tile--accent" style={{ flex: '1 1 420px', gap: 18, padding: 36 }}>
-            <span className="muted" style={{ fontSize: 14 }}>
-              Kontakt pre kluby
-            </span>
-            <dl className="dl-rows" style={{ borderTop: 'none' }}>
+            <dl className="dl-rows">
               <div>
                 <dt className="muted">Telefón</dt>
                 <dd>{site.phone ? <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a> : orTbd('')}</dd>
               </div>
               <div>
                 <dt className="muted">E-mail</dt>
-                <dd>{site.email ? <a href={`mailto:${site.email}?subject=Dopyt%20na%20sez%C3%B3nny%20pren%C3%A1jom`}>{site.email}</a> : orTbd('')}</dd>
+                <dd>{site.email ? <a href={`mailto:${site.email}`}>{site.email}</a> : orTbd('')}</dd>
               </div>
             </dl>
-            {site.email && (
-              <a className="btn" href={`mailto:${site.email}?subject=Dopyt%20na%20sez%C3%B3nny%20pren%C3%A1jom`} style={{ alignSelf: 'flex-start' }}>
-                Napísať e-mail
-              </a>
-            )}
+          </div>
+          <div className="card inq-card" style={{ flex: '1 1 460px', minWidth: 0 }}>
+            <InquiryForm type="CLUB" stamp={createFormStamp()} />
           </div>
         </div>
       </section>

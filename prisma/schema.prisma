@@ -140,8 +140,13 @@ enum PaymentMethod {
 model Booking {
   id            String        @id @default(cuid())
   code          String        @unique
-  userId        String
-  user          User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  number        Int           @unique @default(autoincrement()) // variabilný symbol pri prevode
+  userId        String?
+  user          User?         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  guestEmail    String? // rezervácia vytvorená recepciou bez účtu
+  createdById   String? // personál, ktorý rezerváciu zadal
+  movedFromCode String? // presun z inej rezervácie
+  reminderSentAt DateTime?
   area          Area
   startsAt      DateTime
   endsAt        DateTime
@@ -207,4 +212,40 @@ model Setting {
   value     Json
   updatedAt DateTime @updatedAt
   updatedBy String?
+}
+
+// ───────────────────────── Dopyty (kontakt, kluby) ─────────────────────────
+
+enum InquiryType {
+  CONTACT
+  CLUB
+}
+
+enum InquiryStatus {
+  NEW
+  IN_PROGRESS
+  DONE
+  SPAM
+}
+
+model Inquiry {
+  id           String        @id @default(cuid())
+  type         InquiryType
+  status       InquiryStatus @default(NEW)
+  name         String
+  email        String
+  phone        String?
+  organization String?
+  subject      String?
+  message      String
+  details      Json?
+  userId       String?
+  ip           String?
+  staffNote    String?
+  handledById  String?
+  handledAt    DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([status, createdAt])
 }

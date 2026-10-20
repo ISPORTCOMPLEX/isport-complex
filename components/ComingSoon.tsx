@@ -1,7 +1,9 @@
 import Link from 'next/link';
-import { orTbd, site } from '@/lib/site';
+import { orTbd } from '@/lib/site';
+import { getSite } from '@/lib/siteSettings';
 
-export function ComingSoon({ title, text }: { title: string; text: string }) {
+export async function ComingSoon({ title, text }: { title: string; text: string }) {
+  const site = await getSite();
   return (
     <section className="soon">
       <div className="wrap soon__in">

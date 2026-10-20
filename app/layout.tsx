@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { SiteChrome } from '@/components/SiteChrome';
+import { appUrl } from '@/lib/requestInfo';
 import './globals.css';
 
 // Archivo s osou šírky (wdth) – úzky šikmý rez na nadpisy, normálny na text.
@@ -17,7 +18,7 @@ const archivo = Archivo({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.APP_URL ?? 'http://localhost:3000'),
+  metadataBase: new URL(appUrl() ?? 'http://localhost:3000'),
   title: {
     default: 'I-SPORT COMPLEX – tréningová hokejová hala Košice',
     template: '%s · I-SPORT COMPLEX',

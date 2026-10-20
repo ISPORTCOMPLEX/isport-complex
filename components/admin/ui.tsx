@@ -135,6 +135,9 @@ export function auditText(action: string, meta: unknown): string {
 }
 
 Object.assign(AUDIT_LABEL, {
+  'inquiry.update': 'Upravil dopyt',
+  'settings.site': 'Zmenil údaje o firme a hale',
+  'booking.create': 'Vytvoril rezerváciu',
   'booking.paid': 'Označil rezerváciu ako zaplatenú',
   'booking.unpaid': 'Zrušil označenie platby',
   'booking.check-in': 'Potvrdil príchod',
@@ -144,3 +147,11 @@ Object.assign(AUDIT_LABEL, {
   'block.delete': 'Zrušil blokovanie',
   'settings.booking': 'Zmenil cenník a nastavenia',
 });
+
+export const INQUIRY_STATUS: Record<string, { label: string; tone: 'ok' | 'warn' | 'red' | 'blue' | 'muted' }> = {
+  NEW: { label: 'Nový', tone: 'red' },
+  IN_PROGRESS: { label: 'Rieši sa', tone: 'warn' },
+  DONE: { label: 'Vybavený', tone: 'ok' },
+  SPAM: { label: 'Spam', tone: 'muted' },
+};
+

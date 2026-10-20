@@ -3,7 +3,8 @@ import { BookingWidget } from '@/components/BookingWidget';
 import { ArrowUpRight, IconCard, IconQr, IconUndo } from '@/components/Icons';
 import { RinkPerspective, RinkPlan } from '@/components/Rink';
 import { nextDays } from '@/lib/dates';
-import { lowestPrice, site } from '@/lib/site';
+import { lowestPrice } from '@/lib/site';
+import { getSite } from '@/lib/siteSettings';
 import { getBookingSettings } from '@/lib/booking/settings';
 
 const faq = (cancelFreeHours: number) => [
@@ -13,10 +14,11 @@ const faq = (cancelFreeHours: number) => [
   },
   { q: 'Je v cene aj šatňa?', a: 'Áno, šatňa je súčasťou každej rezervácie. Číslo šatne nájdeš v potvrdení.' },
   { q: 'Môžem si rezervovať len polovicu plochy?', a: 'Áno. Polovica je ideálna na individuálny tréning, brankárov alebo korčuliarsku techniku.' },
-  { q: 'Vystavíte faktúru na firmu alebo klub?', a: 'Áno. Pri rezervácii zadáš fakturačné údaje a faktúru dostaneš e-mailom aj v účte.' },
+  { q: 'Vystavíte faktúru na firmu alebo klub?', a: 'Áno. Kluby a firmy môžu platiť prevodom. Faktúru vystaví recepcia – stačí nám napísať fakturačné údaje.' },
 ];
 
 export default async function HomePage() {
+  const site = await getSite();
   const settings = await getBookingSettings();
   const p = settings.prices;
   const hours: number[] = [];

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { requireStaff } from '@/lib/staff';
+import { requireStaff, can } from '@/lib/staff';
 import { AREA_SHORT, METHOD_LABEL, STATUS_LABEL } from '@/lib/booking/format';
 import { addDays, euros, fmtDayShort, fmtRange, hallTime, todayIso } from '@/lib/booking/time';
 import { AdmHead, Chip, Empty, Panel } from '@/components/admin/ui';
@@ -22,7 +22,7 @@ type Props = { searchParams: Promise<{ f?: string | string[]; q?: string | strin
 const one = (v: string | string[] | undefined) => (typeof v === 'string' ? v : '');
 
 export default async function AdminRezervacie({ searchParams }: Props) {
-  await requireStaff('bookings.view', '/admin/rezervacie');
+  const me = await requireStaff('bookings.view', '/admin/rezervacie');
   const sp = await searchParams;
   const q = one(sp.q).trim().slice(0, 60);
   const f = FILTERS.some((x) => x.key === one(sp.f)) ? one(sp.f) : q ? '' : 'dnes';
@@ -82,6 +82,11 @@ export default async function AdminRezervacie({ searchParams }: Props) {
         <Link href="/admin/kalendar" className="btn btn--sm btn--ghost">
           Kalendár
         </Link>
+        {can(me.role, 'bookings.manage') ? (
+          <Link href="/admin/rezervacie/nova" className="btn btn--sm">
+            Nová rezervácia
+          </Link>
+        ) : null}
       </AdmHead>
 
       <div className="adm-toolbar">
@@ -132,7 +137,7 @@ export default async function AdminRezervacie({ searchParams }: Props) {
                     <td>
                       <span className="adm-person">
                         <strong>{b.teamName || b.contactName}</strong>
-                        <small>{b.teamName ? b.contactName : b.user.email}</small>
+                        <small>{b.teamName ? b.contactName : (b.user?.email ?? b.guestEmail ?? 'bez účtu')}</small>
                       </span>
                     </td>
                     <td className="nowrap">{b.contactPhone || '—'}</td>

@@ -60,6 +60,8 @@ export default async function AuditPage({ searchParams }: Props) {
                         <Link href={`/admin/zakaznici/${r.target}`}>{targetEmail.get(r.target) ?? 'účet'}</Link>
                       ) : r.action.startsWith('booking.') ? (
                         <Link href={`/admin/rezervacie/${r.target}`}>{String((r.meta as Record<string, unknown> | null)?.code ?? 'rezervácia')}</Link>
+                      ) : r.action.startsWith('inquiry.') ? (
+                        <Link href={`/admin/dopyty/${r.target}`}>dopyt</Link>
                       ) : r.action.startsWith('block.') ? (
                         'kalendár'
                       ) : (

@@ -1,12 +1,14 @@
 import Link from 'next/link';
-import { site } from '@/lib/site';
+import { orTbd } from '@/lib/site';
+import { getSite } from '@/lib/siteSettings';
 
-// Šablóna pre právne texty. Samotné znenie dodá prevádzkovateľ (ideálne s právnikom).
-export function LegalPage({ title }: { title: string }) {
+// Rozloženie právnych textov. Znenie je pracovný návrh – pred ostrým spustením ho má skontrolovať právnik.
+export async function LegalPage({ title, updated, children }: { title: string; updated: string; children: React.ReactNode }) {
+  const site = await getSite();
   const c = site.company;
   return (
-    <section className="page-head">
-      <div className="wrap page-head__in" style={{ maxWidth: 860, marginLeft: 'auto', marginRight: 'auto' }}>
+    <section className="page-head legal">
+      <div className="wrap page-head__in legal__in">
         <nav aria-label="Omrvinky" className="crumbs">
           <Link href="/">Domov</Link>
           <span>/</span>
@@ -14,11 +16,10 @@ export function LegalPage({ title }: { title: string }) {
         </nav>
         <h1 className="display h2">{title}</h1>
         <p className="muted" style={{ margin: 0 }}>
-          Prevádzkovateľ: {c.name}, {c.street}, {c.city}.
+          Prevádzkovateľ: {c.name}, {c.street}, {c.city}, IČO {orTbd(c.ico)}
+          {c.register ? `, ${c.register}` : ''}. Kontakt: {orTbd(site.email)}, {orTbd(site.phone)}. Účinné od {updated}.
         </p>
-        <p className="tbd" style={{ margin: 0 }}>
-          Znenie dokumentu doplníme pred spustením rezervácií.
-        </p>
+        <div className="legal__body">{children}</div>
       </div>
     </section>
   );

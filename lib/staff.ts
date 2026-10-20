@@ -16,11 +16,12 @@ export type Permission =
   | 'bookings.view'
   | 'bookings.manage'
   | 'payments.manage'
-  | 'settings.manage';
+  | 'settings.manage'
+  | 'inquiries.manage';
 
 const PERMS: Record<string, Permission[]> = {
-  ADMIN: ['dashboard', 'users.view', 'users.manage', 'security.view', 'audit.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'settings.manage'],
-  RECEPTION: ['dashboard', 'users.view', 'bookings.view', 'bookings.manage', 'payments.manage'],
+  ADMIN: ['dashboard', 'users.view', 'users.manage', 'security.view', 'audit.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'settings.manage', 'inquiries.manage'],
+  RECEPTION: ['dashboard', 'users.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'inquiries.manage'],
   ACCOUNTANT: ['dashboard', 'users.view', 'bookings.view', 'payments.manage'],
 };
 

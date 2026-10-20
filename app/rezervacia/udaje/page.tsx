@@ -20,11 +20,16 @@ export default async function UdajePage({ searchParams }: Props) {
   const startHour = Number.parseInt(one(sp.od), 10);
   const hours = Number.parseInt(one(sp.hodiny), 10);
   const area = one(sp.plocha) === 'polovica' ? 'polovica' : 'cela';
-  const self = `/rezervacia/udaje?datum=${iso}&od=${startHour}&hodiny=${hours}&plocha=${area}`;
+  const presun = /^ISP-[A-Z0-9]{6}$/.test(one(sp.presun)) ? one(sp.presun) : null;
+  const self = `/rezervacia/udaje?datum=${iso}&od=${startHour}&hodiny=${hours}&plocha=${area}${presun ? `&presun=${presun}` : ''}`;
   const user = await requireUser(self);
   const settings = await getBookingSettings();
 
   let problem = isIsoDate(iso) ? validateSlot(settings, iso, startHour, hours) : 'Neplatný dátum.';
+  const old = presun ? await prisma.booking.findUnique({ where: { code: presun } }) : null;
+  if (presun && (!old || old.userId !== user.id || old.status !== 'CONFIRMED' || old.paymentStatus === 'PAID' || old.startsAt.getTime() - Date.now() < settings.cancelFreeHours * 3600000)) {
+    problem = 'Túto rezerváciu už nie je možné presunúť online. Kontaktuj recepciu.';
+  }
   if (!problem) {
     const slots = await dayAvailability(settings, iso);
     const wanted = slots.filter((s) => s.hour >= startHour && s.hour < startHour + hours);
@@ -51,7 +56,7 @@ export default async function UdajePage({ searchParams }: Props) {
 
   const start = hallTime(iso, startHour);
   const cents = totalCents(settings, area, iso, startHour, hours);
-  const last = await prisma.booking.findFirst({
+  const last = old ?? await prisma.booking.findFirst({
     where: { userId: user.id },
     orderBy: { createdAt: 'desc' },
     select: { teamName: true, contactPhone: true, contactName: true },
@@ -66,7 +71,7 @@ export default async function UdajePage({ searchParams }: Props) {
             <span>/</span>
             Údaje
           </nav>
-          <h1 className="display h2">Dokončenie rezervácie</h1>
+          <h1 className="display h2">{old ? `Presun rezervácie ${old.code}` : 'Dokončenie rezervácie'}</h1>
         </div>
       </section>
       <section className="section section--tight">
@@ -74,7 +79,8 @@ export default async function UdajePage({ searchParams }: Props) {
           <div className="rez__main">
             <div className="card rez__panel">
               <BookingForm
-                hidden={{ datum: iso, od: String(startHour), hodiny: String(hours), plocha: area }}
+                hidden={{ datum: iso, od: String(startHour), hodiny: String(hours), plocha: area, ...(old ? { presun: old.code } : {}) }}
+                moving={old ? old.code : null}
                 defaults={{
                   contactName: last?.contactName ?? `${user.firstName} ${user.lastName}`,
                   contactPhone: last?.contactPhone ?? user.phone ?? '',

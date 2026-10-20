@@ -11,8 +11,8 @@ export async function getRequestInfo() {
 
 // Adresa webu pre odkazy v e-mailoch. Prednostne APP_URL, inak z požiadavky.
 export async function getBaseUrl(): Promise<string> {
-  const fixed = process.env.APP_URL;
-  if (fixed) return fixed.replace(/\/+$/, '');
+  const fixed = appUrl();
+  if (fixed) return fixed;
   // Na produkcii nikdy nedôverujeme hlavičke Host (podvrhnuté odkazy v e-mailoch).
   if (process.env.NODE_ENV === 'production') {
     const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
@@ -23,4 +23,16 @@ export async function getBaseUrl(): Promise<string> {
   const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000';
   const proto = h.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'https');
   return `${proto}://${host}`;
+}
+
+// APP_URL môže byť zadané aj bez https:// – doplníme ho, aby z toho bola platná adresa.
+export function appUrl(): string | null {
+  const raw = process.env.APP_URL?.trim();
+  if (!raw) return null;
+  const withProto = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    return new URL(withProto).origin;
+  } catch {
+    return null;
+  }
 }

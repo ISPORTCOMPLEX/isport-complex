@@ -16,6 +16,7 @@ type Props = {
   initialArea: Area;
   initialHour: number | null;
   maxHours: number;
+  presun?: string | null;
 };
 
 const pad = (h: number) => `${String(h).padStart(2, '0')}:00`;
@@ -30,7 +31,7 @@ function freeFor(s: Slot, area: Area, half?: 'A' | 'B'): boolean {
 }
 
 // Kalendár voľných hodín. Dostupnosť a cenu na konci aj tak znova overí server.
-export function BookingPicker({ days, iso, slots, initialArea, initialHour, maxHours }: Props) {
+export function BookingPicker({ days, iso, slots, initialArea, initialHour, maxHours, presun = null }: Props) {
   const [area, setArea] = useState<Area>(initialArea);
   const [start, setStart] = useState<number | null>(initialHour !== null && slots.some((s) => s.hour === initialHour && freeFor(s, initialArea)) ? initialHour : null);
   const [count, setCount] = useState(1);
@@ -66,7 +67,8 @@ export function BookingPicker({ days, iso, slots, initialArea, initialHour, maxH
     setCount((c) => Math.min(c, Math.max(maxFrom(h, area), 1)));
   };
 
-  const next = valid ? `/rezervacia/udaje?datum=${iso}&od=${start}&hodiny=${hours}&plocha=${area}` : null;
+  const tail = presun ? `&presun=${presun}` : '';
+  const next = valid ? `/rezervacia/udaje?datum=${iso}&od=${start}&hodiny=${hours}&plocha=${area}${tail}` : null;
   const anyFree = slots.some((s) => freeFor(s, area));
 
   return (
@@ -98,7 +100,7 @@ export function BookingPicker({ days, iso, slots, initialArea, initialHour, maxH
             {days.map((d) => (
               <Link
                 key={d.iso}
-                href={`/rezervacia?datum=${d.iso}&plocha=${area}`}
+                href={`/rezervacia?datum=${d.iso}&plocha=${area}${presun ? `&presun=${presun}` : ''}`}
                 className={`day${d.weekend ? ' day--weekend' : ''}`}
                 aria-current={d.iso === iso ? 'date' : undefined}
                 aria-label={d.label}

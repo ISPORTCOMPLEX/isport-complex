@@ -112,3 +112,32 @@ export async function sendBookingCancelledEmail(to: string, firstName: string, u
   );
   await sendMail({ to, subject: `Rezervácia zrušená – ${rows[0]?.value ?? ''}`, ...m });
 }
+
+// Dopyt z webu: upozornenie pre halu a potvrdenie pre odosielateľa.
+export async function sendInquiryNotification(to: string, adminUrl: string, rows: Row[], message: string) {
+  const m = layout('Nový dopyt z webu', message.slice(0, 1500), 'Otvoriť v administrácii', adminUrl, 'Odpovedz zákazníkovi e-mailom alebo telefonicky a dopyt označ ako vybavený.', rows);
+  await sendMail({ to, subject: `Nový dopyt: ${rows[0]?.value ?? ''}`, ...m });
+}
+
+export async function sendInquiryReceipt(to: string, name: string, siteUrl: string) {
+  const m = layout(
+    'Dopyt sme prijali',
+    `Ahoj ${name}, ďakujeme za správu. Ozveme sa ti najneskôr do 2 pracovných dní.`,
+    'Rezervovať ľad online',
+    `${siteUrl}/rezervacia`,
+    'Toto je automatické potvrdenie, naň neodpovedaj.',
+  );
+  await sendMail({ to, subject: 'Dopyt sme prijali – I-SPORT COMPLEX', ...m });
+}
+
+export async function sendBookingReminderEmail(to: string, firstName: string, url: string, rows: Row[]) {
+  const m = layout(
+    'Zajtra ideš na ľad',
+    `Ahoj ${firstName}, pripomíname tvoju zajtrajšiu rezerváciu. Príď aspoň 30 minút pred začiatkom a na recepcii ukáž QR kód.`,
+    'Zobraziť QR kód',
+    url,
+    'Ak nemôžeš prísť, daj nám vedieť čo najskôr.',
+    rows,
+  );
+  await sendMail({ to, subject: `Pripomienka: zajtra ${rows[2]?.value ?? ''}`, ...m });
+}

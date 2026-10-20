@@ -9,11 +9,12 @@ import { requireStaff, type Permission } from '@/lib/staff';
 import { getBaseUrl, getRequestInfo } from '@/lib/requestInfo';
 import { hitLimit } from '@/lib/rateLimit';
 import { checked, str } from '@/lib/validate';
-import { cancelBooking } from '@/lib/booking/create';
+import { cancelBooking, createBooking } from '@/lib/booking/create';
 import { bookingRows } from '@/lib/booking/format';
 import { getBookingSettings, normalizeSettings, saveBookingSettings } from '@/lib/booking/settings';
 import { hallTime, isIsoDate } from '@/lib/booking/time';
-import { sendBookingCancelledEmail } from '@/lib/email';
+import { sendBookingCancelledEmail, sendBookingConfirmedEmail } from '@/lib/email';
+import { getSite, saveSite } from '@/lib/siteSettings';
 
 // Zásahy recepcie a administrátora do rezervácií. Každý zásah ide do záznamu zmien.
 
@@ -186,4 +187,111 @@ export async function adminSaveSettings(_prev: FormState, form: FormData): Promi
   await audit(actor.id, 'settings.booking', 'booking', { before, after: value });
   revalidatePath('/', 'layout');
   return { success: 'Nastavenia sú uložené. Nové ceny platia pre nové rezervácie.' };
+}
+
+// ───────────────────────── Rezervácia zadaná recepciou ─────────────────────────
+
+export async function adminCreateBookingAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const actor = await staff('bookings.manage');
+  const iso = str(form, 'datum', 10);
+  const plocha = str(form, 'plocha', 10);
+  const startHour = Number.parseInt(str(form, 'od', 2), 10);
+  const hours = Number.parseInt(str(form, 'hodiny', 2), 10);
+  const values = {
+    email: str(form, 'email', 254).toLowerCase(),
+    contactName: str(form, 'contactName', 120),
+    contactPhone: str(form, 'contactPhone', 30).replace(/[\s()-]/g, ''),
+    teamName: str(form, 'teamName', 120),
+    note: str(form, 'note', 500),
+    platba: str(form, 'platba', 10) === 'TRANSFER' ? 'TRANSFER' : 'ONSITE',
+  };
+  const errors: Record<string, string> = {};
+  if (!isIsoDate(iso)) return { error: 'Vyber dátum.', values };
+  if (!Number.isInteger(startHour)) errors.od = 'Vyber začiatok.';
+  if (values.contactName.length < 2) errors.contactName = 'Zadaj meno.';
+  if (!/^\+?[0-9]{9,15}$/.test(values.contactPhone)) errors.contactPhone = 'Zadaj telefón.';
+  if (values.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(values.email)) errors.email = 'Neplatný e-mail.';
+  if (Object.keys(errors).length) return { error: 'Skontroluj označené polia.', errors, values };
+
+  const account = values.email ? await prisma.user.findUnique({ where: { email: values.email } }) : null;
+  const user = account && !account.deletedAt ? account : null;
+
+  const settings = await getBookingSettings();
+  const result = await createBooking(settings, {
+    userId: user?.id ?? null,
+    guestEmail: user ? null : values.email || null,
+    createdById: actor.id,
+    iso,
+    startHour,
+    hours: Number.isInteger(hours) ? hours : 1,
+    area: plocha === 'cela' ? 'cela' : 'polovica',
+    half: plocha === 'A' ? 'A' : plocha === 'B' ? 'B' : undefined,
+    contactName: values.contactName,
+    contactPhone: values.contactPhone,
+    teamName: values.teamName || null,
+    note: values.note || null,
+    paymentMethod: values.platba as 'ONSITE' | 'TRANSFER',
+    paid: checked(form, 'paid'),
+    staff: true,
+  });
+  if (!result.ok) return { error: result.error, values };
+  await audit(actor.id, 'booking.create', result.id, { code: result.code, customer: user?.email ?? values.email ?? values.contactName });
+
+  const to = user?.email ?? (values.email || null);
+  if (to && checked(form, 'notify')) {
+    const b = await prisma.booking.findUnique({ where: { id: result.id } });
+    if (b) {
+      const base = await getBaseUrl();
+      try {
+        await sendBookingConfirmedEmail(to, user?.firstName ?? values.contactName.split(' ')[0], user ? `${base}/rezervacia/${b.code}` : `${base}/rezervacia`, bookingRows(b));
+      } catch (err) {
+        console.error('[email:admin-create]', err);
+      }
+    }
+  }
+  redirect(`/admin/rezervacie/${result.id}?stav=vytvorena`);
+}
+
+// ───────────────────────── Údaje o firme a hale ─────────────────────────
+
+export async function adminSaveSiteAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const actor = await staff('settings.manage');
+  const current = await getSite();
+  const v = (k: string, max = 300) => str(form, k, max);
+  const errors: Record<string, string> = {};
+  const email = v('email', 200).toLowerCase();
+  const notifyEmail = v('notifyEmail', 200).toLowerCase();
+  const mailOk = (x: string) => x === '' || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(x);
+  if (!mailOk(email)) errors.email = 'Neplatný e-mail.';
+  if (!mailOk(notifyEmail)) errors.notifyEmail = 'Neplatný e-mail.';
+  const urlOk = (x: string) => x === '' || /^https:\/\/[^\s]+$/.test(x);
+  for (const k of ['mapUrl', 'facebook', 'instagram']) if (!urlOk(v(k, 500))) errors[k] = 'Adresa musí začínať https://';
+  const iban = v('iban', 40).replace(/\s/g, '').toUpperCase();
+  if (iban && !/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(iban)) errors.iban = 'Neplatný IBAN.';
+  if (Object.keys(errors).length) return { error: 'Skontroluj označené polia.', errors };
+
+  const next = {
+    ...current,
+    phone: v('phone', 40),
+    email,
+    notifyEmail,
+    hall: { street: v('hallStreet'), city: v('hallCity') || current.hall.city, mapUrl: v('mapUrl', 500) },
+    company: {
+      name: v('companyName') || current.company.name,
+      street: v('companyStreet') || current.company.street,
+      city: v('companyCity') || current.company.city,
+      ico: v('ico', 20),
+      dic: v('dic', 20),
+      icDph: v('icDph', 20),
+      register: v('register'),
+    },
+    social: { facebook: v('facebook', 500), instagram: v('instagram', 500) },
+    hours: current.hours.map((h, i) => ({ days: h.days, time: v(`hours${i}`, 60) })),
+    iban: iban.replace(/(.{4})/g, '$1 ').trim(),
+    bankName: v('bankName', 100),
+  };
+  await saveSite(next, actor.id);
+  await audit(actor.id, 'settings.site', 'site');
+  revalidatePath('/', 'layout');
+  return { success: 'Údaje sú uložené a hneď sa zobrazujú na webe.' };
 }

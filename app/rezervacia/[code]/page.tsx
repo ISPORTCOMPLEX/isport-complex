@@ -10,6 +10,7 @@ import { AREA_LABEL, METHOD_LABEL, PAYMENT_LABEL, STATUS_LABEL } from '@/lib/boo
 import { euros, fmtDayLong, fmtRange } from '@/lib/booking/time';
 import { CancelBookingForm } from '@/components/booking/CancelBookingForm';
 import { FormAlert } from '@/components/forms/FormAlert';
+import { getSite } from '@/lib/siteSettings';
 
 export const metadata: Metadata = { title: 'Rezervácia', robots: { index: false } };
 
@@ -24,6 +25,7 @@ export default async function BookingDetail({ params, searchParams }: Props) {
   if (!booking || (booking.userId !== user.id && !isStaff(user.role))) notFound();
 
   const settings = await getBookingSettings();
+  const site = await getSite();
   const active = booking.status === 'CONFIRMED' && booking.endsAt > new Date();
   const canCancel = booking.status === 'CONFIRMED' && booking.startsAt.getTime() - Date.now() >= settings.cancelFreeHours * 3600000;
   const qr = active ? await QRCode.toDataURL(`ISP:${booking.code}:${booking.qrToken}`, { margin: 1, width: 280, color: { dark: '#000000', light: '#ffffff' } }) : null;
@@ -72,7 +74,32 @@ export default async function BookingDetail({ params, searchParams }: Props) {
               </div>
             </dl>
             {booking.paymentMethod === 'TRANSFER' && booking.paymentStatus === 'UNPAID' && booking.status === 'CONFIRMED' ? (
-              <p className="muted bk__note">Platobné údaje na prevod ti pošleme e-mailom. Ako variabilný symbol uveď kód rezervácie.</p>
+              site.iban ? (
+                <div className="bk__pay">
+                  <strong>Platba prevodom</strong>
+                  <dl className="rez__dl">
+                    <div>
+                      <dt>IBAN</dt>
+                      <dd className="bk__code">{site.iban}</dd>
+                    </div>
+                    <div>
+                      <dt>Suma</dt>
+                      <dd>{euros(booking.priceCents)}</dd>
+                    </div>
+                    <div>
+                      <dt>Variabilný symbol</dt>
+                      <dd className="bk__code">{booking.number}</dd>
+                    </div>
+                    <div>
+                      <dt>Správa pre príjemcu</dt>
+                      <dd className="bk__code">{booking.code}</dd>
+                    </div>
+                  </dl>
+                  <small className="muted">Prosíme o úhradu pred tréningom. Ak platba nepríde, zaplatíš na recepcii.</small>
+                </div>
+              ) : (
+                <p className="muted bk__note">Platobné údaje na prevod ti pošleme e-mailom.</p>
+              )
             ) : null}
           </div>
           {qr ? (
@@ -100,9 +127,22 @@ export default async function BookingDetail({ params, searchParams }: Props) {
 
         {booking.status === 'CONFIRMED' && booking.userId === user.id ? (
           <div className="card bk__cancel">
-            <h2 className="h-card">Zrušenie</h2>
+            <h2 className="h-card">Presun a zrušenie</h2>
             {canCancel ? (
-              <CancelBookingForm code={booking.code} cancelFreeHours={settings.cancelFreeHours} />
+              <>
+                {booking.paymentStatus !== 'PAID' ? (
+                  <Link
+                    href={`/rezervacia?presun=${booking.code}&plocha=${booking.area === 'FULL' ? 'cela' : 'polovica'}`}
+                    className="btn btn--sm btn--ghost"
+                    style={{ alignSelf: 'flex-start' }}
+                  >
+                    Presunúť na iný termín
+                  </Link>
+                ) : (
+                  <p className="muted">Zaplatenú rezerváciu presunie recepcia.</p>
+                )}
+                <CancelBookingForm code={booking.code} cancelFreeHours={settings.cancelFreeHours} />
+              </>
             ) : (
               <p className="muted">
                 Online sa dá zrušiť najneskôr {settings.cancelFreeHours} hodín pred začiatkom. Teraz už len cez recepciu.

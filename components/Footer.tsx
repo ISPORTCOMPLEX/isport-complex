@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import { Logo } from './Logo';
-import { orTbd, site } from '@/lib/site';
+import { orTbd } from '@/lib/site';
+import { getSite } from '@/lib/siteSettings';
 
-export function Footer() {
+export async function Footer() {
+  const site = await getSite();
   const c = site.company;
   return (
     <footer className="footer">

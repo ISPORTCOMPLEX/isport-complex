@@ -1,12 +1,17 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { orTbd, site } from '@/lib/site';
+import { orTbd } from '@/lib/site';
+import { getSite } from '@/lib/siteSettings';
+import { InquiryForm } from '@/components/InquiryForm';
+import { createFormStamp } from '@/lib/formGuard';
 
 export const metadata: Metadata = { title: 'Kontakt' };
 
-export default function KontaktPage() {
+export default async function KontaktPage() {
+  const site = await getSite();
   const c = site.company;
   return (
+    <>
     <section className="page-head">
       <div className="wrap page-head__in" style={{ paddingBottom: 110 }}>
         <nav aria-label="Omrvinky" className="crumbs">
@@ -101,5 +106,13 @@ export default function KontaktPage() {
         </div>
       </div>
     </section>
+    <section className="section section--tight">
+      <div className="wrap">
+        <div className="card inq-card" style={{ maxWidth: 860 }}>
+          <InquiryForm type="CONTACT" stamp={createFormStamp()} />
+        </div>
+      </div>
+    </section>
+    </>
   );
 }

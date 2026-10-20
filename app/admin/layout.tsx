@@ -18,20 +18,22 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         where: { status: 'CONFIRMED', paymentStatus: 'UNPAID', startsAt: { gte: hallTime(today, 0), lt: hallTime(addDays(today, 1), 0) } },
       })
     : 0;
+  const newInquiries = can(user.role, 'inquiries.manage') ? await prisma.inquiry.count({ where: { status: 'NEW' } }) : 0;
   const items: AdminNavItem[] = [
     { href: '/admin', label: 'Prehľad' },
     ...(can(user.role, 'bookings.view')
       ? [
+          { href: '/admin/recepcia', label: 'Recepcia' },
           { href: '/admin/kalendar', label: 'Kalendár ľadu' },
           { href: '/admin/rezervacie', label: 'Rezervácie', badge: unpaidToday || undefined },
         ]
       : []),
     ...(can(user.role, 'users.view') ? [{ href: '/admin/zakaznici', label: 'Zákazníci a kluby' }] : []),
     { href: '/admin/platby', label: 'Platby a faktúry', soon: true },
-    { href: '/admin/dopyty', label: 'Dopyty od klubov', soon: true },
+    ...(can(user.role, 'inquiries.manage') ? [{ href: '/admin/dopyty', label: 'Dopyty', badge: newInquiries || undefined }] : []),
     ...(can(user.role, 'security.view') ? [{ href: '/admin/bezpecnost', label: 'Bezpečnosť' }] : []),
     ...(can(user.role, 'audit.view') ? [{ href: '/admin/audit', label: 'Záznam zmien' }] : []),
-    ...(can(user.role, 'settings.manage') ? [{ href: '/admin/nastavenia', label: 'Cenník a nastavenia' }] : []),
+    ...(can(user.role, 'settings.manage') ? [{ href: '/admin/nastavenia', label: 'Nastavenia' }] : []),
   ];
   const initials = `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase();
 

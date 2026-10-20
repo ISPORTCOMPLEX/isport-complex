@@ -17,7 +17,13 @@ function newCode(): string {
 }
 
 export type CreateInput = {
-  userId: string;
+  userId: string | null;
+  guestEmail?: string | null;
+  createdById?: string | null;
+  movedFromCode?: string | null;
+  paid?: boolean;
+  staff?: boolean;
+  half?: 'A' | 'B';
   iso: string;
   startHour: number;
   hours: number;
@@ -31,10 +37,15 @@ export type CreateInput = {
 
 export type CreateResult = { ok: true; code: string; id: string } | { ok: false; error: string };
 
-export function validateSlot(s: BookingSettings, iso: string, startHour: number, hours: number, now = new Date()): string | null {
-  if (!inWindow(s, iso, now)) return `Rezervovať sa dá najviac ${s.maxDaysAhead} dní dopredu.`;
-  if (!Number.isInteger(startHour) || !Number.isInteger(hours) || hours < 1 || hours > s.maxHours) return `Rezervácia môže mať 1 až ${s.maxHours} hodiny.`;
+export function validateSlot(s: BookingSettings, iso: string, startHour: number, hours: number, now = new Date(), staff = false): string | null {
+  if (!Number.isInteger(startHour) || !Number.isInteger(hours) || hours < 1 || hours > (staff ? 12 : s.maxHours)) return `Rezervácia môže mať 1 až ${staff ? 12 : s.maxHours} hodiny.`;
   if (startHour < s.openHour || startHour + hours > s.closeHour) return 'Vybraný čas je mimo otváracích hodín.';
+  if (staff) {
+    // Recepcia môže rezervovať aj prebiehajúcu hodinu (zákazník prišiel bez rezervácie) a ďaleko dopredu.
+    if (hallTime(iso, startHour + hours).getTime() <= now.getTime()) return 'Tento čas už uplynul.';
+    return null;
+  }
+  if (!inWindow(s, iso, now)) return `Rezervovať sa dá najviac ${s.maxDaysAhead} dní dopredu.`;
   if (hallTime(iso, startHour).getTime() < now.getTime() + s.leadMinutes * 60 * 1000) return 'Tento čas sa už nedá rezervovať.';
   return null;
 }
@@ -46,7 +57,7 @@ function isUniqueViolation(e: unknown): boolean {
 // Vytvorí rezerváciu. Obsadenie hodín zabezpečuje unikátny index v databáze –
 // keď niekto iný ten istý čas zaberie o zlomok sekundy skôr, dostaneme chybu a nič sa neuloží.
 export async function createBooking(s: BookingSettings, input: CreateInput): Promise<CreateResult> {
-  const problem = validateSlot(s, input.iso, input.startHour, input.hours);
+  const problem = validateSlot(s, input.iso, input.startHour, input.hours, new Date(), input.staff ?? false);
   if (problem) return { ok: false, error: problem };
 
   const starts: Date[] = [];
@@ -56,7 +67,7 @@ export async function createBooking(s: BookingSettings, input: CreateInput): Pro
   const priceCents = totalCents(s, input.area, input.iso, input.startHour, input.hours);
 
   // Polovica: vyberieme tú, ktorá je voľná počas celej rezervácie (najprv A).
-  const halvesToTry: ('A' | 'B')[][] = input.area === 'cela' ? [['A', 'B']] : [['A'], ['B']];
+  const halvesToTry: ('A' | 'B')[][] = input.area === 'cela' ? [['A', 'B']] : input.half ? [[input.half]] : [['A'], ['B']];
 
   for (const halves of halvesToTry) {
     const area: Area = input.area === 'cela' ? 'FULL' : halves[0] === 'A' ? 'HALF_A' : 'HALF_B';
@@ -67,6 +78,10 @@ export async function createBooking(s: BookingSettings, input: CreateInput): Pro
           data: {
             code,
             userId: input.userId,
+            guestEmail: input.guestEmail ?? null,
+            createdById: input.createdById ?? null,
+            movedFromCode: input.movedFromCode ?? null,
+            ...(input.paid ? { paymentStatus: 'PAID' as const, paidAt: new Date() } : {}),
             area,
             startsAt,
             endsAt,

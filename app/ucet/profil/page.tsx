@@ -2,11 +2,12 @@ import type { Metadata } from 'next';
 import { requireUser } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
 import { ProfileForm } from '@/components/account/ProfileForm';
-import { site } from '@/lib/site';
+import { getSite } from '@/lib/siteSettings';
 
 export const metadata: Metadata = { title: 'Osobné údaje' };
 
 export default async function ProfilPage() {
+  const site = await getSite();
   const user = await requireUser('/ucet/profil');
   const extra = await prisma.user.findUnique({ where: { id: user.id }, select: { marketingOptIn: true } });
   return (

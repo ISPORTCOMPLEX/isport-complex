@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma';
 import { requireStaff, can, ROLE_LABEL } from '@/lib/staff';
 import { AdmHead, Chip, Empty, Panel, EVENT_LABEL, ago, auditText, fmtDate, fmtDateTime, reasonText } from '@/components/admin/ui';
 import { FormAlert } from '@/components/forms/FormAlert';
+import { PAYMENT_LABEL, STATUS_LABEL } from '@/lib/booking/format';
+import { euros, fmtDayShort, fmtRange } from '@/lib/booking/time';
 import {
   adminBan,
   adminResetTwoFactor,
@@ -47,6 +49,9 @@ export default async function ZakaznikDetail({ params, searchParams }: Props) {
   const manage = can(me.role, 'users.manage');
   const self = me.id === user.id;
   const locked = Boolean(user.lockedUntil && user.lockedUntil > new Date());
+  const bookings = can(me.role, 'bookings.view')
+    ? await prisma.booking.findMany({ where: { userId: user.id }, orderBy: { startsAt: 'desc' }, take: 15 })
+    : [];
   const [events, changes] = await Promise.all([
     prisma.securityEvent.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'desc' }, take: 15 }),
     manage
@@ -119,7 +124,27 @@ export default async function ZakaznikDetail({ params, searchParams }: Props) {
         </Panel>
 
         <Panel title="Rezervácie">
-          <Empty>Rezervácie a platby zákazníka sa tu zobrazia po spustení rezervačného systému.</Empty>
+          {bookings.length === 0 ? (
+            <Empty>Zákazník zatiaľ nemá rezervácie.</Empty>
+          ) : (
+            <ul className="adm-events">
+              {bookings.map((b) => (
+                <li key={b.id}>
+                  <span className={`adm-dot ${b.status === 'CONFIRMED' ? 'adm-dot--ok' : b.status === 'CANCELLED' ? '' : 'adm-dot--bad'}`} />
+                  <div>
+                    <strong>
+                      <Link href={`/admin/rezervacie/${b.id}`}>
+                        {fmtDayShort(b.startsAt)} · {fmtRange(b.startsAt, b.endsAt)}
+                      </Link>
+                    </strong>
+                    <small>
+                      {b.code} · {euros(b.priceCents)} · {STATUS_LABEL[b.status]} · {PAYMENT_LABEL[b.paymentStatus]}
+                    </small>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </Panel>
       </div>
 

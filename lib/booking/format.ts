@@ -18,3 +18,12 @@ export function bookingRows(b: B) {
     { label: 'Platba', value: METHOD_LABEL[b.paymentMethod] ?? b.paymentMethod },
   ];
 }
+
+export function transferRows(b: { number: number; code: string; priceCents: number; paymentMethod: string; paymentStatus: string }, iban: string) {
+  if (b.paymentMethod !== 'TRANSFER' || b.paymentStatus === 'PAID' || !iban) return [];
+  return [
+    { label: 'IBAN', value: iban },
+    { label: 'Variabilný symbol', value: String(b.number) },
+    { label: 'Správa pre príjemcu', value: b.code },
+  ];
+}

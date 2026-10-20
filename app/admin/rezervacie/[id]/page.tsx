@@ -12,6 +12,7 @@ import { adminCancelBooking, adminCheckIn, adminMarkPaid, adminMarkUnpaid, admin
 export const metadata: Metadata = { title: 'Detail rezervácie' };
 
 const NOTICE: Record<string, { ok: boolean; text: string }> = {
+  vytvorena: { ok: true, text: 'Rezervácia je vytvorená.' },
   zaplatena: { ok: true, text: 'Rezervácia je označená ako zaplatená.' },
   nezaplatena: { ok: true, text: 'Označenie platby je zrušené.' },
   prichod: { ok: true, text: 'Príchod je potvrdený.' },
@@ -162,7 +163,13 @@ export default async function AdminBookingDetail({ params, searchParams }: Props
             <div>
               <dt>Účet</dt>
               <dd>
-                {can(me.role, 'users.view') ? <Link href={`/admin/zakaznici/${b.user.id}`}>{b.user.email}</Link> : b.user.email}
+                {!b.user ? (
+                  <span className="muted">Bez účtu{b.guestEmail ? ` · ${b.guestEmail}` : ''}</span>
+                ) : can(me.role, 'users.view') ? (
+                  <Link href={`/admin/zakaznici/${b.user.id}`}>{b.user.email}</Link>
+                ) : (
+                  b.user.email
+                )}
               </dd>
             </div>
           </dl>

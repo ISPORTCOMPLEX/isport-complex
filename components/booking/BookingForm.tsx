@@ -12,9 +12,10 @@ type Props = {
   hidden: Record<string, string>;
   defaults: { contactName: string; contactPhone: string; teamName: string };
   cancelFreeHours: number;
+  moving?: string | null;
 };
 
-export function BookingForm({ hidden, defaults, cancelFreeHours }: Props) {
+export function BookingForm({ hidden, defaults, cancelFreeHours, moving = null }: Props) {
   const [state, action] = useActionState(createBookingAction, EMPTY);
   const v = state.values ?? { ...defaults, platba: 'ONSITE', note: '' };
   const e = state.errors ?? {};
@@ -65,7 +66,8 @@ export function BookingForm({ hidden, defaults, cancelFreeHours }: Props) {
         </Link>
         . Beriem na vedomie, že rezerváciu zruším online najneskôr {cancelFreeHours} hodín pred začiatkom.
       </Check>
-      <SubmitButton>Potvrdiť rezerváciu</SubmitButton>
+      {moving ? <p className="rez__move">Po potvrdení sa pôvodná rezervácia {moving} zruší a jej čas sa uvoľní.</p> : null}
+      <SubmitButton>{moving ? 'Potvrdiť presun' : 'Potvrdiť rezerváciu'}</SubmitButton>
     </form>
   );
 }

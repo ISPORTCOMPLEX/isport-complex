@@ -11,7 +11,8 @@ import { checked, isName, isPhone, normalizePhone, str } from '@/lib/validate';
 import { getBookingSettings } from '@/lib/booking/settings';
 import { cancelBooking, createBooking } from '@/lib/booking/create';
 import { isIsoDate } from '@/lib/booking/time';
-import { bookingRows } from '@/lib/booking/format';
+import { bookingRows, transferRows } from '@/lib/booking/format';
+import { getSite } from '@/lib/siteSettings';
 import { sendBookingCancelledEmail, sendBookingConfirmedEmail } from '@/lib/email';
 
 const METHODS: PaymentMethod[] = ['ONSITE', 'TRANSFER'];
@@ -44,7 +45,14 @@ export async function createBookingAction(_prev: FormState, form: FormData): Pro
   if (!limit.ok) return { error: `Príliš veľa rezervácií za krátky čas. Skús to o ${minutes(limit.retryAfterSec)} min.`, values };
 
   const settings = await getBookingSettings();
+  const presun = str(form, 'presun', 12);
+  const old = presun ? await prisma.booking.findUnique({ where: { code: presun } }) : null;
+  if (presun) {
+    if (!old || old.userId !== user.id || old.status !== 'CONFIRMED' || old.paymentStatus === 'PAID') return { error: 'Túto rezerváciu nie je možné presunúť online.', values };
+    if (old.startsAt.getTime() - Date.now() < settings.cancelFreeHours * 3600000) return { error: `Presunúť sa dá najneskôr ${settings.cancelFreeHours} hodín pred začiatkom.`, values };
+  }
   const result = await createBooking(settings, {
+    movedFromCode: old?.code ?? null,
     userId: user.id,
     iso,
     startHour,
@@ -57,12 +65,20 @@ export async function createBookingAction(_prev: FormState, form: FormData): Pro
     paymentMethod: method!,
   });
   if (!result.ok) return { error: result.error, values };
+  if (old) {
+    const cancelled = await cancelBooking(old.id, 'customer', `Presunuté na ${result.code}`);
+    if (!cancelled) {
+      await cancelBooking(result.id, 'customer', 'Presun sa nepodaril');
+      return { error: 'Presun sa nepodaril, pôvodná rezervácia sa medzitým zmenila. Skontroluj Moje rezervácie.', values };
+    }
+  }
 
   const booking = await prisma.booking.findUnique({ where: { id: result.id } });
   if (booking) {
     const base = await getBaseUrl();
     try {
-      await sendBookingConfirmedEmail(user.email, user.firstName, `${base}/rezervacia/${booking.code}`, bookingRows(booking));
+      const site = await getSite();
+      await sendBookingConfirmedEmail(user.email, user.firstName, `${base}/rezervacia/${booking.code}`, [...bookingRows(booking), ...transferRows(booking, site.iban)]);
     } catch (err) {
       console.error('[email:booking]', err);
     }

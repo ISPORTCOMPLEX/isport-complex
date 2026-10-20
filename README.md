@@ -68,3 +68,15 @@ Premenné: `AUTH_SECRET`, `APP_URL`, `RESEND_API_KEY`, `EMAIL_FROM` (pozri `.env
 - Administrácia: Kalendár ľadu (deň, polovice A/B, blokovanie času), Rezervácie (filtre, hľadanie, detail:
   príchod, zaplatené, neprišiel, zrušenie s e-mailom), Cenník a nastavenia (uložené v DB, tabuľka Setting).
 - Platba zatiaľ na recepcii alebo prevodom; online karta príde vo fáze 4.
+
+## Kompletizácia (okrem platieb)
+
+- Údaje o firme a hale, otváracie hodiny, IBAN – Administrácia → Nastavenia → Firma a kontakty (tabuľka Setting, kľúč `site`).
+- Dopyty: formulár na /kontakt a /pre-kluby → Administrácia → Dopyty (stav, poznámka), e-mail hale aj odosielateľovi.
+- Recepcia (/admin/recepcia): skenovanie QR kamerou (BarcodeDetector) alebo ručný kód, príchod a platba jedným klikom.
+- Rezervácia zadaná recepciou (/admin/rezervacie/nova) – aj pre zákazníka bez účtu.
+- Presun rezervácie zákazníkom (nezaplatená, do X hodín vopred).
+- Platba prevodom: IBAN, variabilný symbol (Booking.number) a správa pre príjemcu.
+- Denný cron /api/cron/denne (vercel.json, CRON_SECRET): pripomienky deň vopred, uzavretie odohraných, upratovanie.
+- Obchodné podmienky a ochrana osobných údajov – pracovný návrh na kontrolu právnikom.
+- Oprava histórie migrácií: `node scripts/baseline.mjs` (po `prisma db push`).
