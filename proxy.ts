@@ -5,17 +5,19 @@ import { buildCsp, securityHeaders } from './lib/securityHeaders';
 // Každá stránka dostane jednorazový nonce, spustí sa len skript, ktorý ho nesie.
 export function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
-  const csp = buildCsp(nonce, process.env.NODE_ENV === 'development', request.nextUrl.pathname.startsWith('/admin/fotky'));
-
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-nonce', nonce);
-  requestHeaders.set('Content-Security-Policy', csp);
 
   // Administrácia sa bez prihlásenia tvári ako neexistujúca stránka (404) – skenery a boti ju nenájdu.
   // Personál sa prihlási cez /prihlasenie a do administrácie vstúpi z Môj účet.
   const path = request.nextUrl.pathname;
   const signedIn = request.cookies.has('__Host-isp_session') || request.cookies.has('isp_session');
   const hideAdmin = (path === '/admin' || path.startsWith('/admin/')) && !signedIn;
+  // Nahrávanie fotiek ide z prehliadača priamo do úložiska – povolíme ho len prihlásenému na stránke Fotky.
+  // Do Fotiek sa preto vstupuje vždy plným načítaním stránky (AdminNav: hard), aby platila táto CSP.
+  const csp = buildCsp(nonce, process.env.NODE_ENV === 'development', signedIn && path.startsWith('/admin/fotky'));
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('Content-Security-Policy', csp);
 
   const response = hideAdmin
     ? NextResponse.rewrite(new URL('/_neexistuje', request.url), { request: { headers: requestHeaders } })

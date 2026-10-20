@@ -31,7 +31,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       : []),
     ...(can(user.role, 'users.view') ? ([{ href: '/admin/zakaznici', label: 'Zákazníci a kluby', icon: 'users', group: 'Ľudia' }] as AdminNavItem[]) : []),
     ...(can(user.role, 'inquiries.manage') ? ([{ href: '/admin/dopyty', label: 'Dopyty', icon: 'mail', group: 'Ľudia', badge: newInquiries || undefined }] as AdminNavItem[]) : []),
-    ...(can(user.role, 'media.manage') ? ([{ href: '/admin/fotky', label: 'Fotky', icon: 'image', group: 'Web' }] as AdminNavItem[]) : []),
+    ...(can(user.role, 'media.manage') ? ([{ href: '/admin/fotky', label: 'Fotky', icon: 'image', group: 'Web', hard: true }] as AdminNavItem[]) : []),
     ...(can(user.role, 'analytics.view') ? ([{ href: '/admin/analytika', label: 'Analytika', icon: 'chart', group: 'Prehľady' }] as AdminNavItem[]) : []),
     { href: '/admin/platby', label: 'Platby a faktúry', icon: 'card', group: 'Prehľady', soon: true },
     ...(can(user.role, 'security.view') ? ([{ href: '/admin/bezpecnost', label: 'Bezpečnosť', icon: 'shield', group: 'Systém' }] as AdminNavItem[]) : []),

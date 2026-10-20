@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export type AdminNavItem = { href: string; label: string; icon: IconName; group: string; soon?: boolean; badge?: number };
+// hard: odkaz s plným načítaním stránky (Fotky potrebujú vlastnú CSP na nahrávanie, ktorú prechod v rámci appky neprinesie)
+export type AdminNavItem = { href: string; label: string; icon: IconName; group: string; soon?: boolean; badge?: number; hard?: boolean };
 type IconName = 'home' | 'scan' | 'cal' | 'list' | 'users' | 'chart' | 'mail' | 'card' | 'shield' | 'log' | 'gear' | 'image';
 
 const P: Record<IconName, string> = {
@@ -47,6 +48,12 @@ export function AdminNav({ items }: { items: AdminNavItem[] }) {
                   {i.label}
                   <em>čoskoro</em>
                 </span>
+              ) : i.hard ? (
+                <a key={i.href} href={i.href} className="adm__link" aria-current={active(i.href) ? 'page' : undefined}>
+                  <Icon name={i.icon} />
+                  {i.label}
+                  {i.badge ? <b>{i.badge}</b> : null}
+                </a>
               ) : (
                 <Link key={i.href} href={i.href} className="adm__link" aria-current={active(i.href) ? 'page' : undefined}>
                   <Icon name={i.icon} />

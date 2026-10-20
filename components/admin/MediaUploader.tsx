@@ -28,7 +28,7 @@ function upload(url: string, fields: Record<string, string | number>, file: File
         reject(new Error(`Chyba ${xhr.status}`));
       }
     };
-    xhr.onerror = () => reject(new Error('Spojenie s Cloudinary zlyhalo.'));
+    xhr.onerror = () => reject(new Error('Spojenie s úložiskom zlyhalo. Obnov stránku (F5) a skús to znova; ak to nepomôže, skontroluj internet.'));
     xhr.send(fd);
   });
 }
