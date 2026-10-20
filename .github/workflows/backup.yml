@@ -24,7 +24,7 @@ jobs:
           test -s db.dump
           gpg --batch --yes --pinentry-mode loopback --passphrase "$PASS" --symmetric --cipher-algo AES256 -o "isport-$(date -u +%F).dump.gpg" db.dump
           shred -u db.dump
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: isport-db-${{ github.run_id }}
           path: isport-*.dump.gpg
