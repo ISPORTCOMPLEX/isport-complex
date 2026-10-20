@@ -40,13 +40,13 @@ function esc(s: string): string {
 export type Row = { label: string; value: string };
 
 function layout(title: string, intro: string, buttonText: string, url: string, outro: string, rows: Row[] = []): { html: string; text: string } {
-  // Erb sa načíta z webu (e-mailové programy nezobrazujú SVG).
+  // Logo sa načíta z webu ako PNG (e-mailové programy nezobrazujú SVG).
   const origin = new URL(url).origin;
   const html = `<!doctype html><html lang="sk"><body style="margin:0;background:#070708;font-family:Arial,Helvetica,sans-serif;color:#F4F6F7">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#070708;padding:32px 12px"><tr><td align="center">
 <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#111114;border:1px solid #25252A;border-radius:18px;overflow:hidden">
 <tr><td style="height:4px;background:#E3121B"></td></tr>
-<tr><td style="padding:28px 32px 8px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="padding-right:12px;vertical-align:middle"><img src="${esc(origin)}/brand/erb-email.png" width="36" height="42" alt="" style="display:block;border:0"></td><td style="vertical-align:middle"><div style="font-size:24px;font-weight:900;font-style:italic;letter-spacing:.01em;line-height:1">I<span style="color:#E3121B">-</span>SPORT</div><div style="font-size:10px;letter-spacing:.45em;color:#9AA1A8;font-weight:700;margin-top:4px">COMPLEX</div></td></tr></table></td></tr>
+<tr><td style="padding:28px 32px 8px"><img src="${esc(origin)}/brand/email-logo.png" width="220" height="41" alt="I-SPORT COMPLEX" style="display:block;border:0;color:#F4F6F7;font-size:20px;font-weight:900"></td></tr>
 <tr><td style="padding:16px 32px 0"><h1 style="margin:0;font-size:24px;line-height:1.3;color:#F4F6F7">${esc(title)}</h1></td></tr>
 <tr><td style="padding:12px 32px 0;font-size:16px;line-height:1.6;color:#C8CDD2">${esc(intro)}</td></tr>
 ${rows.length ? `<tr><td style="padding:20px 32px 0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #25252A;border-radius:12px">${rows.map((r, i) => `<tr><td style="padding:12px 16px;font-size:13px;color:#9AA1A8;${i ? 'border-top:1px solid #25252A;' : ''}">${esc(r.label)}</td><td style="padding:12px 16px;font-size:15px;font-weight:700;color:#F4F6F7;text-align:right;${i ? 'border-top:1px solid #25252A;' : ''}">${esc(r.value)}</td></tr>`).join('')}</table></td></tr>` : ''}

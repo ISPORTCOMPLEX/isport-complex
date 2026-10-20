@@ -1543,3 +1543,36 @@ a.cal__item:hover { color: var(--text); filter: brightness(1.15); }
   .ch__x span { font-size: 10px; }
   .kpi__value { font-size: 36px; }
 }
+
+/* ===================================================================
+   ISport Display – vlastné písmo značky na nadpisy, ceny a čísla
+   =================================================================== */
+.display,
+.num,
+.outline-word,
+.logo__brand,
+.day b,
+.steps__n,
+.cond,
+.cx__label strong,
+.cx__list strong,
+.rz-h span,
+.rz-day b,
+.rz-stepper > strong,
+.rz-sum__title,
+.rz-total strong,
+.pt__row--head strong,
+.ice .legal__body h2,
+.adm__main .adm__title,
+.kpi__value {
+  font-family: var(--font-display), var(--font-archivo), system-ui, sans-serif;
+  font-synthesis: none;
+}
+.wide-display { font-family: var(--font-display-wide), var(--font-display), sans-serif; font-style: italic; font-weight: 900; }
+.logo__lockup { display: block; flex-shrink: 0; height: auto; }
+.hd__logo .logo__lockup { width: auto; height: 38px; }
+.adm__brand { padding: 4px 8px 0; }
+.adm__brand > span { gap: 8px; }
+.adm__brand .logo__lockup { height: 34px; width: auto; }
+.ft__brand .logo__lockup { height: 58px; width: auto; }
+@media (max-width: 640px) { .hd__logo .logo__lockup { height: 32px; } }

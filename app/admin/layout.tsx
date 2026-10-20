@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { requireStaff, can, ROLE_LABEL } from '@/lib/staff';
 import { AdminNav, type AdminNavItem } from '@/components/admin/AdminNav';
-import { LogoMark, Wordmark } from '@/components/Logo';
+import { LogoLockup } from '@/components/Logo';
 import { logoutAction } from '@/lib/actions/auth';
 import { prisma } from '@/lib/prisma';
 import { addDays, hallTime, todayIso } from '@/lib/booking/time';
@@ -43,9 +43,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="adm">
       <aside className="adm__side">
         <Link href="/admin" className="adm__brand">
-          <LogoMark size={32} />
           <span>
-            <Wordmark className="adm__wm" />
+            <LogoLockup height={34} />
             <small>Administrácia</small>
           </span>
         </Link>

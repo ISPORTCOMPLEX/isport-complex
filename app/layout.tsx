@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Archivo } from 'next/font/google';
+import localFont from 'next/font/local';
 import { headers } from 'next/headers';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -18,6 +19,23 @@ const archivo = Archivo({
   variable: '--font-archivo',
 });
 
+// ISport Display – vlastné písmo značky. Condensed na nadpisy a ceny, široké na veľké nápisy.
+const display = localFont({
+  src: [
+    { path: './fonts/ISportDisplayCondensed-BlackItalic.woff2', weight: '900', style: 'italic' },
+    { path: './fonts/ISportDisplayCondensed-BoldItalic.woff2', weight: '700', style: 'italic' },
+  ],
+  variable: '--font-display',
+  display: 'swap',
+  fallback: ['Arial Narrow', 'sans-serif'],
+});
+const displayWide = localFont({
+  src: [{ path: './fonts/ISportDisplay-BlackItalic.woff2', weight: '900', style: 'italic' }],
+  variable: '--font-display-wide',
+  display: 'swap',
+  preload: false,
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl() ?? 'http://localhost:3000'),
   title: {
@@ -28,7 +46,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#08080A',
+  themeColor: '#0A0A0A',
   colorScheme: 'dark',
 };
 
@@ -38,7 +56,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   await headers();
 
   return (
-    <html lang="sk" className={archivo.variable}>
+    <html lang="sk" className={`${archivo.variable} ${display.variable} ${displayWide.variable}`}>
       <body>
         <a href="#obsah" className="sr-only skip">
           Preskočiť na obsah

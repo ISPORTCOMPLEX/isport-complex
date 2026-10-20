@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { LogoMark } from './Logo';
+import { LogoLockup } from './Logo';
 import { orTbd } from '@/lib/site';
 import { getSite } from '@/lib/siteSettings';
 
@@ -11,7 +11,7 @@ export async function Footer() {
       <div className="wrap ft__in">
         <div className="ft__cols">
           <div className="ft__brand">
-            <LogoMark size={52} />
+            <LogoLockup height={58} />
             <p>
               {c.name}
               <br />

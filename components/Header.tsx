@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { LogoMark, Wordmark } from './Logo';
+import { LogoLockup } from './Logo';
 import { MobileNav, NavLinks } from './NavLinks';
 import { ArrowUpRight } from './Icons';
 import { getSessionUser } from '@/lib/session';
@@ -11,8 +11,7 @@ export async function Header() {
     <header className="hd">
       <div className="wrap hd__in">
         <Link href="/" className="hd__logo" aria-label="I-SPORT COMPLEX, domov">
-          <LogoMark size={32} />
-          <Wordmark />
+          <LogoLockup height={38} title="I-SPORT COMPLEX" />
         </Link>
         <NavLinks />
         <div className="hd__actions">
