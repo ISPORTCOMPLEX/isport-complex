@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Rez budovou komplexu, ktorý ožije: po prejdení myšou (alebo ťuknutí) sa v danej časti spustí animácia –
 // hokej na ľade, fanúšikovia v skyboxoch, jedenie v bufete, činky v posilňovni, para vo wellness a futbal vonku.
@@ -29,6 +29,12 @@ const ZONES: { zone: Zone; label: string; x: number; y: number; w: number; h: nu
 export function ComplexSection() {
   const [active, setActive] = useState<Zone | null>(null);
   const touch = useRef(false);
+  const art = useRef<HTMLDivElement>(null);
+  // Na telefóne sa dá obrázok posúvať do strany – začni pri ľadovej ploche.
+  useEffect(() => {
+    const el = art.current;
+    if (el && el.scrollWidth > el.clientWidth + 20) el.scrollLeft = Math.round(el.scrollWidth * 0.12);
+  }, []);
   const on = (z: Zone) => () => {
     if (!touch.current) setActive(z);
   };
@@ -53,8 +59,8 @@ export function ComplexSection() {
   };
 
   return (
-    <div className="cx">
-      <div className={`cx__art${active ? ` is-${active}` : ''}`}>
+    <div className="cx" style={{ position: 'relative' }}>
+      <div ref={art} className={`cx__art${active ? ` is-${active}` : ''}`}>
         <svg viewBox="0 0 1440 560" role="img" aria-label="Schéma komplexu: ľadová plocha, nad ňou skyboxy, vedľa bufet, krídlo s posilňovňou a wellness, vonku futbalové ihrisko">
 
           <defs>
@@ -282,12 +288,12 @@ export function ComplexSection() {
             {p.note ? <span className={p.soon ? 'cx__soon' : undefined}>{p.note}</span> : null}
           </Link>
         ))}
-        <span className="cx__note">
+      </div>
+      <span className="cx__note">
           <i aria-hidden="true" />
           <span className="cx__note-mouse">Prejdi myšou po budove – každá časť ožije</span>
-          <span className="cx__note-touch">Ťukni na časť budovy – ožije</span>
+          <span className="cx__note-touch">Ťukni na časť budovy · posuň do strany</span>
         </span>
-      </div>
       <ul className="cx__list">
         {PARTS.map((p) => (
           <li key={p.name}>

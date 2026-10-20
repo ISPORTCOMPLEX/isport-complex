@@ -1682,3 +1682,160 @@ a.cal__item:hover { color: var(--text); filter: brightness(1.15); }
 .cx__note-touch{display:none}
 @media (hover:none){.cx__note-mouse{display:none}.cx__note-touch{display:inline}}
 @media (prefers-reduced-motion: reduce){.cx__art *{animation:none!important}.cx__note{display:none}}
+
+/* ===================================================================
+   v3.1 – pokojnejšia typografia (menšie nadpisy) a doladený mobil
+   =================================================================== */
+/* nadpisy – desktop */
+.hx__title { font-size: clamp(56px, 8.2vw, 118px); }
+.ix__title, .bx__title { font-size: clamp(44px, 5.4vw, 78px); }
+.vx__title { font-size: clamp(40px, 4.8vw, 68px); }
+.rz-band__title { font-size: clamp(44px, 5.6vw, 84px); }
+.bx__name strong { font-size: clamp(30px, 3.2vw, 46px); }
+.fx__grid h3 { font-size: 38px; }
+.pp__h { font-size: clamp(40px, 4vw, 54px); }
+.pp__h2 { font-size: 36px; }
+.nf__title { font-size: clamp(56px, 8vw, 116px); }
+.au__title { font-size: clamp(48px, 5.2vw, 80px); }
+.ac-band__me strong { font-size: clamp(32px, 3.4vw, 50px); }
+.ice .acct__title { font-size: clamp(34px, 3.6vw, 52px); }
+.display.h1 { font-size: clamp(48px, 6.4vw, 104px); }
+.display.h2 { font-size: clamp(36px, 4.4vw, 64px); }
+.display.h3 { font-size: 32px; }
+.pt__row .cond { font-size: clamp(40px, 3.8vw, 58px); }
+.pt__row--head strong { font-size: 26px; }
+.pt-extras strong { font-size: 40px; }
+.ix__prices dd.cond { font-size: 44px; }
+.rz-total strong { font-size: 46px; }
+.rz-sum__title { font-size: 28px; }
+.qb__head strong { font-size: 28px; }
+.qb__foot strong { font-size: 34px; }
+.cx__label strong { font-size: 22px; }
+.cx__label--main strong { font-size: 26px; }
+.ft__word { font-size: clamp(56px, 11vw, 160px); }
+.adm__main .adm__title { font-size: clamp(34px, 3.2vw, 48px); }
+.kpi__value { font-size: clamp(30px, 2.4vw, 38px); }
+.adm__main .adm-stat__value { font-size: 38px; }
+.ix, .bx { padding-top: 96px; padding-bottom: 96px; }
+.rz-band { padding: 32px 0 38px; }
+.rz-band__row { margin-top: 24px; }
+
+/* menšia hlavička + tlačidlo Rezervovať aj na mobile */
+.hd__mcta { display: none; }
+@media (max-width: 1180px) {
+  .hd__mcta { display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: 999px; background: var(--red); color: #fff; font-weight: 700; font-size: 14px; white-space: nowrap; }
+  .hd__mcta:hover { color: #fff; background: var(--red-hover); }
+  .hd__actions { gap: 10px; }
+}
+
+/* mobilné menu na celú obrazovku */
+@media (max-width: 1180px) {
+  .mnav summary { width: 44px; height: 44px; border-radius: 12px; }
+  .mnav[open] summary { background: #fff; color: #050506; border-color: #fff; }
+  .mnav__panel { position: fixed; left: 0; right: 0; top: 64px; bottom: 0; border-radius: 0; border: none; padding: 12px var(--gutter) 32px; overflow-y: auto; background: #050506; box-shadow: none; }
+  .mnav__panel a { padding: 16px 0; font-size: 22px; font-weight: 700; border-bottom: 1px solid #1e242b; }
+  .mnav__panel a[aria-current='page'] { color: var(--red-text); }
+  .mnav__panel .btn { margin-top: 24px; height: 56px; font-size: 16px; }
+}
+
+/* telefón */
+@media (max-width: 640px) {
+  :root { --gutter: 18px; }
+  .hd__in { height: 64px; gap: 12px; }
+  .hx { margin-top: -65px; padding-top: 65px; }
+  .hx__top { gap: 18px; padding-top: 28px; }
+  .hx__title { font-size: 52px; }
+  .hx__side { gap: 14px; padding-bottom: 0; }
+  .hx__side p { font-size: 17px; }
+  .cx { margin-top: 18px; }
+  /* rez komplexom: väčší, posúvateľný do strany, aby boli postavičky vidieť a dalo sa na ne ťuknúť */
+  .cx__art { overflow-x: auto; overflow-y: hidden; aspect-ratio: auto; height: 300px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .cx__art::-webkit-scrollbar { display: none; }
+  .cx__art svg { position: relative; width: 772px; height: 300px; max-width: none; }
+  .cx__note { left: 18px; bottom: 8px; }
+  .cx__list { padding-top: 4px; }
+  .cx__list strong { font-size: 22px; }
+
+  .ix, .bx { padding-top: 64px; padding-bottom: 64px; }
+  .ix__copy { padding-left: 18px; gap: 20px; }
+  .ix__title, .bx__title { font-size: 40px; }
+  .ix__lead { font-size: 17px; }
+  .ix__prices { grid-template-columns: 1fr 1fr; row-gap: 14px; }
+  .ix__prices > div:nth-child(3) { padding-left: 0; border-left: none; }
+  .ix__prices dd.cond { font-size: 36px; }
+  .qb { padding: 18px; border-radius: 22px; gap: 14px; }
+  .qb__foot { flex-wrap: wrap; }
+  .qb__cta { height: 48px; }
+  .bx__head { margin-bottom: 24px; gap: 14px; }
+  .bx__row { padding: 20px 0; }
+  .bx__name strong { font-size: 28px; }
+  .bx__text { font-size: 15px; }
+  .fx { padding-bottom: 64px; }
+  .fx__grid h3 { font-size: 30px; }
+  .vx__title { font-size: 40px; }
+  .vx__copy { gap: 22px; padding: 48px var(--gutter); }
+  .vx__two { grid-template-columns: 1fr; gap: 16px; }
+  .vx__map { min-height: 260px; }
+
+  .rz-band { padding: 20px 0 26px; }
+  .rz-band__row { margin-top: 14px; gap: 10px; }
+  .rz-band__title { font-size: 40px; }
+  .rz-band__lead { font-size: 15px; }
+  .rz-ice { padding: 28px 0 72px; }
+  .rz-ice::before, .ice.acct::before { left: 6px; width: 6px; }
+  .rz-ice > .wrap, .ice.acct > .wrap { padding-left: calc(var(--gutter) + 6px); }
+  .rz-main { gap: 30px; }
+  .rz-day { flex-basis: 62px; }
+  .rz-days { scroll-snap-type: x mandatory; margin-right: calc(var(--gutter) * -1); padding-right: var(--gutter); }
+  .rz-day { scroll-snap-align: start; }
+  .rz-slot { padding: 12px; min-height: 48px; }
+  .rz-slot b { font-size: 18px; }
+  .rz-extra { padding: 18px; gap: 14px; }
+  .rz-sum { padding: 20px; border-radius: 22px; }
+  .rz-total strong { font-size: 40px; }
+  .rz-card { padding: 18px; border-radius: 18px; }
+  .pp-ice { padding: 56px 0 64px; }
+  .pp-dark { padding: 56px 0 72px; }
+  .pp__copy { padding-left: 18px; }
+  .pp__h { font-size: 38px; }
+  .pp__h2 { font-size: 30px; }
+  .pp__steps { grid-template-columns: 1fr; gap: 18px; }
+  .pp__steps li, .pp__steps li + li { padding: 18px 0 0; border-left: none; }
+  .pp__steps span { font-size: 40px; }
+  .pt-extras strong { font-size: 34px; }
+  .au__title { font-size: 44px; }
+  .nf { min-height: 60vh; }
+  .nf__title { font-size: 52px; }
+  .nf__text { font-size: 17px; }
+  .ac-band__me .acct__avatar { width: 52px; height: 52px; border-radius: 14px; font-size: 19px; }
+  .ac-band__me strong { font-size: 30px; }
+  .ac-band__in { padding-bottom: 18px; }
+  .ice.acct { padding: 32px 0 72px; }
+  .ice .acct__title { font-size: 32px; }
+  .acct__panel, .acct__cta, .acct__tile { padding: 18px; }
+  .ft { padding: 56px 0 28px; }
+  .ft__cols { grid-template-columns: 1fr; gap: 28px; }
+  .ft__in { gap: 36px; }
+  .btn { height: 52px; padding: 0 22px; font-size: 15px; }
+  .legal__body h2 { font-size: 26px !important; }
+}
+
+/* mobilná lišta rezervácie – súhrn a tlačidlo vždy po ruke */
+.rz-mbar { display: none; }
+@media (max-width: 1000px) {
+  .rz-mbar { display: flex; position: fixed; left: 10px; right: 10px; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 40; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 10px 10px 18px; border-radius: 18px; background: #07090c; color: #f2f5f7; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45); }
+  .rz-mbar > span { display: flex; flex-direction: column; min-width: 0; }
+  .rz-mbar small { font-size: 12px; color: #8c959e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rz-mbar strong { font-family: var(--font-display), var(--font-archivo), sans-serif; font-style: italic; font-weight: 900; font-size: 28px; line-height: 1; }
+  .rz-mbar a, .rz-mbar .rz-mbar__off { display: inline-flex; align-items: center; height: 48px; padding: 0 20px; border-radius: 999px; background: var(--red); color: #fff !important; font-weight: 700; font-size: 15px; white-space: nowrap; }
+  .rz-mbar .rz-mbar__off { background: #1a2028; color: #7c858e !important; }
+  .rz-grid { padding-bottom: 76px; }
+}
+@media (max-width: 1000px) { .ix__lines .ix__red, .ix__lines .ix__circle { display: none; } }
+@media (max-width: 640px) {
+  .ix__lines .ix__blue { left: 6px; width: 6px; }
+  .cx__art { height: 270px; }
+  .cx__art svg { width: 926px; height: 360px; margin-top: -72px; }
+  .rz-band__top { flex-wrap: wrap; gap: 4px 16px; }
+}
+@media (max-width: 1100px) { .cx__note { position: static; padding: 10px var(--gutter) 0; } }

@@ -33,6 +33,9 @@ export async function Header() {
               <ArrowUpRight size={14} />
             </span>
           </Link>
+          <Link href="/rezervacia" className="hd__mcta">
+            Rezervovať
+          </Link>
           <MobileNav loggedIn={Boolean(user)} />
         </div>
       </div>

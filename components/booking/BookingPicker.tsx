@@ -178,6 +178,21 @@ export function BookingPicker({ days, iso, slots, initialHour, initialShowers, m
         )}
         <p className="rz-fine">Úprava ľadu je v cene. Platíš na recepcii alebo prevodom.</p>
       </aside>
+
+      {/* Mobil: súhrn a tlačidlo stále po ruke na spodku obrazovky */}
+      <div className="rz-mbar">
+        <span>
+          <small>{valid ? `${day?.label ?? ''} · ${pad(start!)} – ${pad(start! + hours)}${showers ? ' · sprchy' : ''}` : 'Vyber deň a čas'}</small>
+          <strong>{valid ? eur(ice + extra) : '—'}</strong>
+        </span>
+        {next ? (
+          <Link href={next} className="rz-mbar__go">
+            Pokračovať
+          </Link>
+        ) : (
+          <span className="rz-mbar__off">Vyber čas</span>
+        )}
+      </div>
     </div>
   );
 }
