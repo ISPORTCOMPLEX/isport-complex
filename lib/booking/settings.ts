@@ -15,6 +15,7 @@ export type BookingSettings = {
   leadMinutes: number; // najneskôr koľko minút pred začiatkom sa dá rezervovať
   maxDaysAhead: number; // ako ďaleko dopredu
   maxHours: number; // najviac hodín v jednej rezervácii
+  maxActive: number; // najviac nadchádzajúcich rezervácií na jeden účet (ochrana pred blokovaním kalendára)
   temporary: boolean; // true = ešte neboli zadané skutočné hodnoty
 };
 
@@ -30,6 +31,7 @@ export const DEFAULT_SETTINGS: BookingSettings = {
   leadMinutes: 60,
   maxDaysAhead: 30,
   maxHours: 3,
+  maxActive: 6,
   temporary: true,
 };
 
@@ -59,6 +61,7 @@ export function normalizeSettings(raw: unknown): BookingSettings {
     leadMinutes: num(r.leadMinutes, d.leadMinutes, 0, 10080),
     maxDaysAhead: num(r.maxDaysAhead, d.maxDaysAhead, 1, 365),
     maxHours: num(r.maxHours, d.maxHours, 1, 12),
+    maxActive: num(r.maxActive, d.maxActive, 1, 100),
     temporary: r.temporary === undefined ? true : Boolean(r.temporary),
   };
 }

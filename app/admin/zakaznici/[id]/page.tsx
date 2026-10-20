@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma';
 import { requireStaff, can, ROLE_LABEL } from '@/lib/staff';
 import { AdmHead, Chip, Empty, Panel, EVENT_LABEL, ago, auditText, fmtDate, fmtDateTime, reasonText } from '@/components/admin/ui';
 import { FormAlert } from '@/components/forms/FormAlert';
+import { ResetLinkForm } from '@/components/admin/ResetLinkForm';
+import { emailEnabled } from '@/lib/email';
 import { PAYMENT_LABEL, STATUS_LABEL } from '@/lib/booking/format';
 import { euros, fmtDayShort, fmtRange } from '@/lib/booking/time';
 import {
@@ -164,10 +166,10 @@ export default async function ZakaznikDetail({ params, searchParams }: Props) {
                 <button className="btn btn--sm btn--ghost">Odomknúť účet</button>
               </form>
             ) : null}
-            {!user.bannedAt ? (
+            {!user.bannedAt && emailEnabled() ? (
               <form action={adminSendReset}>
                 {hidden}
-                <button className="btn btn--sm btn--ghost">Poslať odkaz na nové heslo</button>
+                <button className="btn btn--sm btn--ghost">Poslať odkaz na nové heslo e-mailom</button>
               </form>
             ) : null}
             {!self ? (
@@ -178,6 +180,7 @@ export default async function ZakaznikDetail({ params, searchParams }: Props) {
             ) : null}
           </div>
 
+          {!self && !user.bannedAt ? <ResetLinkForm userId={user.id} /> : null}
           {!self ? (
             <div className="adm-danger">
               <details className="tfa__more">

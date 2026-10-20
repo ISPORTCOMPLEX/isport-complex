@@ -13,6 +13,7 @@ export type FormState = {
   secret?: string;
   backupCodes?: string[];
   devLink?: string;
+  manual?: boolean;
 };
 
 export const EMPTY: FormState = {};

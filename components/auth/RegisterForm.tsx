@@ -19,10 +19,21 @@ export function RegisterForm({ captcha, stamp }: { captcha: CaptchaData; stamp: 
     return (
       <div className="auth__done">
         <div className="auth__done-ic" aria-hidden="true">✉</div>
-        <h2 className="h-card">Skontroluj si e-mail</h2>
-        <p>
-          Na adresu <strong>{v.email}</strong> sme poslali odkaz na overenie. Platí 24 hodín. Ak e-mail nevidíš, pozri priečinok Spam alebo Reklamy.
-        </p>
+        {state.manual ? (
+          <>
+            <h2 className="h-card">Registrácia prijatá</h2>
+            <p>
+              Účet pre <strong>{v.email}</strong> čaká na aktiváciu. Kým spustíme e-maily, aktivuje ho recepcia – zvyčajne do 24 hodín. Ak sa ponáhľaš, zavolaj nám.
+            </p>
+          </>
+        ) : (
+          <>
+            <h2 className="h-card">Skontroluj si e-mail</h2>
+            <p>
+              Na adresu <strong>{v.email}</strong> sme poslali odkaz na overenie. Platí 24 hodín. Ak e-mail nevidíš, pozri priečinok Spam alebo Reklamy.
+            </p>
+          </>
+        )}
         <DevLink href={state.devLink} />
         <Link href="/prihlasenie" className="btn btn--ghost btn--full">
           Prejsť na prihlásenie

@@ -7,13 +7,23 @@ import { prisma } from '@/lib/prisma';
 import type { FormState } from '@/lib/formState';
 import { getSessionUser, createSession, destroySession } from '@/lib/session';
 import { hitLimit, minutes } from '@/lib/rateLimit';
-import { getRequestInfo } from '@/lib/requestInfo';
+import { getBaseUrl, getRequestInfo } from '@/lib/requestInfo';
 import { logSecurity } from '@/lib/securityLog';
 import { checked, isName, isPhone, normalizePhone, raw, str } from '@/lib/validate';
-import { hashPassword, passwordProblem, verifyPassword } from '@/lib/password';
+import { hashPassword, passwordProblemStrong, verifyPassword } from '@/lib/password';
 import { encrypt, decrypt } from '@/lib/crypto';
 import { generateBackupCodes, generateSecret, otpauthUri, verifyTotp } from '@/lib/totp';
 import { checkSecondFactor } from '@/lib/secondFactor';
+import { emailEnabled, sendSecurityNoticeEmail } from '@/lib/email';
+
+async function notice(user: { email: string; firstName: string }, what: string) {
+  if (!emailEnabled()) return;
+  try {
+    await sendSecurityNoticeEmail(user.email, user.firstName, what, `${await getBaseUrl()}/ucet/zabezpecenie`);
+  } catch (err) {
+    console.error('[email:security-notice]', err);
+  }
+}
 
 // Každá akcia si sama overí prihláseného používateľa – nikdy sa nespolieha na údaje z formulára.
 async function me() {
@@ -70,7 +80,7 @@ export async function changePasswordAction(_prev: FormState, form: FormData): Pr
     await logSecurity({ type: 'password-change', ok: false, reason: 'bad-current', userId: user.id, ip, userAgent });
     return { error: 'Súčasné heslo nie je správne.', errors: { current: 'Súčasné heslo nie je správne.' } };
   }
-  const problem = passwordProblem(next);
+  const problem = await passwordProblemStrong(next, { email: user.email, names: [user.firstName, user.lastName] });
   if (problem) return { error: problem, errors: { password: problem } };
   if (next !== raw(form, 'password2', 200)) return { error: 'Heslá sa nezhodujú.', errors: { password2: 'Heslá sa nezhodujú.' } };
   if (await verifyPassword(next, user.passwordHash)) return { error: 'Nové heslo musí byť iné ako súčasné.', errors: { password: 'Nové heslo musí byť iné ako súčasné.' } };
@@ -79,6 +89,7 @@ export async function changePasswordAction(_prev: FormState, form: FormData): Pr
   // Ostatné zariadenia sa odhlásia, toto dostane novú reláciu.
   await createSession(user.id);
   await logSecurity({ type: 'password-change', ok: true, userId: user.id, email: user.email, ip, userAgent });
+  await notice(user, 'heslo bolo zmenené');
   return { success: 'Heslo je zmenené. Na ostatných zariadeniach sme ťa odhlásili.' };
 }
 
@@ -146,6 +157,7 @@ export async function disableTwoFactorAction(_prev: FormState, form: FormData): 
     data: { twoFactorEnabledAt: null, twoFactorSecretEnc: null, twoFactorLastStep: null, twoFactorBackupHashes: [] },
   });
   await logSecurity({ type: '2fa-change', ok: true, reason: 'disabled', userId: user.id, email: user.email, ip, userAgent });
+  await notice(user, 'dvojstupňové overenie bolo vypnuté');
   revalidatePath('/ucet', 'layout');
   return { success: 'Dvojstupňové overenie je vypnuté.' };
 }

@@ -26,6 +26,12 @@ export async function consumeOnce(key: string, ttlSec: number): Promise<boolean>
   return r.ok;
 }
 
+// Len prečíta aktuálny počet (bez zvýšenia). 0 = žiadny záznam alebo vypršal.
+export async function peekLimit(key: string): Promise<number> {
+  const row = await prisma.rateLimit.findUnique({ where: { key } });
+  return row && row.expiresAt > new Date() ? row.count : 0;
+}
+
 export async function clearLimit(key: string): Promise<void> {
   await prisma.rateLimit.deleteMany({ where: { key } });
 }

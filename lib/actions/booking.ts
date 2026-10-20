@@ -51,6 +51,10 @@ export async function createBookingAction(_prev: FormState, form: FormData): Pro
     if (!old || old.userId !== user.id || old.status !== 'CONFIRMED' || old.paymentStatus === 'PAID') return { error: 'Túto rezerváciu nie je možné presunúť online.', values };
     if (old.startsAt.getTime() - Date.now() < settings.cancelFreeHours * 3600000) return { error: `Presunúť sa dá najneskôr ${settings.cancelFreeHours} hodín pred začiatkom.`, values };
   }
+  const active = await prisma.booking.count({ where: { userId: user.id, status: 'CONFIRMED', endsAt: { gt: new Date() } } });
+  if (active >= settings.maxActive && !presun) {
+    return { error: `Máš už ${active} nadchádzajúcich rezervácií (najviac ${settings.maxActive}). Ďalšie ti vytvorí recepcia.`, values };
+  }
   const result = await createBooking(settings, {
     movedFromCode: old?.code ?? null,
     userId: user.id,

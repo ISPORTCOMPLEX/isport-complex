@@ -16,10 +16,19 @@ export function ForgotForm({ stamp }: { stamp: string }) {
     return (
       <div className="auth__done">
         <div className="auth__done-ic" aria-hidden="true">✉</div>
-        <h2 className="h-card">Pozri si e-mail</h2>
-        <p>
-          Ak k adrese <strong>{state.values?.email}</strong> existuje účet, poslali sme na ňu odkaz na nastavenie nového hesla. Odkaz platí 1 hodinu.
-        </p>
+        {state.manual ? (
+          <>
+            <h2 className="h-card">Ozvi sa recepcii</h2>
+            <p>E-maily momentálne neposielame. Zavolaj alebo príď na recepciu – po overení totožnosti ti pošlú odkaz na nové heslo (napr. SMS).</p>
+          </>
+        ) : (
+          <>
+            <h2 className="h-card">Pozri si e-mail</h2>
+            <p>
+              Ak k adrese <strong>{state.values?.email}</strong> existuje účet, poslali sme na ňu odkaz na nastavenie nového hesla. Odkaz platí 1 hodinu.
+            </p>
+          </>
+        )}
         <DevLink href={state.devLink} />
         <Link href="/prihlasenie" className="btn btn--ghost btn--full">
           Späť na prihlásenie

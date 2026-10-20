@@ -3,8 +3,9 @@ import { headers } from 'next/headers';
 
 export async function getRequestInfo() {
   const h = await headers();
-  const forwarded = h.get('x-forwarded-for');
-  const ip = (forwarded ? forwarded.split(',')[0] : h.get('x-real-ip'))?.trim() || 'unknown';
+  // Na Verceli nastavuje x-vercel-forwarded-for / x-real-ip sám Vercel – klient ich nevie podvrhnúť.
+  const raw = h.get('x-vercel-forwarded-for') ?? h.get('x-real-ip') ?? h.get('x-forwarded-for') ?? '';
+  const ip = raw.split(',')[0]?.trim().slice(0, 64) || 'unknown';
   const userAgent = (h.get('user-agent') ?? '').slice(0, 300);
   return { ip, userAgent };
 }

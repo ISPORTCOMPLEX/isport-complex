@@ -5,6 +5,12 @@ import 'server-only';
 
 type Mail = { to: string; subject: string; html: string; text: string };
 
+// Kým nie je doména a Resend, ostrý web e-maily neposiela – aktiváciu účtov a obnovu hesla rieši recepcia.
+// Pri vývoji (localhost) sa e-maily vypisujú do terminálu a odkazy sa ukážu na stránke.
+export function emailEnabled(): boolean {
+  return Boolean(process.env.RESEND_API_KEY) || process.env.NODE_ENV !== 'production';
+}
+
 export async function sendMail(mail: Mail): Promise<void> {
   const key = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM ?? 'I-SPORT COMPLEX <onboarding@resend.dev>';
@@ -140,4 +146,16 @@ export async function sendBookingReminderEmail(to: string, firstName: string, ur
     rows,
   );
   await sendMail({ to, subject: `Pripomienka: zajtra ${rows[2]?.value ?? ''}`, ...m });
+}
+
+// Bezpečnostné upozornenie pri zmene hesla alebo vypnutí 2FA – keby to nebol majiteľ účtu, dozvie sa to hneď.
+export async function sendSecurityNoticeEmail(to: string, firstName: string, what: string, url: string) {
+  const m = layout(
+    'Zmena zabezpečenia účtu',
+    `Ahoj ${firstName}, na tvojom účte prebehla zmena: ${what}. Ak si to bol ty, nemusíš nič robiť.`,
+    'Skontrolovať zabezpečenie',
+    url,
+    'Ak si to nebol ty, okamžite si obnov heslo a kontaktuj nás.',
+  );
+  await sendMail({ to, subject: 'Zmena zabezpečenia účtu – I-SPORT COMPLEX', ...m });
 }

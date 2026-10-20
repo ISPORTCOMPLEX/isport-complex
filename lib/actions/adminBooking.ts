@@ -168,6 +168,7 @@ export async function adminSaveSettings(_prev: FormState, form: FormData): Promi
     leadMinutes: n('leadMinutes'),
     maxDaysAhead: n('maxDaysAhead'),
     maxHours: n('maxHours'),
+    maxActive: n('maxActive'),
     temporary: checked(form, 'temporary'),
   };
   const errors: Record<string, string> = {};
@@ -177,6 +178,7 @@ export async function adminSaveSettings(_prev: FormState, form: FormData): Promi
   if (!(raw.closeHour > raw.openHour && raw.closeHour <= 24)) errors.closeHour = 'Musí byť po otvorení (najviac 24).';
   if (!(raw.peakFromHour >= 0 && raw.peakFromHour <= 24)) errors.peakFromHour = '0 – 24';
   if (!(raw.maxHours >= 1 && raw.maxHours <= 12)) errors.maxHours = '1 – 12';
+  if (!(raw.maxActive >= 1 && raw.maxActive <= 100)) errors.maxActive = '1 – 100';
   if (!(raw.maxDaysAhead >= 1 && raw.maxDaysAhead <= 365)) errors.maxDaysAhead = '1 – 365';
   if (!(raw.cancelFreeHours >= 0 && raw.cancelFreeHours <= 720)) errors.cancelFreeHours = '0 – 720';
   if (!(raw.leadMinutes >= 0 && raw.leadMinutes <= 10080)) errors.leadMinutes = '0 – 10 080';

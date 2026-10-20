@@ -12,6 +12,9 @@ export const securityHeaders: { key: string; value: string }[] = [
   },
   { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+  { key: 'X-DNS-Prefetch-Control', value: 'off' },
+  { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
+  { key: 'Origin-Agent-Cluster', value: '?1' },
 ];
 
 export function buildCsp(nonce: string, isDev: boolean): string {
@@ -27,6 +30,10 @@ export function buildCsp(nonce: string, isDev: boolean): string {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
+    "frame-src 'none'",
+    "worker-src 'self' blob:",
+    "manifest-src 'self'",
+    "media-src 'self' blob:",
   ];
   if (!isDev) directives.push('upgrade-insecure-requests');
   return directives.join('; ');

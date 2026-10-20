@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { requireStaff, can } from '@/lib/staff';
 import { AdmHead, Chip, Empty, Panel, Stat, ago, fmtDateTime } from '@/components/admin/ui';
 import { getBookingSettings } from '@/lib/booking/settings';
+import { emailEnabled } from '@/lib/email';
 import { AREA_SHORT } from '@/lib/booking/format';
 import { addDays, euros, fmtRange, hallTime, todayIso } from '@/lib/booking/time';
 
@@ -67,6 +68,8 @@ export default async function AdminHome() {
 
   const attention: { text: string; sub: string; href?: string }[] = [];
   if (showBookings && unpaidPast > 0) attention.push({ text: `${unpaidPast} odohraných rezervácií bez platby`, sub: 'Skontroluj platby na recepcii alebo prevodom', href: '/admin/rezervacie?f=nezaplatene' });
+  if (unverified > 0 && can(me.role, 'users.view'))
+    attention.push({ text: `${unverified} ${unverified === 1 ? 'účet čaká' : 'účty čakajú'} na aktiváciu`, sub: emailEnabled() ? 'Zákazník ešte neklikol na odkaz v e-maile' : 'E-maily nie sú spustené – over zákazníka a aktivuj účet', href: '/admin/zakaznici?f=neovereni' });
   for (const u of locked) attention.push({ text: `Zamknutý účet ${u.email}`, sub: `Po neúspešných prihláseniach, do ${fmtDateTime(u.lockedUntil)}`, href: `/admin/zakaznici/${u.id}` });
   for (const ip of suspiciousIps) attention.push({ text: `Veľa neúspešných pokusov z IP ${ip.ip}`, sub: `${ip._count._all} za posledných 24 hodín`, href: `/admin/bezpecnost?ip=${encodeURIComponent(ip.ip ?? '')}` });
   if (!me.twoFactorEnabledAt) attention.push({ text: 'Zapni si dvojstupňové overenie', sub: 'Povinné pre personál', href: '/ucet/zabezpecenie' });

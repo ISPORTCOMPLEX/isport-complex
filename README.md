@@ -80,3 +80,16 @@ Premenné: `AUTH_SECRET`, `APP_URL`, `RESEND_API_KEY`, `EMAIL_FROM` (pozri `.env
 - Denný cron /api/cron/denne (vercel.json, CRON_SECRET): pripomienky deň vopred, uzavretie odohraných, upratovanie.
 - Obchodné podmienky a ochrana osobných údajov – pracovný návrh na kontrolu právnikom.
 - Oprava histórie migrácií: `node scripts/baseline.mjs` (po `prisma db push`).
+
+## Zabezpečenie (súhrn)
+
+- Relácie: podpísaný JWT v HttpOnly cookie `__Host-` (HTTPS), odvolanie pri zmene hesla / „odhlásiť všade“, personál max. 12 h.
+- Heslá: bcrypt, pravidlá, zoznam bežných hesiel, kontrola uniknutých hesiel (Have I Been Pwned, k-anonymita).
+- Prihlásenie: limity na IP aj e-mail, zámok účtu po 5 chybách, CAPTCHA po 3 chybách z IP, žiadne prezradenie existencie účtu.
+- 2FA (TOTP) povinné pre personál, šifrované tajomstvo, záložné kódy.
+- Formuláre: CAPTCHA pri registrácii, skrytá pasca a časová pečiatka, limity, blokovanie dočasných e-mailov.
+- Hlavičky: CSP s nonce, HSTS, X-Frame-Options, Permissions-Policy, COOP; security.txt, robots.txt.
+- Administrácia: 404 pre neoprávnených, oprávnenia podľa roly, záznam zmien.
+- Ochrana kalendára: max. počet nadchádzajúcich rezervácií na účet, databázová poistka proti dvojitej rezervácii.
+- Režim bez e-mailov (kým nie je doména): aktiváciu účtu a obnovu hesla robí recepcia (jednorazový odkaz).
+- Denný cron: mazanie starých záznamov a neaktivovaných účtov podľa zásad ochrany údajov.

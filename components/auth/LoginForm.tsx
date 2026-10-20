@@ -3,16 +3,17 @@
 import Link from 'next/link';
 import { useActionState } from 'react';
 import { loginAction, resendVerificationAction } from '@/lib/actions/auth';
-import { EMPTY } from '@/lib/formState';
+import { EMPTY, type CaptchaData } from '@/lib/formState';
 import { Field } from '@/components/forms/Field';
-import { GuardFields } from '@/components/forms/Guard';
+import { CaptchaField, GuardFields } from '@/components/forms/Guard';
 import { FormAlert } from '@/components/forms/FormAlert';
 import { SubmitButton } from '@/components/forms/SubmitButton';
 import { DevLink } from '@/components/forms/DevLink';
 
-export function LoginForm({ stamp, next, notice }: { stamp: string; next: string; notice?: string }) {
+export function LoginForm({ stamp, next, notice, captcha = null }: { stamp: string; next: string; notice?: string; captcha?: CaptchaData | null }) {
   const [state, action] = useActionState(loginAction, EMPTY);
   const v = state.values ?? {};
+  const cap = state.captcha ?? captcha;
   return (
     <div className="form-stack">
       <form action={action} className="form" noValidate>
@@ -22,6 +23,7 @@ export function LoginForm({ stamp, next, notice }: { stamp: string; next: string
         <input type="hidden" name="next" value={next} />
         <Field label="E-mail" name="email" type="email" autoComplete="email" inputMode="email" defaultValue={v.email} required maxLength={254} />
         <Field label="Heslo" name="password" type="password" autoComplete="current-password" required />
+        {cap ? <CaptchaField captcha={cap} error={state.errors?.captcha} /> : null}
         <div className="form__between">
           <span />
           <Link href="/zabudnute-heslo" className="link-red">

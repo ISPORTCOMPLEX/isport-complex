@@ -9,11 +9,14 @@ import { getSecret } from './secrets';
 // Relácia = podpísaný JWT v HttpOnly cookie. Pri každom čítaní sa overí aj v databáze:
 // zablokovaný alebo zmazaný účet, zmena hesla a „odhlásiť všade“ staré relácie zneplatnia.
 
-const SESSION_COOKIE = 'isp_session';
-const PENDING_2FA_COOKIE = 'isp_2fa';
-const SESSION_DAYS = 30;
-
 const secure = process.env.NODE_ENV === 'production';
+// Predpona __Host- (len cez HTTPS): cookie nemôže nastaviť ani prepísať subdoména ani iná cesta.
+const SESSION_COOKIE = secure ? '__Host-isp_session' : 'isp_session';
+const PENDING_2FA_COOKIE = secure ? '__Host-isp_2fa' : 'isp_2fa';
+const SESSION_DAYS = 30;
+// Personál (recepcia, účtovníctvo, administrátor) sa musí prihlásiť znova po 12 hodinách.
+const STAFF_SESSION_HOURS = 12;
+const STAFF = ['ADMIN', 'RECEPTION', 'ACCOUNTANT'];
 
 function key() {
   return new Uint8Array(getSecret('session'));
@@ -63,6 +66,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     const user = await prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user || user.bannedAt || user.deletedAt || !user.emailVerifiedAt) return null;
     if (revokedAfter(payload.iat, user.passwordChangedAt, user.sessionsRevokedAt)) return null;
+    if (STAFF.includes(user.role) && Date.now() / 1000 - payload.iat > STAFF_SESSION_HOURS * 3600) return null;
     return {
       id: user.id,
       email: user.email,

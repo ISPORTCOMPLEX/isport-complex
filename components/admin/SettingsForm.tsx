@@ -16,6 +16,7 @@ type S = {
   leadMinutes: number;
   maxDaysAhead: number;
   maxHours: number;
+  maxActive: number;
   temporary: boolean;
 };
 
@@ -55,6 +56,7 @@ export function SettingsForm({ s }: { s: S }) {
           <Field label="Ľad do (hodina)" name="closeHour" inputMode="numeric" defaultValue={n(s.closeHour)} error={e.closeHour} hint="napr. 23 = posledná hodina 22:00 – 23:00" />
           <Field label="Špička od (hodina)" name="peakFromHour" inputMode="numeric" defaultValue={n(s.peakFromHour)} error={e.peakFromHour} hint="v pracovné dni" />
           <Field label="Najviac hodín v rezervácii" name="maxHours" inputMode="numeric" defaultValue={n(s.maxHours)} error={e.maxHours} />
+          <Field label="Najviac nadchádzajúcich rezervácií na účet" name="maxActive" inputMode="numeric" defaultValue={n(s.maxActive)} error={e.maxActive} hint="Ochrana pred zablokovaním kalendára" />
           <Field label="Rezervácia dopredu (dni)" name="maxDaysAhead" inputMode="numeric" defaultValue={n(s.maxDaysAhead)} error={e.maxDaysAhead} />
           <Field label="Najneskôr pred začiatkom (min)" name="leadMinutes" inputMode="numeric" defaultValue={n(s.leadMinutes)} error={e.leadMinutes} />
           <Field label="Bezplatné zrušenie (hodín vopred)" name="cancelFreeHours" inputMode="numeric" defaultValue={n(s.cancelFreeHours)} error={e.cancelFreeHours} />

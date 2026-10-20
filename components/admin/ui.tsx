@@ -86,6 +86,7 @@ export const EVENT_LABEL: Record<string, string> = {
 
 export const REASON_LABEL: Record<string, string> = {
   'bad-password': 'zlé heslo',
+  captcha: 'nesprávna CAPTCHA',
   'no-user': 'neexistujúci účet',
   locked: 'účet zamknutý',
   banned: 'účet zablokovaný',
@@ -123,6 +124,7 @@ export const AUDIT_LABEL: Record<string, string> = {
   'user.revoke-sessions': 'Odhlásil zo všetkých zariadení',
   'user.send-reset': 'Poslal odkaz na nové heslo',
   'user.reset-2fa': 'Zrušil 2FA',
+  'user.reset-link': 'Vytvoril odkaz na nové heslo',
   'user.role': 'Zmenil rolu',
 };
 
