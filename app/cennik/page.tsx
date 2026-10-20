@@ -2,114 +2,119 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { price } from '@/lib/site';
 import { getBookingSettings } from '@/lib/booking/settings';
+import { RzBand } from '@/components/booking/RzBand';
+import { PartCta } from '@/components/PartPage';
 
-export const metadata: Metadata = { title: 'Cenník' };
+export const metadata: Metadata = { title: 'Cenník', description: 'Cenník prenájmu ľadovej plochy v I-SPORT COMPLEX Košice. Šatňa v cene, sprchy za príplatok.' };
 
 export default async function CennikPage() {
   const settings = await getBookingSettings();
-  const p = settings.prices;
+  const p = settings.prices.full;
   const peak = `${String(settings.peakFromHour).padStart(2, '0')}:00`;
   return (
     <>
-      <section className="page-head">
-        <div className="wrap page-head__in">
-          <nav aria-label="Omrvinky" className="crumbs">
-            <Link href="/">Domov</Link>
-            <span>/</span>
-            Cenník
-          </nav>
-          <div className="section__head">
-            <h1 className="display h1">Cenník ľadu</h1>
-            <p className="muted">Ceny sú vrátane DPH. Prenajíma sa celá plocha, úprava ľadu je v cene, šatne za príplatok.</p>
+      <RzBand
+        crumbs={[{ href: '/', label: 'Komplex' }, { label: 'Cenník' }]}
+        title="Cenník"
+        lead={
+          <>
+            <p>Ceny sú vrátane DPH. Prenajíma sa celá ľadová plocha, šatňa aj úprava ľadu sú v cene.</p>
+            {settings.temporary ? <p className="rz-temp">Ceny sú zatiaľ orientačné.</p> : null}
+          </>
+        }
+      />
+      <section className="ice rz-ice">
+        <div className="wrap" style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+          <div className="pt" role="table" aria-label="Ceny ľadovej plochy za hodinu">
+            <div className="pt__row pt__row--head" role="row">
+              <span role="columnheader">Ľadová plocha · 60 minút</span>
+              <span role="columnheader">
+                <strong>Mimo špičky</strong>
+                <small>Po – Pi do {peak}</small>
+              </span>
+              <span role="columnheader">
+                <strong>Špička</strong>
+                <small>Po – Pi od {peak}</small>
+              </span>
+              <span role="columnheader">
+                <strong>Víkend</strong>
+                <small>So – Ne celý deň</small>
+              </span>
+            </div>
+            <div className="pt__row" role="row">
+              <span role="rowheader">
+                <strong>Celá plocha</strong>
+                <small>Úprava ľadu a šatňa v cene</small>
+              </span>
+              <span role="cell" className="cond">{price(p.offPeak)}</span>
+              <span role="cell" className="cond pt__red">{price(p.peak)}</span>
+              <span role="cell" className="cond pt__red">{price(p.weekend)}</span>
+            </div>
           </div>
 
-          <div className="table-card">
-            <table className="price-table">
-              <thead>
-                <tr>
-                  <th scope="col" className="muted" style={{ fontSize: 14 }}>
-                    Prenájom
-                  </th>
-                  <th scope="col">
-                    <span className="display col-title">Mimo špičky</span>
-                    <span className="col-sub">Po – Pi do {peak}</span>
-                  </th>
-                  <th scope="col">
-                    <span className="display col-title">Špička</span>
-                    <span className="col-sub">Po – Pi od {peak}</span>
-                  </th>
-                  <th scope="col">
-                    <span className="display col-title">Víkend</span>
-                    <span className="col-sub">So – Ne celý deň</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th scope="row">
-                    Ľadová plocha<span>Celá plocha, cena za 60 minút</span>
-                  </th>
-                  <td className="num">{price(p.full.offPeak)}</td>
-                  <td className="num">{price(p.full.peak)}</td>
-                  <td className="num">{price(p.full.weekend)}</td>
-                </tr>
-                {settings.lockerRooms > 0 ? (
-                  <tr>
-                    <th scope="row">
-                      Šatňa<span>Za každú šatňu k rezervácii</span>
-                    </th>
-                    <td colSpan={3} className="num">
-                      {price(settings.lockerPrice)}
-                    </td>
-                  </tr>
-                ) : null}
-                <tr>
-                  <th scope="row">
-                    Sezónny prenájom<span>Pevný čas každý týždeň</span>
-                  </th>
-                  <td colSpan={3} style={{ fontSize: 17 }}>
-                    <Link href="/pre-kluby" className="link-red">
-                      Individuálna ponuka pre kluby
-                    </Link>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div className="pt-extras">
+            <div>
+              <span>Šatňa</span>
+              <strong className="cond">v cene</strong>
+              <small>ku každému prenájmu</small>
+            </div>
+            {settings.showersEnabled ? (
+              <div>
+                <span>Sprchy po tréningu</span>
+                <strong className="cond">{price(settings.showerPrice)}</strong>
+                <small>jednorazovo pre celý tím</small>
+              </div>
+            ) : null}
+            <div>
+              <span>Sezónny prenájom</span>
+              <strong className="cond">ponuka</strong>
+              <Link href="/pre-kluby" className="ulink" style={{ fontSize: 14 }}>
+                Pre kluby
+              </Link>
+            </div>
           </div>
-          <div>
-            <Link href="/rezervacia" className="btn">
-              Rezervovať ľad
-            </Link>
-          </div>
+          <PartCta href="/rezervacia">Rezervovať ľad</PartCta>
         </div>
       </section>
-
-      <section className="section section--deep">
-        <div className="wrap section__in" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 64 }}>
-          <div style={{ flex: '1 1 460px', display: 'flex', flexDirection: 'column', gap: 28 }}>
-            <h2 className="display h2">Zrušenie rezervácie</h2>
-            <dl className="dl-rows">
+      <section className="pp-dark">
+        <div className="wrap pp__pair pp__pair--big">
+          <div>
+            <h2 className="cond pp__h2" style={{ marginTop: 0 }}>
+              Zrušenie
+            </h2>
+            <dl className="v3-rows">
               <div>
                 <dt>Viac ako {settings.cancelFreeHours} hodín pred začiatkom</dt>
-                <dd style={{ color: 'var(--green)' }}>Bez poplatku</dd>
+                <dd className="v3-ok">bez poplatku, online</dd>
               </div>
               <div>
                 <dt>Neskôr</dt>
-                <dd>Len cez recepciu</dd>
+                <dd>len cez recepciu</dd>
+              </div>
+              <div>
+                <dt>Presun na iný termín</dt>
+                <dd>online, kým nie je zaplatené</dd>
               </div>
             </dl>
-            <p className="muted" style={{ margin: 0, fontSize: 15 }}>
-              Rezerváciu môžeš namiesto zrušenia aj presunúť na iný voľný termín.
-            </p>
           </div>
-          <div style={{ flex: '1 1 460px', display: 'flex', flexDirection: 'column', gap: 28 }}>
-            <h2 className="display h2">Pre kluby</h2>
-            <p className="muted" style={{ margin: 0 }}>
-              Pravidelný ľad na celú sezónu s mesačnou faktúrou. Cenu pripravíme podľa počtu hodín a časov.
-            </p>
-            <Link href="/pre-kluby" className="btn btn--ghost" style={{ alignSelf: 'flex-start' }}>
-              Sezónny prenájom
-            </Link>
+          <div>
+            <h2 className="cond pp__h2" style={{ marginTop: 0 }}>
+              Platba
+            </h2>
+            <dl className="v3-rows">
+              <div>
+                <dt>Na recepcii</dt>
+                <dd>hotovosť alebo karta</dd>
+              </div>
+              <div>
+                <dt>Bankový prevod</dt>
+                <dd>údaje dostaneš v potvrdení</dd>
+              </div>
+              <div>
+                <dt>Kluby</dt>
+                <dd>mesačná faktúra</dd>
+              </div>
+            </dl>
           </div>
         </div>
       </section>

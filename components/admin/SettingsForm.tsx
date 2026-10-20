@@ -9,8 +9,8 @@ import { SubmitButton } from '@/components/forms/SubmitButton';
 
 type S = {
   prices: { full: { offPeak: number; peak: number; weekend: number } };
-  lockerPrice: number;
-  lockerRooms: number;
+  showerPrice: number;
+  showersEnabled: boolean;
   peakFromHour: number;
   openHour: number;
   closeHour: number;
@@ -50,8 +50,7 @@ export function SettingsForm({ s }: { s: S }) {
           <h2>Čas a pravidlá</h2>
         </div>
         <div className="adm-settings-grid">
-          <Field label="Cena šatne (€ za rezerváciu)" name="lockerPrice" inputMode="numeric" defaultValue={n(s.lockerPrice)} error={e.lockerPrice} />
-          <Field label="Počet šatní na prenájom" name="lockerRooms" inputMode="numeric" defaultValue={n(s.lockerRooms)} error={e.lockerRooms} hint="0 = šatne sa pri rezervácii neponúkajú" />
+          <Field label="Cena spŕch (€ za rezerváciu)" name="showerPrice" inputMode="numeric" defaultValue={n(s.showerPrice)} error={e.showerPrice} hint="Šatňa je v cene prenájmu" />
           <Field label="Ľad od (hodina)" name="openHour" inputMode="numeric" defaultValue={n(s.openHour)} error={e.openHour} hint="napr. 6 = od 6:00" />
           <Field label="Ľad do (hodina)" name="closeHour" inputMode="numeric" defaultValue={n(s.closeHour)} error={e.closeHour} hint="napr. 23 = posledná hodina 22:00 – 23:00" />
           <Field label="Špička od (hodina)" name="peakFromHour" inputMode="numeric" defaultValue={n(s.peakFromHour)} error={e.peakFromHour} hint="v pracovné dni" />
@@ -61,6 +60,9 @@ export function SettingsForm({ s }: { s: S }) {
           <Field label="Najneskôr pred začiatkom (min)" name="leadMinutes" inputMode="numeric" defaultValue={n(s.leadMinutes)} error={e.leadMinutes} />
           <Field label="Bezplatné zrušenie (hodín vopred)" name="cancelFreeHours" inputMode="numeric" defaultValue={n(s.cancelFreeHours)} error={e.cancelFreeHours} />
         </div>
+        <Check name="showersEnabled" defaultChecked={s.showersEnabled}>
+          Ponúkať sprchy pri rezervácii
+        </Check>
         <Check name="temporary" defaultChecked={s.temporary}>
           Hodnoty sú zatiaľ orientačné (na webe sa zobrazí upozornenie)
         </Check>

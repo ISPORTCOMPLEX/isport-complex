@@ -152,8 +152,8 @@ model Booking {
   endsAt        DateTime
   hours         Int
   priceCents    Int // spolu: ľad + šatne
-  lockerRooms   Int           @default(0) // počet šatní
-  lockerCents   Int           @default(0) // cena za šatne spolu
+  showers       Int           @default(0) @map("lockerRooms") // sprchy po tréningu: 0 = nie, 1 = áno
+  showerCents   Int           @default(0) @map("lockerCents") // cena za sprchy
   status        BookingStatus @default(CONFIRMED)
   paymentStatus PaymentStatus @default(UNPAID)
   paymentMethod PaymentMethod @default(ONSITE)
@@ -250,4 +250,25 @@ model Inquiry {
   updatedAt    DateTime      @updatedAt
 
   @@index([status, createdAt])
+}
+
+// Vlastná analytika návštevnosti bez cookies: žiadne IP adresy ani trvalé identifikátory.
+// visitor = denný hash (soľ sa mení každý deň), takže návštevníka nemožno sledovať medzi dňami.
+model PageView {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  path       String
+  referrer   String? // len doména
+  source     String? // utm_source alebo typ zdroja
+  visitor    String
+  device     String // mobile | tablet | desktop
+  browser    String?
+  os         String?
+  country    String?
+  durationMs Int?
+  loggedIn   Boolean  @default(false)
+
+  @@index([createdAt])
+  @@index([path, createdAt])
+  @@index([visitor, createdAt])
 }

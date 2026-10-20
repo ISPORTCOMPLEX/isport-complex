@@ -10,11 +10,11 @@ import { SubmitButton } from '@/components/forms/SubmitButton';
 type Slot = { hour: number; free: boolean; price: number };
 const pad = (h: number) => `${String(h).padStart(2, '0')}:00`;
 
-export function AdminBookingForm({ iso, slots, lockerRooms, lockerPrice }: { iso: string; slots: Slot[]; lockerRooms: number; lockerPrice: number }) {
+export function AdminBookingForm({ iso, slots, showersEnabled, showerPrice }: { iso: string; slots: Slot[]; showersEnabled: boolean; showerPrice: number }) {
   const [state, action] = useActionState(adminCreateBookingAction, EMPTY);
   const [start, setStart] = useState<number | null>(null);
   const [hours, setHours] = useState(1);
-  const [rooms, setRooms] = useState(0);
+  const [showers, setShowers] = useState(false);
   const v = state.values ?? {};
   const e = state.errors ?? {};
   const run = (() => {
@@ -31,7 +31,7 @@ export function AdminBookingForm({ iso, slots, lockerRooms, lockerPrice }: { iso
       <input type="hidden" name="datum" value={iso} />
       <input type="hidden" name="od" value={start ?? ''} />
       <input type="hidden" name="hodiny" value={len} />
-      <input type="hidden" name="satne" value={rooms} />
+      {showers ? <input type="hidden" name="sprchy" value="on" /> : null}
       <FormAlert error={state.error} />
 
       <section className="adm-panel">
@@ -39,7 +39,7 @@ export function AdminBookingForm({ iso, slots, lockerRooms, lockerPrice }: { iso
           <h2>2. Čas</h2>
           {start !== null ? (
             <span className="muted">
-              {pad(start)} – {pad(start + len)} · {(total + rooms * lockerPrice).toLocaleString('sk-SK')} € spolu
+              {pad(start)} – {pad(start + len)} · {(total + (showers ? showerPrice : 0)).toLocaleString('sk-SK')} € spolu
             </span>
           ) : null}
         </div>
@@ -76,25 +76,18 @@ export function AdminBookingForm({ iso, slots, lockerRooms, lockerPrice }: { iso
         </div>
       </section>
 
-      {lockerRooms > 0 ? (
+      {showersEnabled ? (
         <section className="adm-panel">
           <div className="adm-panel__head">
-            <h2>Šatne</h2>
+            <h2>Sprchy</h2>
           </div>
-          <div className="rez__count" style={{ maxWidth: 420 }}>
-            <span>
-              Počet šatní ({lockerPrice} € / šatňa, max. {lockerRooms})
-            </span>
-            <div className="rez__stepper">
-              <button type="button" aria-label="Menej šatní" disabled={rooms <= 0} onClick={() => setRooms(rooms - 1)}>
-                −
-              </button>
-              <strong>{rooms}</strong>
-              <button type="button" aria-label="Viac šatní" disabled={rooms >= lockerRooms} onClick={() => setRooms(rooms + 1)}>
-                +
-              </button>
+          <label className={`rz-extra${showers ? ' rz-extra--on' : ''}`}>
+            <div>
+              <strong>Sprchy po tréningu</strong>
+              <span>{showerPrice} € jednorazovo · šatňa je v cene</span>
             </div>
-          </div>
+            <input type="checkbox" className="rz-switch" checked={showers} onChange={(ev) => setShowers(ev.target.checked)} />
+          </label>
         </section>
       ) : null}
 

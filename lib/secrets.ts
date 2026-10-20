@@ -4,7 +4,7 @@ import { createHmac } from 'node:crypto';
 // Samostatný kľúč pre každý účel. Únik jedného tak neprelomí všetko naraz.
 // Ak samostatná premenná chýba, kľúč sa odvodí z AUTH_SECRET cez HMAC s názvom účelu.
 
-type Purpose = 'session' | 'two-factor' | 'captcha' | 'form' | 'unsubscribe' | 'ticket' | 'guest-link';
+type Purpose = 'session' | 'two-factor' | 'captcha' | 'form' | 'unsubscribe' | 'ticket' | 'guest-link' | 'analytics';
 
 const ENV_BY_PURPOSE: Record<Purpose, string> = {
   session: 'SESSION_SECRET',
@@ -14,6 +14,7 @@ const ENV_BY_PURPOSE: Record<Purpose, string> = {
   unsubscribe: 'UNSUBSCRIBE_SECRET',
   ticket: 'TICKET_SECRET',
   'guest-link': 'GUEST_LINK_SECRET',
+  analytics: 'ANALYTICS_SECRET',
 };
 
 function masterSecret(): string {

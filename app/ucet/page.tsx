@@ -30,7 +30,7 @@ export default async function UcetPage() {
         <div>
           <span className="pill">Rezervácia ľadu</span>
           <h2 className="h-card">Rezervuj si ďalší tréning</h2>
-          <p>Celá ľadová plocha, šatne za príplatok.</p>
+          <p>Celá ľadová plocha, sprchy za príplatok.</p>
         </div>
         <span className="round-arrow">
           <ArrowUpRight />

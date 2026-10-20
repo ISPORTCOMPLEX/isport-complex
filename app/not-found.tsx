@@ -1,18 +1,17 @@
 import Link from 'next/link';
+import { BigMessage } from '@/components/BigMessage';
 
 export default function NotFound() {
   return (
-    <section className="soon">
-      <div className="wrap soon__in">
-        <span className="kicker">Chyba 404</span>
-        <h1 className="display h2">Táto stránka neexistuje</h1>
-        <p className="lead">Odkaz je nesprávny alebo stránka bola presunutá.</p>
-        <div>
-          <Link href="/" className="btn">
-            Späť na úvod
-          </Link>
-        </div>
+    <BigMessage kicker="Chyba 404" title="Mimo ihriska" text="Táto stránka neexistuje. Odkaz je nesprávny alebo stránka bola presunutá.">
+      <div className="nf__actions">
+        <Link href="/" className="qb__cta">
+          Späť na úvod
+        </Link>
+        <Link href="/rezervacia" className="ulink">
+          Rezervovať ľad
+        </Link>
       </div>
-    </section>
+    </BigMessage>
   );
 }

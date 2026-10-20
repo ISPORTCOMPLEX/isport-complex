@@ -12,6 +12,7 @@ import { CancelBookingForm } from '@/components/booking/CancelBookingForm';
 import { FormAlert } from '@/components/forms/FormAlert';
 import { getSite } from '@/lib/siteSettings';
 import { emailEnabled } from '@/lib/email';
+import { RzBand } from '@/components/booking/RzBand';
 
 export const metadata: Metadata = { title: 'Rezervácia', robots: { index: false } };
 
@@ -32,7 +33,13 @@ export default async function BookingDetail({ params, searchParams }: Props) {
   const qr = active ? await QRCode.toDataURL(`ISP:${booking.code}:${booking.qrToken}`, { margin: 1, width: 280, color: { dark: '#000000', light: '#ffffff' } }) : null;
 
   return (
-    <section className="section section--tight bk">
+    <>
+    <RzBand
+      crumbs={[{ href: '/', label: 'Komplex' }, { href: '/ucet/rezervacie', label: 'Moje rezervácie' }, { label: booking.code }]}
+      step={booking.status === 'CONFIRMED' ? (active ? 'Potvrdená rezervácia' : 'Odohraná rezervácia') : STATUS_LABEL[booking.status]}
+      title={booking.code}
+    />
+    <section className="ice rz-ice bk">
       <div className="wrap bk__in">
         {sp.nova ? <FormAlert success={emailEnabled() ? 'Hotovo! Rezervácia je potvrdená. Potvrdenie sme poslali aj e-mailom.' : 'Hotovo! Rezervácia je potvrdená. QR kód nájdeš tu aj v Moje rezervácie.'} /> : null}
         {sp.zrusena ? <FormAlert success="Rezervácia je zrušená a čas je opäť voľný." /> : null}
@@ -51,14 +58,10 @@ export default async function BookingDetail({ params, searchParams }: Props) {
                 <dt>Plocha</dt>
                 <dd>{AREA_LABEL[booking.area]}</dd>
               </div>
-              {booking.lockerRooms > 0 ? (
-                <div>
-                  <dt>Šatne</dt>
-                  <dd>
-                    {booking.lockerRooms} × · {euros(booking.lockerCents)}
-                  </dd>
-                </div>
-              ) : null}
+              <div>
+                <dt>Sprchy</dt>
+                <dd>{booking.showers > 0 ? `áno · ${euros(booking.showerCents)}` : 'nie'}</dd>
+              </div>
               <div>
                 <dt>Spolu</dt>
                 <dd>{euros(booking.priceCents)}</dd>
@@ -141,7 +144,7 @@ export default async function BookingDetail({ params, searchParams }: Props) {
               <>
                 {booking.paymentStatus !== 'PAID' ? (
                   <Link
-                    href={`/rezervacia?presun=${booking.code}&satne=${booking.lockerRooms}`}
+                    href={`/rezervacia?presun=${booking.code}&sprchy=${booking.showers > 0 ? 1 : 0}`}
                     className="btn btn--sm btn--ghost"
                     style={{ alignSelf: 'flex-start' }}
                   >
@@ -161,5 +164,6 @@ export default async function BookingDetail({ params, searchParams }: Props) {
         ) : null}
       </div>
     </section>
+    </>
   );
 }

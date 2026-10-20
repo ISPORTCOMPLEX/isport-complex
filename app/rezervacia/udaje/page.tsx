@@ -5,7 +5,7 @@ import { requireUser } from '@/lib/session';
 import { getBookingSettings } from '@/lib/booking/settings';
 import { dayAvailability } from '@/lib/booking/availability';
 import { validateSlot } from '@/lib/booking/create';
-import { iceCents, lockerCents } from '@/lib/booking/pricing';
+import { iceCents, showerCents } from '@/lib/booking/pricing';
 import { euros, fmtDayLong, hallTime, isIsoDate, pad2 } from '@/lib/booking/time';
 import { BookingForm } from '@/components/booking/BookingForm';
 import { RzBand } from '@/components/booking/RzBand';
@@ -22,8 +22,9 @@ export default async function UdajePage({ searchParams }: Props) {
   const hours = Number.parseInt(one(sp.hodiny), 10);
   const presun = /^ISP-[A-Z0-9]{6}$/.test(one(sp.presun)) ? one(sp.presun) : null;
   const settings = await getBookingSettings();
-  const rooms = Math.max(0, Math.min(settings.lockerRooms, Number.parseInt(one(sp.satne), 10) || 0));
-  const self = `/rezervacia/udaje?datum=${iso}&od=${startHour}&hodiny=${hours}&satne=${rooms}${presun ? `&presun=${presun}` : ''}`;
+  const showers = settings.showersEnabled && one(sp.sprchy) === '1';
+  const sp1 = showers ? 1 : 0;
+  const self = `/rezervacia/udaje?datum=${iso}&od=${startHour}&hodiny=${hours}&sprchy=${sp1}${presun ? `&presun=${presun}` : ''}`;
   const user = await requireUser(self);
 
   let problem = isIsoDate(iso) ? validateSlot(settings, iso, startHour, hours) : 'Neplatný dátum.';
@@ -44,7 +45,7 @@ export default async function UdajePage({ searchParams }: Props) {
         <section className="ice rz-ice">
           <div className="wrap rz-narrow">
             <p className="rz-lead">{problem}</p>
-            <Link href={isIsoDate(iso) ? `/rezervacia?datum=${iso}&satne=${rooms}` : '/rezervacia'} className="btn" style={{ alignSelf: 'flex-start' }}>
+            <Link href={isIsoDate(iso) ? `/rezervacia?datum=${iso}&sprchy=${sp1}` : '/rezervacia'} className="btn" style={{ alignSelf: 'flex-start' }}>
               Vybrať iný čas
             </Link>
           </div>
@@ -55,7 +56,7 @@ export default async function UdajePage({ searchParams }: Props) {
 
   const start = hallTime(iso, startHour);
   const ice = iceCents(settings, iso, startHour, hours);
-  const lockers = lockerCents(settings, rooms);
+  const extra = showerCents(settings, showers);
   const last =
     old ??
     (await prisma.booking.findFirst({
@@ -67,7 +68,7 @@ export default async function UdajePage({ searchParams }: Props) {
   return (
     <>
       <RzBand
-        crumbs={[{ href: '/', label: 'Domov' }, { href: `/rezervacia?datum=${iso}&cas=${startHour}&satne=${rooms}`, label: 'Rezervácia' }, { label: 'Údaje' }]}
+        crumbs={[{ href: '/', label: 'Domov' }, { href: `/rezervacia?datum=${iso}&cas=${startHour}&sprchy=${sp1}`, label: 'Rezervácia' }, { label: 'Údaje' }]}
         step="Krok 2 z 2 · údaje"
         title={old ? `Presun ${old.code}` : 'Dokončenie'}
       />
@@ -76,7 +77,7 @@ export default async function UdajePage({ searchParams }: Props) {
           <div className="rz-main">
             <div className="rz-card">
               <BookingForm
-                hidden={{ datum: iso, od: String(startHour), hodiny: String(hours), satne: String(rooms), ...(old ? { presun: old.code } : {}) }}
+                hidden={{ datum: iso, od: String(startHour), hodiny: String(hours), sprchy: String(sp1), ...(old ? { presun: old.code } : {}) }}
                 moving={old ? old.code : null}
                 defaults={{
                   contactName: last?.contactName ?? `${user.firstName} ${user.lastName}`,
@@ -109,16 +110,22 @@ export default async function UdajePage({ searchParams }: Props) {
                 <dd>{euros(ice)}</dd>
               </div>
               <div>
-                <dt>Šatne{rooms ? `, ${rooms} ×` : ''}</dt>
-                <dd>{rooms ? euros(lockers) : 'bez šatne'}</dd>
+                <dt>Šatňa</dt>
+                <dd>v cene</dd>
               </div>
+              {settings.showersEnabled ? (
+                <div>
+                  <dt>Sprchy</dt>
+                  <dd>{showers ? euros(extra) : 'bez spŕch'}</dd>
+                </div>
+              ) : null}
             </dl>
             <div className="rz-total">
               <span>Spolu s DPH</span>
-              <strong>{euros(ice + lockers)}</strong>
+              <strong>{euros(ice + extra)}</strong>
             </div>
-            <Link href={`/rezervacia?datum=${iso}&cas=${startHour}&satne=${rooms}${presun ? `&presun=${presun}` : ''}`} className="rz-back">
-              Zmeniť termín alebo šatne
+            <Link href={`/rezervacia?datum=${iso}&cas=${startHour}&sprchy=${sp1}${presun ? `&presun=${presun}` : ''}`} className="rz-back">
+              Zmeniť termín alebo sprchy
             </Link>
           </aside>
         </div>

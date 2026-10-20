@@ -24,7 +24,7 @@ export type ReceptionState = {
     status: string;
     today: boolean;
     note: string | null;
-    lockers: number;
+    showers: boolean;
   };
 };
 
@@ -84,7 +84,7 @@ type B = {
   checkedInAt: Date | null;
   status: string;
   note: string | null;
-  lockerRooms: number;
+  showers: number;
 };
 
 function view(b: B): NonNullable<ReceptionState['booking']> {
@@ -101,6 +101,6 @@ function view(b: B): NonNullable<ReceptionState['booking']> {
     status: b.status,
     today: isoOf(b.startsAt) === todayIso(),
     note: b.note,
-    lockers: b.lockerRooms,
+    showers: b.showers > 0,
   };
 }

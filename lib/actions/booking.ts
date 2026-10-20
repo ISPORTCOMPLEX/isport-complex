@@ -22,8 +22,8 @@ export async function createBookingAction(_prev: FormState, form: FormData): Pro
   const iso = str(form, 'datum', 10);
   const startHour = Number.parseInt(str(form, 'od', 2), 10);
   const hours = Number.parseInt(str(form, 'hodiny', 2), 10);
-  const rooms = Math.max(0, Number.parseInt(str(form, 'satne', 2), 10) || 0);
-  if (!user) redirect(`/prihlasenie?next=${encodeURIComponent(`/rezervacia/udaje?datum=${iso}&od=${startHour}&hodiny=${hours}&satne=${rooms}`)}`);
+  const showers = str(form, 'sprchy', 2) === '1';
+  if (!user) redirect(`/prihlasenie?next=${encodeURIComponent(`/rezervacia/udaje?datum=${iso}&od=${startHour}&hodiny=${hours}&sprchy=${showers ? 1 : 0}`)}`);
 
   const values = {
     contactName: str(form, 'contactName', 120),
@@ -61,7 +61,7 @@ export async function createBookingAction(_prev: FormState, form: FormData): Pro
     iso,
     startHour,
     hours,
-    lockerRooms: rooms,
+    showers,
     contactName: values.contactName,
     contactPhone: values.contactPhone,
     teamName: values.teamName || null,

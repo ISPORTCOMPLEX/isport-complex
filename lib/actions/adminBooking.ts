@@ -160,8 +160,8 @@ export async function adminSaveSettings(_prev: FormState, form: FormData): Promi
     prices: {
       full: { offPeak: n('fullOff'), peak: n('fullPeak'), weekend: n('fullWeekend') },
     },
-    lockerPrice: n('lockerPrice'),
-    lockerRooms: n('lockerRooms'),
+    showerPrice: n('showerPrice'),
+    showersEnabled: checked(form, 'showersEnabled'),
     peakFromHour: n('peakFromHour'),
     openHour: n('openHour'),
     closeHour: n('closeHour'),
@@ -173,13 +173,12 @@ export async function adminSaveSettings(_prev: FormState, form: FormData): Promi
     temporary: checked(form, 'temporary'),
   };
   const errors: Record<string, string> = {};
-  const priceKeys = ['fullOff', 'fullPeak', 'fullWeekend', 'lockerPrice'];
+  const priceKeys = ['fullOff', 'fullPeak', 'fullWeekend', 'showerPrice'];
   for (const k of priceKeys) if (!Number.isFinite(n(k)) || n(k) < 0 || n(k) > 10000) errors[k] = 'Zadaj cenu 0 – 10 000 €.';
   if (!(raw.openHour >= 0 && raw.openHour <= 23)) errors.openHour = '0 – 23';
   if (!(raw.closeHour > raw.openHour && raw.closeHour <= 24)) errors.closeHour = 'Musí byť po otvorení (najviac 24).';
   if (!(raw.peakFromHour >= 0 && raw.peakFromHour <= 24)) errors.peakFromHour = '0 – 24';
   if (!(raw.maxHours >= 1 && raw.maxHours <= 12)) errors.maxHours = '1 – 12';
-  if (!(Number.isInteger(raw.lockerRooms) && raw.lockerRooms >= 0 && raw.lockerRooms <= 20)) errors.lockerRooms = '0 – 20';
   if (!(raw.maxActive >= 1 && raw.maxActive <= 100)) errors.maxActive = '1 – 100';
   if (!(raw.maxDaysAhead >= 1 && raw.maxDaysAhead <= 365)) errors.maxDaysAhead = '1 – 365';
   if (!(raw.cancelFreeHours >= 0 && raw.cancelFreeHours <= 720)) errors.cancelFreeHours = '0 – 720';
@@ -199,7 +198,7 @@ export async function adminSaveSettings(_prev: FormState, form: FormData): Promi
 export async function adminCreateBookingAction(_prev: FormState, form: FormData): Promise<FormState> {
   const actor = await staff('bookings.manage');
   const iso = str(form, 'datum', 10);
-  const rooms = Math.max(0, Number.parseInt(str(form, 'satne', 2), 10) || 0);
+  const showers = checked(form, 'sprchy');
   const startHour = Number.parseInt(str(form, 'od', 2), 10);
   const hours = Number.parseInt(str(form, 'hodiny', 2), 10);
   const values = {
@@ -229,7 +228,7 @@ export async function adminCreateBookingAction(_prev: FormState, form: FormData)
     iso,
     startHour,
     hours: Number.isInteger(hours) ? hours : 1,
-    lockerRooms: rooms,
+    showers,
     contactName: values.contactName,
     contactPhone: values.contactPhone,
     teamName: values.teamName || null,

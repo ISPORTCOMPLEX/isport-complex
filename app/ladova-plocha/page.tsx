@@ -4,12 +4,12 @@ import { PartCta, PartPage } from '@/components/PartPage';
 import { RinkPlan } from '@/components/Rink';
 import { getBookingSettings } from '@/lib/booking/settings';
 
-export const metadata: Metadata = { title: 'Ľadová plocha', description: 'Prenájom celej tréningovej ľadovej plochy v I-SPORT COMPLEX Košice. Rezervácia online, šatne za príplatok.' };
+export const metadata: Metadata = { title: 'Ľadová plocha', description: 'Prenájom celej tréningovej ľadovej plochy v I-SPORT COMPLEX Košice. Rezervácia online, šatňa v cene, sprchy za príplatok.' };
 
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
 
 const STEPS = [
-  ['Rezervuj online', 'Vyber deň, čas a počet šatní. Potvrdenie s QR kódom máš hneď v telefóne.'],
+  ['Rezervuj online', 'Vyber deň, čas a či chceš sprchy. Potvrdenie s QR kódom máš hneď v telefóne.'],
   ['Príď 30 minút vopred', 'Na recepcii ukáž QR kód, šatňa je pripravená.'],
   ['Na ľad po úprave', 'Na plochu vstupuješ presne v čase rezervácie.'],
   ['Uvoľni šatňu', 'Najneskôr 30 minút po skončení tréningu.'],
@@ -29,7 +29,7 @@ export default async function LadovaPlochaPage() {
           plocha
         </>
       }
-      lead="Tréningová hokejová plocha na prenájom pre kluby, školy, firmy aj partie. Prenajíma sa celá plocha, šatne za príplatok."
+      lead="Tréningová hokejová plocha na prenájom pre kluby, školy, firmy aj partie. Prenajíma sa celá plocha, šatňa je v cene, sprchy za príplatok."
     >
       <section className="ice ix pp-ice">
         <div className="ix__lines" aria-hidden="true">
@@ -55,9 +55,9 @@ export default async function LadovaPlochaPage() {
                 <dd>za hodinu</dd>
               </div>
             </dl>
-            {s.lockerRooms > 0 ? (
+            {s.showersEnabled ? (
               <p className="pp__p">
-                <strong>Šatne:</strong> {eur(s.lockerPrice)} za šatňu k rezervácii, k dispozícii {s.lockerRooms}. Úprava ľadu je v cene.
+                <strong>Sprchy:</strong> {eur(s.showerPrice)} jednorazovo pre celý tím. Šatňa a úprava ľadu sú v cene.
               </p>
             ) : (
               <p className="pp__p">Úprava ľadu je v cene.</p>

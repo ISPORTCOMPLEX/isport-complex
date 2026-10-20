@@ -81,11 +81,11 @@ export default async function HomePage() {
                 <dd className="cond">{eur(Math.max(p.peak, p.weekend))}</dd>
                 <dd>za hodinu</dd>
               </div>
-              {settings.lockerRooms > 0 ? (
+              {settings.showersEnabled ? (
                 <div>
-                  <dt>Šatňa</dt>
-                  <dd className="cond ix__red-txt">{eur(settings.lockerPrice)}</dd>
-                  <dd>k rezervácii</dd>
+                  <dt>Sprchy</dt>
+                  <dd className="cond ix__red-txt">{eur(settings.showerPrice)}</dd>
+                  <dd>pre celý tím</dd>
                 </div>
               ) : null}
             </dl>
@@ -93,7 +93,7 @@ export default async function HomePage() {
               Celý cenník a pravidlá
             </Link>
           </div>
-          <QuickBook days={qbDays} lockerRooms={settings.lockerRooms} lockerPrice={settings.lockerPrice} />
+          <QuickBook days={qbDays} showersEnabled={settings.showersEnabled} showerPrice={settings.showerPrice} />
         </div>
       </section>
 

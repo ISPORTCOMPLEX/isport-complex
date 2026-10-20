@@ -125,7 +125,7 @@ export default async function KalendarPage({ searchParams }: Props) {
                   <strong>{b.teamName || b.contactName}</strong>
                   <small>
                     {pad2(r.a)} – {pad2(r.b)} · {b.code}
-                    {b.lockerRooms ? ` · šatne ${b.lockerRooms}` : ''}
+                    {b.showers ? ' · sprchy' : ''}
                   </small>
                   <small>{b.status === 'NO_SHOW' ? 'Neprišiel' : b.checkedInAt ? 'Na ľade / prišiel' : b.paymentStatus === 'PAID' ? 'Zaplatená' : 'Nezaplatená'}</small>
                 </Link>

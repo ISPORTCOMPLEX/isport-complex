@@ -1,9 +1,7 @@
-
-// Rozloženie pre prihlásenie, registráciu a obnovu hesla: vľavo značka, vpravo sklenená karta s formulárom.
+// Prihlásenie, registrácia a obnova hesla: vľavo tmavá aréna s nadpisom, vpravo ľad s bielou kartou formulára.
 export function AuthShell({
   kicker,
   title,
-  word = 'I-SPORT',
   children,
   aside,
 }: {
@@ -14,23 +12,20 @@ export function AuthShell({
   aside?: React.ReactNode;
 }) {
   return (
-    <section className="auth">
-      <div className="auth__word outline-word" aria-hidden="true">
-        {word}
-      </div>
-      <div className="wrap auth__in">
-        <div className="auth__side">
-          <span className="kicker">{kicker}</span>
-          <h1 className="display auth__title">{title}</h1>
+    <section className="au">
+      <div className="au__dark">
+        <div className="au__dark-in">
+          <span className="au__kicker">{kicker}</span>
+          <h1 className="cond au__title">{title}</h1>
           {aside ?? (
-            <ul className="auth__points">
+            <ul className="au__points">
               <li>
                 <strong>Rezervácia ľadu online</strong>
-                <span>Voľné termíny, platba a potvrdenie na pár klikov.</span>
+                <span>Voľné termíny, cena a potvrdenie s QR kódom na pár klikov.</span>
               </li>
               <li>
                 <strong>Prehľad rezervácií</strong>
-                <span>História, faktúry a QR vstup na jednom mieste.</span>
+                <span>Presun, zrušenie a história na jednom mieste.</span>
               </li>
               <li>
                 <strong>Chránený účet</strong>
@@ -39,7 +34,9 @@ export function AuthShell({
             </ul>
           )}
         </div>
-        <div className="auth__card glass">{children}</div>
+      </div>
+      <div className="au__ice ice">
+        <div className="au__card">{children}</div>
       </div>
     </section>
   );
@@ -48,4 +45,3 @@ export function AuthShell({
 export function AuthFoot({ children }: { children: React.ReactNode }) {
   return <p className="auth__foot">{children}</p>;
 }
-

@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { SiteChrome } from '@/components/SiteChrome';
+import { Analytics } from '@/components/Analytics';
 import { appUrl } from '@/lib/requestInfo';
 import './globals.css';
 
@@ -20,10 +21,10 @@ const archivo = Archivo({
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl() ?? 'http://localhost:3000'),
   title: {
-    default: 'I-SPORT COMPLEX – tréningová hokejová hala Košice',
+    default: 'I-SPORT COMPLEX – športový komplex Košice',
     template: '%s · I-SPORT COMPLEX',
   },
-  description: 'Rezervácia ľadu online v tréningovej hokejovej hale v Košiciach. Celá plocha aj polovica, pre kluby, školy aj amatérov.',
+  description: 'Športový komplex v Košiciach: tréningová ľadová plocha s online rezerváciou, futbalové ihrisko, bufet a skyboxy, pripravujeme wellness a posilňovňu.',
 };
 
 export const viewport: Viewport = {
@@ -45,6 +46,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <SiteChrome header={<Header />} footer={<Footer />}>
           {children}
         </SiteChrome>
+        <Analytics />
       </body>
     </html>
   );

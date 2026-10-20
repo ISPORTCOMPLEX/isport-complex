@@ -47,10 +47,12 @@ export async function GET(req: Request) {
   const year = new Date(now.getTime() - 365 * 86400000);
   const events = await prisma.securityEvent.deleteMany({ where: { createdAt: { lt: year } } });
   const inquiries = await prisma.inquiry.deleteMany({ where: { status: { in: ['DONE', 'SPAM'] }, updatedAt: { lt: new Date(now.getTime() - 730 * 86400000) } } });
+  // Štatistiky návštevnosti sa uchovávajú 13 mesiacov (porovnanie s minulým rokom).
+  const views = await prisma.pageView.deleteMany({ where: { createdAt: { lt: new Date(now.getTime() - 400 * 86400000) } } });
   // Neaktivované účty staršie ako 14 dní bez rezervácií sa zmažú (často boti alebo preklepy v e-maile).
   const stale = await prisma.user.deleteMany({
     where: { emailVerifiedAt: null, deletedAt: null, role: 'CUSTOMER', createdAt: { lt: new Date(now.getTime() - 14 * 86400000) }, bookings: { none: {} } },
   });
 
-  return Response.json({ ok: true, reminders, completed: completed.count, limits, tokens: tokens.count, events: events.count, inquiries: inquiries.count, staleAccounts: stale.count });
+  return Response.json({ ok: true, reminders, completed: completed.count, limits, tokens: tokens.count, events: events.count, inquiries: inquiries.count, staleAccounts: stale.count, pageViews: views.count });
 }

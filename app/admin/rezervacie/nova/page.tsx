@@ -47,7 +47,7 @@ export default async function NovaRezervacia({ searchParams }: Props) {
         </form>
       </Panel>
 
-      <AdminBookingForm iso={iso} slots={slots} lockerRooms={s.lockerRooms} lockerPrice={s.lockerPrice} />
+      <AdminBookingForm iso={iso} slots={slots} showersEnabled={s.showersEnabled} showerPrice={s.showerPrice} />
     </div>
   );
 }

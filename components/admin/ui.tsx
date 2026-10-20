@@ -148,6 +148,7 @@ Object.assign(AUDIT_LABEL, {
   'block.create': 'Zablokoval čas',
   'block.delete': 'Zrušil blokovanie',
   'settings.booking': 'Zmenil cenník a nastavenia',
+  'booking.export': 'Exportoval rezervácie (CSV)',
 });
 
 export const INQUIRY_STATUS: Record<string, { label: string; tone: 'ok' | 'warn' | 'red' | 'blue' | 'muted' }> = {
@@ -157,3 +158,55 @@ export const INQUIRY_STATUS: Record<string, { label: string; tone: 'ok' | 'warn'
   SPAM: { label: 'Spam', tone: 'muted' },
 };
 
+
+// Vodorovné pruhy pre podiely (zdroje, zariadenia, stránky). Jeden odtieň, hodnota vždy aj číslom.
+export function Meters({ rows, total, unit = '', empty = 'Zatiaľ bez údajov.' }: { rows: { label: string; value: number; note?: string }[]; total?: number; unit?: string; empty?: string }) {
+  if (rows.length === 0) return <Empty>{empty}</Empty>;
+  const max = Math.max(...rows.map((r) => r.value), 1);
+  const sum = total ?? rows.reduce((a, r) => a + r.value, 0);
+  return (
+    <ul className="mt">
+      {rows.map((r) => (
+        <li key={r.label}>
+          <div className="mt__row">
+            <span className="mt__label" title={r.label}>
+              {r.label}
+            </span>
+            <span className="mt__val">
+              {r.value.toLocaleString('sk-SK')}
+              {unit ? ` ${unit}` : ''}
+              {sum ? <small> · {Math.round((r.value / sum) * 100)} %</small> : null}
+            </span>
+          </div>
+          <i className="mt__bar" style={{ width: `${Math.max(1.5, (r.value / max) * 100)}%` }} />
+          {r.note ? <small className="mt__note">{r.note}</small> : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// Ukazovateľ so zmenou oproti predchádzajúcemu obdobiu.
+export function Kpi({ label, value, change, note, invert = false }: { label: string; value: React.ReactNode; change?: number | null; note?: React.ReactNode; invert?: boolean }) {
+  const has = change !== undefined && change !== null && Number.isFinite(change);
+  const up = has && change! > 0.005;
+  const down = has && change! < -0.005;
+  const good = invert ? down : up;
+  const bad = invert ? up : down;
+  return (
+    <div className="kpi">
+      <span className="kpi__label">{label}</span>
+      <strong className="kpi__value">{value}</strong>
+      <span className="kpi__foot">
+        {has ? (
+          <b className={good ? 'kpi__up' : bad ? 'kpi__down' : 'kpi__flat'}>
+            {up ? '▲' : down ? '▼' : '•'} {Math.abs(Math.round(change! * 100))} %
+          </b>
+        ) : change === null ? (
+          <b className="kpi__flat">nové</b>
+        ) : null}
+        {note ? <span>{note}</span> : null}
+      </span>
+    </div>
+  );
+}

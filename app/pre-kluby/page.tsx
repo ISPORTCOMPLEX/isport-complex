@@ -1,76 +1,68 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { orTbd } from '@/lib/site';
 import { getSite } from '@/lib/siteSettings';
 import { InquiryForm } from '@/components/InquiryForm';
 import { createFormStamp } from '@/lib/formGuard';
+import { RzBand } from '@/components/booking/RzBand';
 
-export const metadata: Metadata = { title: 'Pre kluby' };
+export const metadata: Metadata = { title: 'Pre kluby', description: 'Sezónny prenájom ľadu pre hokejové kluby, školy a firmy v I-SPORT COMPLEX Košice.' };
 
 const BENEFITS = [
-  ['Pevný čas celú sezónu', 'Tvoje hodiny sú v kalendári zablokované dopredu, nikto ti ich nevezme.'],
-  ['Jedna faktúra mesačne', 'Na klub alebo školu, so splatnosťou. Žiadne platby za každú hodinu.'],
-  ['Rozpis pre celý tím', 'Tréneri a hráči vidia tréningy v aplikácii a dostanú pripomienku.'],
+  ['Pevný čas', 'Tvoje hodiny sú v kalendári zablokované na celú sezónu, nikto ti ich nevezme.'],
+  ['Jedna faktúra', 'Mesačne na klub alebo školu, so splatnosťou. Žiadne platby za každú hodinu.'],
+  ['Celý komplex', 'Šatne v cene, sprchy, bufet a skyboxy pre rodičov a fanúšikov.'],
 ];
 
 export default async function PreKlubyPage() {
   const site = await getSite();
   return (
     <>
-      <section className="page-head" style={{ position: 'relative', overflow: 'hidden' }}>
-        <div aria-hidden="true" style={{ position: 'absolute', top: 0, bottom: 0, right: '8%', width: 260, background: 'var(--red)', transform: 'skewX(-18deg)', opacity: 0.9 }} />
-        <div className="wrap page-head__in" style={{ position: 'relative', paddingBottom: 100 }}>
-          <nav aria-label="Omrvinky" className="crumbs">
-            <Link href="/">Domov</Link>
-            <span>/</span>
-            Pre kluby
-          </nav>
-          <h1 className="display h1" style={{ maxWidth: 860 }}>
-            Ľad pre kluby a hokejové školy
-          </h1>
-          <p className="lead">
-            Pevné hodiny na celú sezónu, bloky na kempy a turnaje. Jedna zmluva, mesačná faktúra a rozpis tréningov pre celý tím.
-          </p>
-          <a href="#dopyt" className="btn btn--lg" style={{ alignSelf: 'flex-start' }}>
-            Poslať dopyt
-          </a>
-        </div>
-      </section>
-
-      <section className="section section--deep">
-        <div className="wrap section__in" style={{ paddingTop: 96, paddingBottom: 96 }}>
-          <div className="grid-auto">
+      <RzBand
+        crumbs={[{ href: '/', label: 'Komplex' }, { label: 'Pre kluby' }]}
+        title={
+          <>
+            Ľad pre
+            <br />
+            kluby
+          </>
+        }
+        lead={<p>Pevné hodiny na celú sezónu, bloky na kempy a turnaje. Jedna zmluva a mesačná faktúra.</p>}
+      />
+      <section className="pp-dark">
+        <div className="wrap">
+          <div className="fx__grid">
             {BENEFITS.map(([title, text]) => (
-              <div key={title} className="price-tile" style={{ padding: '34px 30px', gap: 12 }}>
-                <h2 className="display h3">{title}</h2>
-                <p className="muted" style={{ margin: 0, fontSize: 16 }}>
-                  {text}
-                </p>
+              <div key={title}>
+                <h2 className="cond">{title}</h2>
+                <p>{text}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
-
-      <section id="dopyt" className="section">
-        <div className="wrap section__in" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 64, alignItems: 'flex-start' }}>
-          <div style={{ flex: '1 1 380px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <h2 className="display h2">Dopyt na prenájom</h2>
-            <p className="muted" style={{ margin: 0 }}>
+      <section id="dopyt" className="ice rz-ice">
+        <div className="wrap v3-split">
+          <div className="v3-col">
+            <h2 className="cond pp__h">
+              Dopyt na
+              <br />
+              prenájom
+            </h2>
+            <p className="pp__p">
               Napíš nám názov klubu, preferované dni a časy a od kedy chceš ľad. Najneskôr do 2 pracovných dní ti pošleme ponuku s voľnými časmi a cenou.
             </p>
-            <dl className="dl-rows">
+            <dl className="vx__hours">
               <div>
-                <dt className="muted">Telefón</dt>
+                <dt>Telefón</dt>
                 <dd>{site.phone ? <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a> : orTbd('')}</dd>
               </div>
               <div>
-                <dt className="muted">E-mail</dt>
+                <dt>E-mail</dt>
                 <dd>{site.email ? <a href={`mailto:${site.email}`}>{site.email}</a> : orTbd('')}</dd>
               </div>
             </dl>
           </div>
-          <div className="card inq-card" style={{ flex: '1 1 460px', minWidth: 0 }}>
+          <div className="rz-card">
             <InquiryForm type="CLUB" stamp={createFormStamp()} />
           </div>
         </div>

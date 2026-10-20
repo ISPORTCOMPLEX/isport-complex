@@ -1,7 +1,7 @@
 import type { BookingSettings } from './settings';
 import { isWeekend } from './time';
 
-// Prenajíma sa celá ľadová plocha. Cena hodiny podľa dňa a času, šatne sa pripočítajú za kus.
+// Prenajíma sa celá ľadová plocha (šatňa je v cene). Sprchy po tréningu sa pripočítajú jednou sumou.
 export function hourPrice(s: BookingSettings, iso: string, hour: number): number {
   const p = s.prices.full;
   if (isWeekend(iso)) return p.weekend;
@@ -14,10 +14,6 @@ export function iceCents(s: BookingSettings, iso: string, startHour: number, hou
   return sum;
 }
 
-export function lockerCents(s: BookingSettings, rooms: number): number {
-  return Math.round(s.lockerPrice * 100) * rooms;
-}
-
-export function totalCents(s: BookingSettings, iso: string, startHour: number, hours: number, rooms: number): number {
-  return iceCents(s, iso, startHour, hours) + lockerCents(s, rooms);
+export function showerCents(s: BookingSettings, showers: boolean): number {
+  return showers && s.showersEnabled ? Math.round(s.showerPrice * 100) : 0;
 }

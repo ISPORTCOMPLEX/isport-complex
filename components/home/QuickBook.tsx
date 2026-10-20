@@ -8,19 +8,20 @@ type Day = { iso: string; short: string; num: string; weekend: boolean; label: s
 const pad = (h: number) => `${String(h).padStart(2, '0')}:00`;
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
 
-// Rýchla rezervácia na úvode: deň, časová os dňa (celá plocha) a šatne. Pokračuje sa v plnej rezervácii.
-export function QuickBook({ days, lockerRooms, lockerPrice }: { days: Day[]; lockerRooms: number; lockerPrice: number }) {
+// Rýchla rezervácia na úvode: deň, časová os dňa (celá plocha) a sprchy. Pokračuje sa v plnej rezervácii.
+export function QuickBook({ days, showersEnabled, showerPrice }: { days: Day[]; showersEnabled: boolean; showerPrice: number }) {
   const firstWithFree = Math.max(
     0,
     days.findIndex((d) => d.slots.some((s) => s.ok)),
   );
   const [di, setDi] = useState(firstWithFree);
   const [start, setStart] = useState<number | null>(null);
-  const [rooms, setRooms] = useState(lockerRooms > 0 ? 1 : 0);
+  const [showers, setShowers] = useState(false);
+  const sp = showers ? 1 : 0;
   const day = days[di];
   const slot = day?.slots.find((s) => s.hour === start && s.ok);
-  const total = slot ? slot.price + rooms * lockerPrice : 0;
-  const href = slot ? `/rezervacia?datum=${day.iso}&cas=${slot.hour}&satne=${rooms}` : `/rezervacia?datum=${day?.iso ?? ''}&satne=${rooms}`;
+  const total = slot ? slot.price + (showers ? showerPrice : 0) : 0;
+  const href = slot ? `/rezervacia?datum=${day.iso}&cas=${slot.hour}&sprchy=${sp}` : `/rezervacia?datum=${day?.iso ?? ''}&sprchy=${sp}`;
 
   return (
     <div className="qb">
@@ -68,24 +69,14 @@ export function QuickBook({ days, lockerRooms, lockerPrice }: { days: Day[]; loc
             </span>
           ))}
       </div>
-      {lockerRooms > 0 ? (
-        <div className="qb__lockers">
+      {showersEnabled ? (
+        <label className="qb__lockers">
           <span>
-            <strong>Šatne</strong>
-            <small>{eur(lockerPrice)} za šatňu</small>
+            <strong>Sprchy po tréningu</strong>
+            <small>{eur(showerPrice)} pre celý tím · šatňa v cene</small>
           </span>
-          <span className="qb__stepper">
-            <button type="button" aria-label="Menej šatní" disabled={rooms <= 0} onClick={() => setRooms(rooms - 1)}>
-              −
-            </button>
-            <b className="cond" aria-live="polite">
-              {rooms}
-            </b>
-            <button type="button" aria-label="Viac šatní" disabled={rooms >= lockerRooms} onClick={() => setRooms(rooms + 1)}>
-              +
-            </button>
-          </span>
-        </div>
+          <input type="checkbox" className="rz-switch rz-switch--dark" checked={showers} onChange={(e) => setShowers(e.target.checked)} />
+        </label>
       ) : null}
       <div className="qb__foot">
         <span>

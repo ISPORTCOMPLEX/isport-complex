@@ -19,7 +19,7 @@ export default async function RezervaciaPage({ searchParams }: Props) {
   const wanted = one(sp.datum);
   const iso = isIsoDate(wanted) && wanted >= first && wanted <= last ? wanted : first;
   const cas = Number.parseInt(one(sp.cas), 10);
-  const satne = Number.parseInt(one(sp.satne), 10);
+  const sprchy = one(sp.sprchy) === '1';
   const presun = /^ISP-[A-Z0-9]{6}$/.test(one(sp.presun)) ? one(sp.presun) : null;
   const slots = await dayAvailability(settings, iso);
 
@@ -37,7 +37,7 @@ export default async function RezervaciaPage({ searchParams }: Props) {
         }
         lead={
           <>
-            <p>Prenajíma sa celá ľadová plocha. Vyber deň a čas, pridaj šatne a pokračuj na údaje.</p>
+            <p>Prenajíma sa celá ľadová plocha. Vyber deň a čas, pridaj sprchy a pokračuj na údaje.</p>
             {settings.temporary ? <p className="rz-temp">Ceny sú zatiaľ orientačné.</p> : null}
           </>
         }
@@ -56,10 +56,10 @@ export default async function RezervaciaPage({ searchParams }: Props) {
             iso={iso}
             slots={slots}
             initialHour={Number.isInteger(cas) ? cas : null}
-            initialRooms={Number.isInteger(satne) ? satne : 0}
+            initialShowers={sprchy}
             maxHours={settings.maxHours}
-            lockerRooms={settings.lockerRooms}
-            lockerPrice={settings.lockerPrice}
+            showersEnabled={settings.showersEnabled}
+            showerPrice={settings.showerPrice}
             presun={presun}
           />
         </div>

@@ -4,7 +4,7 @@ import type { Area, PaymentMethod } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { randomToken } from '@/lib/crypto';
 import type { BookingSettings } from './settings';
-import { iceCents, lockerCents } from './pricing';
+import { iceCents, showerCents } from './pricing';
 import { hallTime } from './time';
 import { inWindow } from './availability';
 
@@ -26,7 +26,7 @@ export type CreateInput = {
   iso: string;
   startHour: number;
   hours: number;
-  lockerRooms: number;
+  showers: boolean;
   contactName: string;
   contactPhone: string;
   teamName: string | null;
@@ -63,9 +63,8 @@ export async function createBooking(s: BookingSettings, input: CreateInput): Pro
   for (let h = input.startHour; h < input.startHour + input.hours; h++) starts.push(hallTime(input.iso, h));
   const startsAt = starts[0];
   const endsAt = hallTime(input.iso, input.startHour + input.hours);
-  const rooms = Math.max(0, Math.min(s.lockerRooms, Math.floor(input.lockerRooms || 0)));
-  const lockers = lockerCents(s, rooms);
-  const priceCents = iceCents(s, input.iso, input.startHour, input.hours) + lockers;
+  const shower = showerCents(s, input.showers);
+  const priceCents = iceCents(s, input.iso, input.startHour, input.hours) + shower;
 
   // Prenajíma sa celá plocha = obe polovice (A, B) v každej hodine.
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -84,8 +83,8 @@ export async function createBooking(s: BookingSettings, input: CreateInput): Pro
           endsAt,
           hours: input.hours,
           priceCents,
-          lockerRooms: rooms,
-          lockerCents: lockers,
+          showers: shower > 0 ? 1 : 0,
+          showerCents: shower,
           paymentMethod: input.paymentMethod,
           contactName: input.contactName,
           contactPhone: input.contactPhone,

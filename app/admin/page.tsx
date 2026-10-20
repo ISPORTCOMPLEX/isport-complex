@@ -7,6 +7,8 @@ import { getBookingSettings } from '@/lib/booking/settings';
 import { emailEnabled } from '@/lib/email';
 import { AREA_SHORT } from '@/lib/booking/format';
 import { addDays, euros, fmtRange, hallTime, todayIso } from '@/lib/booking/time';
+import { businessStats, rangeOf } from '@/lib/analytics/stats';
+import { BarChart } from '@/components/admin/Charts';
 
 export const metadata: Metadata = { title: 'Prehľad' };
 
@@ -64,6 +66,13 @@ export default async function AdminHome() {
   const unpaidPast = showBookings ? await prisma.booking.count({ where: { status: 'CONFIRMED', paymentStatus: 'UNPAID', endsAt: { lt: new Date(now) } } }) : 0;
   const halfHoursToday = (settings.closeHour - settings.openHour) * 2;
   const usedToday = todays.reduce((sum, b) => sum + b.hours * (b.area === 'FULL' ? 2 : 1), 0);
+  const trend = showBookings ? await businessStats(rangeOf(14), settings) : null;
+  const webToday = can(me.role, 'analytics.view')
+    ? (
+        await prisma.$queryRaw<{ v: bigint; views: bigint }[]>`SELECT COUNT(DISTINCT visitor) AS v, COUNT(*) AS views FROM "PageView" WHERE "createdAt" >= ${todayStart}`
+      )[0]
+    : null;
+  const ex = `/api/admin/export?od=${addDays(t, -30)}&do=${t}`;
   const waiting = todays.filter((b) => b.status === 'CONFIRMED' && !b.checkedInAt && b.endsAt > new Date(now)).length;
 
   const attention: { text: string; sub: string; href?: string }[] = [];
@@ -78,9 +87,19 @@ export default async function AdminHome() {
     <div className="adm__stack">
       <AdmHead title="Prehľad" sub={<span style={{ textTransform: 'capitalize' }}>{today.format(new Date())}</span>}>
         {showBookings ? (
-          <Link href="/admin/kalendar" className="btn btn--sm">
-            Kalendár ľadu
-          </Link>
+          <>
+            <a href={ex} className="btn btn--sm btn--ghost">
+              Export CSV
+            </a>
+            <Link href="/admin/kalendar" className="btn btn--sm btn--ghost">
+              Kalendár
+            </Link>
+            {can(me.role, 'bookings.manage') ? (
+              <Link href="/admin/rezervacie/nova" className="btn btn--sm">
+                Nová rezervácia
+              </Link>
+            ) : null}
+          </>
         ) : null}
       </AdmHead>
 
@@ -90,7 +109,14 @@ export default async function AdminHome() {
           <Stat label="Obsadenosť dnes" value={`${halfHoursToday ? Math.round((usedToday / halfHoursToday) * 100) : 0} %`} note={`${settings.openHour}:00 – ${settings.closeHour}:00`} />
           <Stat label="Tržby za 7 dní" value={euros(weekCents)} note="odohrané rezervácie" />
           <Stat label="Nezaplatené po termíne" value={unpaidPast} tone={unpaidPast > 0 ? 'warn' : undefined} />
+          {webToday ? <Stat label="Návštevníci webu dnes" value={Number(webToday.v)} note={`${Number(webToday.views)} zobrazení stránok`} /> : null}
         </div>
+      ) : null}
+
+      {trend ? (
+        <Panel title="Tržby za posledných 14 dní" action={can(me.role, 'analytics.view') ? { href: '/admin/analytika?tab=lad&d=30', label: 'Analytika' } : undefined}>
+          <BarChart points={trend.dailyRevenue} valueLabel="Tržby" unit="€" extraLabel="Hodiny ľadu" extraUnit="h" height={160} />
+        </Panel>
       ) : null}
 
       <div className="adm-stats">

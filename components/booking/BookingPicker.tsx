@@ -11,10 +11,10 @@ type Props = {
   iso: string;
   slots: Slot[];
   initialHour: number | null;
-  initialRooms: number;
+  initialShowers: boolean;
   maxHours: number;
-  lockerRooms: number;
-  lockerPrice: number;
+  showersEnabled: boolean;
+  showerPrice: number;
   presun?: string | null;
 };
 
@@ -22,13 +22,13 @@ const pad = (h: number) => `${String(h).padStart(2, '0')}:00`;
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
 const hoursWord = (n: number) => (n === 1 ? 'hodina' : n <= 4 ? 'hodiny' : 'hodín');
 
-// Výber termínu: celá ľadová plocha + šatne. Dostupnosť aj cenu na konci znova overí server.
-export function BookingPicker({ days, iso, slots, initialHour, initialRooms, maxHours, lockerRooms, lockerPrice, presun = null }: Props) {
+// Výber termínu: celá ľadová plocha (šatňa v cene) + voliteľne sprchy. Dostupnosť aj cenu na konci znova overí server.
+export function BookingPicker({ days, iso, slots, initialHour, initialShowers, maxHours, showersEnabled, showerPrice, presun = null }: Props) {
   const ok = (s: Slot | undefined) => Boolean(s && s.free && s.bookable);
   const byHour = useMemo(() => new Map(slots.map((s) => [s.hour, s])), [slots]);
   const [start, setStart] = useState<number | null>(initialHour !== null && ok(byHour.get(initialHour)) ? initialHour : null);
   const [count, setCount] = useState(1);
-  const [rooms, setRooms] = useState(Math.min(Math.max(initialRooms, 0), lockerRooms));
+  const [showers, setShowers] = useState(showersEnabled && initialShowers);
 
   const runFrom = (h: number) => {
     let n = 0;
@@ -39,10 +39,11 @@ export function BookingPicker({ days, iso, slots, initialHour, initialRooms, max
   const hours = Math.min(count, Math.max(possible, 1));
   const valid = start !== null && possible >= 1;
   const ice = valid ? Array.from({ length: hours }, (_, i) => byHour.get(start! + i)?.price ?? 0).reduce((a, b) => a + b, 0) : 0;
-  const lockers = rooms * lockerPrice;
+  const extra = showers ? showerPrice : 0;
+  const sp = showers ? 1 : 0;
   const day = days.find((d) => d.iso === iso) ?? days[0];
   const tail = presun ? `&presun=${presun}` : '';
-  const next = valid ? `/rezervacia/udaje?datum=${iso}&od=${start}&hodiny=${hours}&satne=${rooms}${tail}` : null;
+  const next = valid ? `/rezervacia/udaje?datum=${iso}&od=${start}&hodiny=${hours}&sprchy=${sp}${tail}` : null;
   const anyFree = slots.some((s) => ok(s));
 
   return (
@@ -56,7 +57,7 @@ export function BookingPicker({ days, iso, slots, initialHour, initialRooms, max
             {days.map((d) => (
               <Link
                 key={d.iso}
-                href={`/rezervacia?datum=${d.iso}&satne=${rooms}${tail}`}
+                href={`/rezervacia?datum=${d.iso}&sprchy=${sp}${tail}`}
                 className={`rz-day${d.weekend ? ' rz-day--we' : ''}`}
                 aria-current={d.iso === iso ? 'date' : undefined}
                 aria-label={d.label}
@@ -101,28 +102,18 @@ export function BookingPicker({ days, iso, slots, initialHour, initialRooms, max
           </div>
         </section>
 
-        {lockerRooms > 0 ? (
+        {showersEnabled ? (
           <section className="rz-step">
             <h2 className="rz-h">
-              <span>3</span>Šatne
+              <span>3</span>Sprchy
             </h2>
-            <div className="rz-lockers">
+            <label className={`rz-extra${showers ? ' rz-extra--on' : ''}`}>
               <div>
-                <strong>Koľko šatní potrebuješ?</strong>
-                <span>
-                  {eur(lockerPrice)} za šatňu na celý čas rezervácie. K dispozícii {lockerRooms}.
-                </span>
+                <strong>Sprchy po tréningu</strong>
+                <span>{eur(showerPrice)} jednorazovo pre celý tím. Šatňa je v cene prenájmu.</span>
               </div>
-              <div className="rz-stepper">
-                <button type="button" aria-label="Menej šatní" disabled={rooms <= 0} onClick={() => setRooms(rooms - 1)}>
-                  −
-                </button>
-                <strong aria-live="polite">{rooms}</strong>
-                <button type="button" aria-label="Viac šatní" className="rz-stepper__plus" disabled={rooms >= lockerRooms} onClick={() => setRooms(rooms + 1)}>
-                  +
-                </button>
-              </div>
-            </div>
+              <input type="checkbox" className="rz-switch" checked={showers} onChange={(e) => setShowers(e.target.checked)} />
+            </label>
           </section>
         ) : null}
       </div>
@@ -142,10 +133,14 @@ export function BookingPicker({ days, iso, slots, initialHour, initialRooms, max
             <dt>Ľad{valid ? `, ${hours} ${hoursWord(hours)}` : ''}</dt>
             <dd>{valid ? eur(ice) : '—'}</dd>
           </div>
-          {lockerRooms > 0 ? (
+          <div>
+            <dt>Šatňa</dt>
+            <dd>v cene</dd>
+          </div>
+          {showersEnabled ? (
             <div>
-              <dt>Šatne{rooms ? `, ${rooms} × ${eur(lockerPrice)}` : ''}</dt>
-              <dd>{rooms ? eur(lockers) : 'bez šatne'}</dd>
+              <dt>Sprchy</dt>
+              <dd>{showers ? eur(showerPrice) : 'bez spŕch'}</dd>
             </div>
           ) : null}
         </dl>
@@ -165,7 +160,7 @@ export function BookingPicker({ days, iso, slots, initialHour, initialRooms, max
         </div>
         <div className="rz-total">
           <span>Spolu s DPH</span>
-          <strong>{valid ? eur(ice + lockers) : '—'}</strong>
+          <strong>{valid ? eur(ice + extra) : '—'}</strong>
         </div>
         {next ? (
           <Link href={next} className="rz-cta">

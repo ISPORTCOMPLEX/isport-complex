@@ -1,25 +1,21 @@
 'use client';
 
 import Link from 'next/link';
+import { BigMessage } from '@/components/BigMessage';
 
 // Chybová stránka – nikdy neukazuje technické detaily, len kód pre podporu.
 export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <section className="soon">
-      <div className="wrap soon__in">
-        <span className="kicker">Chyba</span>
-        <h1 className="display h2">Niečo sa pokazilo</h1>
-        <p className="lead">Stránku sa nepodarilo načítať. Skús to znova o chvíľu. Ak problém pretrváva, kontaktuj nás a uveď kód nižšie.</p>
-        {error.digest ? <p className="muted" style={{ margin: 0 }}>Kód chyby: {error.digest}</p> : null}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-          <button type="button" className="btn" onClick={() => reset()}>
-            Skúsiť znova
-          </button>
-          <Link href="/" className="btn btn--ghost">
-            Späť na úvod
-          </Link>
-        </div>
+    <BigMessage kicker="Chyba" title="Niečo sa pokazilo" text="Stránku sa nepodarilo načítať. Skús to znova o chvíľu. Ak problém pretrváva, kontaktuj nás a uveď kód nižšie.">
+      {error.digest ? <p className="v3-small">Kód chyby: {error.digest}</p> : null}
+      <div className="nf__actions">
+        <button type="button" className="qb__cta" style={{ border: 'none', cursor: 'pointer', font: 'inherit', fontWeight: 700 }} onClick={() => reset()}>
+          Skúsiť znova
+        </button>
+        <Link href="/" className="ulink">
+          Späť na úvod
+        </Link>
       </div>
-    </section>
+    </BigMessage>
   );
 }

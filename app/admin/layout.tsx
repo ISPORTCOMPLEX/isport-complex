@@ -19,21 +19,23 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       })
     : 0;
   const newInquiries = can(user.role, 'inquiries.manage') ? await prisma.inquiry.count({ where: { status: 'NEW' } }) : 0;
+  const B = can(user.role, 'bookings.view');
   const items: AdminNavItem[] = [
-    { href: '/admin', label: 'Prehľad' },
-    ...(can(user.role, 'bookings.view')
-      ? [
-          { href: '/admin/recepcia', label: 'Recepcia' },
-          { href: '/admin/kalendar', label: 'Kalendár ľadu' },
-          { href: '/admin/rezervacie', label: 'Rezervácie', badge: unpaidToday || undefined },
-        ]
+    { href: '/admin', label: 'Prehľad', icon: 'home', group: '' },
+    ...(B
+      ? ([
+          { href: '/admin/recepcia', label: 'Recepcia', icon: 'scan', group: 'Ľadová plocha' },
+          { href: '/admin/kalendar', label: 'Kalendár', icon: 'cal', group: 'Ľadová plocha' },
+          { href: '/admin/rezervacie', label: 'Rezervácie', icon: 'list', group: 'Ľadová plocha', badge: unpaidToday || undefined },
+        ] as AdminNavItem[])
       : []),
-    ...(can(user.role, 'users.view') ? [{ href: '/admin/zakaznici', label: 'Zákazníci a kluby' }] : []),
-    { href: '/admin/platby', label: 'Platby a faktúry', soon: true },
-    ...(can(user.role, 'inquiries.manage') ? [{ href: '/admin/dopyty', label: 'Dopyty', badge: newInquiries || undefined }] : []),
-    ...(can(user.role, 'security.view') ? [{ href: '/admin/bezpecnost', label: 'Bezpečnosť' }] : []),
-    ...(can(user.role, 'audit.view') ? [{ href: '/admin/audit', label: 'Záznam zmien' }] : []),
-    ...(can(user.role, 'settings.manage') ? [{ href: '/admin/nastavenia', label: 'Nastavenia' }] : []),
+    ...(can(user.role, 'users.view') ? ([{ href: '/admin/zakaznici', label: 'Zákazníci a kluby', icon: 'users', group: 'Ľudia' }] as AdminNavItem[]) : []),
+    ...(can(user.role, 'inquiries.manage') ? ([{ href: '/admin/dopyty', label: 'Dopyty', icon: 'mail', group: 'Ľudia', badge: newInquiries || undefined }] as AdminNavItem[]) : []),
+    ...(can(user.role, 'analytics.view') ? ([{ href: '/admin/analytika', label: 'Analytika', icon: 'chart', group: 'Prehľady' }] as AdminNavItem[]) : []),
+    { href: '/admin/platby', label: 'Platby a faktúry', icon: 'card', group: 'Prehľady', soon: true },
+    ...(can(user.role, 'security.view') ? ([{ href: '/admin/bezpecnost', label: 'Bezpečnosť', icon: 'shield', group: 'Systém' }] as AdminNavItem[]) : []),
+    ...(can(user.role, 'audit.view') ? ([{ href: '/admin/audit', label: 'Záznam zmien', icon: 'log', group: 'Systém' }] as AdminNavItem[]) : []),
+    ...(can(user.role, 'settings.manage') ? ([{ href: '/admin/nastavenia', label: 'Nastavenia', icon: 'gear', group: 'Systém' }] as AdminNavItem[]) : []),
   ];
   const initials = `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase();
 
@@ -47,6 +49,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <small>Administrácia</small>
           </span>
         </Link>
+        <form action="/admin/hladat" role="search" className="adm__search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input type="search" name="q" placeholder="Hľadať…" aria-label="Hľadať v administrácii" maxLength={80} />
+        </form>
         <AdminNav items={items} />
         <div className="adm__foot">
           <Link href="/" className="adm__web">
@@ -70,7 +79,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </form>
         </div>
       </aside>
-      <div className="adm__main">{children}</div>
+      <div className="adm__main ice">{children}</div>
     </div>
   );
 }
