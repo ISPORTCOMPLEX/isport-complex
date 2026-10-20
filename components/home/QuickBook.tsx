@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { Dyn } from '@/components/Dyn';
 
 type Day = { iso: string; short: string; num: string; weekend: boolean; label: string; slots: { hour: number; ok: boolean; price: number }[] };
 
@@ -64,9 +65,9 @@ export function QuickBook({ days, showersEnabled, showerPrice }: { days: Day[]; 
         {day?.slots
           .filter((s) => s.hour % 3 === 0)
           .map((s) => (
-            <span key={s.hour} style={{ left: `${((s.hour - day.slots[0].hour) / day.slots.length) * 100}%` }}>
+            <Dyn as="span" key={s.hour} css={{ left: `${((s.hour - day.slots[0].hour) / day.slots.length) * 100}%`, visibility: 'visible' }}>
               {s.hour}
-            </span>
+            </Dyn>
           ))}
       </div>
       {showersEnabled ? (

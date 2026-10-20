@@ -40,7 +40,7 @@ export default async function KontaktPage() {
                 {orTbd(site.hall.street)}, {site.hall.city}
               </strong>
               {site.hall.mapUrl ? (
-                <a href={site.hall.mapUrl} className="ulink" rel="noopener noreferrer" target="_blank" style={{ marginTop: 8, fontSize: 15 }}>
+                <a href={site.hall.mapUrl} className="ulink u-mt8-15" rel="noopener noreferrer" target="_blank">
                   Navigovať<span className="sr-only"> (otvorí sa v novom okne)</span>
                 </a>
               ) : null}

@@ -77,7 +77,7 @@ export default async function BookingDetail({ params, searchParams }: Props) {
               dovtedy nepríde, rezervácia sa zruší sama a peniaze ti nestiahneme.
             </p>
             {checkout?.checkoutUrl ? (
-              <a href={checkout.checkoutUrl} className="btn btn--sm" style={{ alignSelf: 'flex-start' }}>
+              <a href={checkout.checkoutUrl} className="btn btn--sm u-start">
                 Zaplatiť {euros(booking.priceCents)} kartou
               </a>
             ) : (
@@ -191,8 +191,8 @@ export default async function BookingDetail({ params, searchParams }: Props) {
                 {booking.paymentStatus === 'UNPAID' ? (
                   <Link
                     href={`/rezervacia?presun=${booking.code}&sprchy=${booking.showers > 0 ? 1 : 0}`}
-                    className="btn btn--sm btn--ghost"
-                    style={{ alignSelf: 'flex-start' }}
+                    className="btn btn--sm btn--ghost u-start"
+                   
                   >
                     Presunúť na iný termín
                   </Link>

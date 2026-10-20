@@ -47,7 +47,7 @@ export default async function UdajePage({ searchParams }: Props) {
         <section className="ice rz-ice">
           <div className="wrap rz-narrow">
             <p className="rz-lead">{problem}</p>
-            <Link href={isIsoDate(iso) ? `/rezervacia?datum=${iso}&sprchy=${sp1}` : '/rezervacia'} className="btn" style={{ alignSelf: 'flex-start' }}>
+            <Link href={isIsoDate(iso) ? `/rezervacia?datum=${iso}&sprchy=${sp1}` : '/rezervacia'} className="btn u-start">
               Vybrať iný čas
             </Link>
           </div>

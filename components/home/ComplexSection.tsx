@@ -59,7 +59,7 @@ export function ComplexSection() {
   };
 
   return (
-    <div className="cx" style={{ position: 'relative' }}>
+    <div className="cx u-rel">
       <div ref={art} className={`cx__art${active ? ` is-${active}` : ''}`}>
         <svg viewBox="0 0 1440 560" role="img" aria-label="Schéma komplexu: ľadová plocha, nad ňou skyboxy, vedľa bufet, krídlo s posilňovňou a wellness, vonku futbalové ihrisko">
 
@@ -266,12 +266,11 @@ export function ComplexSection() {
             <circle cx="1330" cy="452" r="3.5" />
           </g>
         </svg>
-        {PARTS.map((p) => (
+        {PARTS.map((p, i) => (
           <Link
             key={p.name}
             href={p.href}
-            className={`cx__label${p.main ? ' cx__label--main' : ''}${p.right ? ' cx__label--right' : ''}`}
-            style={{ left: `${p.x}%`, top: `${p.y}%` }}
+            className={`cx__label cx__label--p${i}${p.main ? ' cx__label--main' : ''}${p.right ? ' cx__label--right' : ''}`}
             onMouseEnter={on(p.zone)}
             onMouseLeave={off}
             onFocus={() => setActive(p.zone)}

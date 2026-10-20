@@ -6,6 +6,7 @@ import { businessStats, delta, rangeOf, trafficStats } from '@/lib/analytics/sta
 import { euros } from '@/lib/booking/time';
 import { AdmHead, Kpi, Meters, Panel } from '@/components/admin/ui';
 import { BarChart, Heatmap } from '@/components/admin/Charts';
+import { Dyn } from '@/components/Dyn';
 
 export const metadata: Metadata = { title: 'Analytika' };
 
@@ -134,7 +135,7 @@ async function Traffic({ range }: { range: ReturnType<typeof rangeOf> }) {
                 {f.label}
               </span>
               <span className="fn__track">
-                <i style={{ width: `${Math.max(1.5, (f.value / funnelMax) * 100)}%` }} />
+                <Dyn as="i" css={{ width: `${Math.max(1.5, (f.value / funnelMax) * 100)}%` }} />
               </span>
               <span className="fn__val">
                 {f.value.toLocaleString('sk-SK')}

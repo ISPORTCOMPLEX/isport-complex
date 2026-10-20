@@ -149,4 +149,5 @@ test('CSP: skripty ani štýlové bloky bez unsafe-inline / unsafe-eval', () => 
     assert.ok(!dir(d).includes('unsafe-inline') && !dir(d).includes('unsafe-eval'), d);
   }
   assert.ok(dir('style-src-elem').includes("'nonce-abc'"));
+  assert.ok(!csp.includes('unsafe-inline') && !csp.includes('unsafe-eval'), 'CSP nesmie obsahovať unsafe-inline ani unsafe-eval');
 });

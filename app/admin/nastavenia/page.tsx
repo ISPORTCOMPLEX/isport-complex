@@ -32,7 +32,7 @@ export default async function NastaveniaPage({ searchParams }: Props) {
               : 'Stav platby kartou online. Zapína sa v nastaveniach Vercelu – postup je v docs/PLATBY.md.'
         }
       />
-      <nav className="adm-filters" aria-label="Sekcie" style={{ alignSelf: 'flex-start' }}>
+      <nav className="adm-filters u-start" aria-label="Sekcie">
         <Link href="/admin/nastavenia" aria-current={tab === 'cennik' ? 'true' : undefined}>
           Cenník a rezervácie
         </Link>
@@ -61,7 +61,7 @@ async function PaymentsStatus() {
   return (
     <>
       <Panel title="Stav">
-        <p style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <p className="u-row10">
           {provider ? <Chip tone="ok">Zapnutá</Chip> : <Chip tone="muted">Vypnutá</Chip>}
           <strong>{provider ? provider.label : 'Platba kartou online je vypnutá'}</strong>
           {provider?.test ? <Chip tone="warn">Testovací režim – žiadne skutočné peniaze</Chip> : null}

@@ -51,7 +51,7 @@ export function InquiryForm({ type, stamp, defaults }: { type: 'CONTACT' | 'CLUB
         {e.message ? <small className="field__err">{e.message}</small> : null}
       </div>
       <SubmitButton>Odoslať</SubmitButton>
-      <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+      <p className="muted u-m0-13">
         Údaje použijeme len na odpoveď na tvoj dopyt.
       </p>
     </form>

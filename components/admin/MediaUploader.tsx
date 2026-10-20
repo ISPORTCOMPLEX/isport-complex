@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { savePhotoAction, signUploadAction } from '@/lib/actions/media';
+import { Dyn } from '@/components/Dyn';
 
 type Item = { name: string; progress: number; state: 'wait' | 'up' | 'ok' | 'err'; error?: string };
 
@@ -102,7 +103,7 @@ export function MediaUploader({ slot, label }: { slot: string; label: string }) 
             <li key={i} className={`is-${it.state}`}>
               <span className="md-progress__name">{it.name}</span>
               <span className="md-progress__bar">
-                <i style={{ width: `${Math.round(it.progress * 100)}%` }} />
+                <Dyn as="i" css={{ width: `${Math.round(it.progress * 100)}%` }} />
               </span>
               <span className="md-progress__st">{it.state === 'ok' ? 'Hotovo' : it.state === 'err' ? it.error : it.state === 'up' ? `${Math.round(it.progress * 100)} %` : 'Čaká'}</span>
             </li>

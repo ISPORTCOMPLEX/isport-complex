@@ -2,7 +2,7 @@
 
 export function RinkPerspective() {
   return (
-    <svg viewBox="0 0 1000 440" aria-hidden="true" style={{ width: '100%', height: 'auto' }}>
+    <svg className="u-wauto" viewBox="0 0 1000 440" aria-hidden="true">
       <defs>
         <linearGradient id="ice" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#FFFFFF" />

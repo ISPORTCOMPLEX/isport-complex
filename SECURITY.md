@@ -67,7 +67,7 @@ $b = New-Object byte[] 48; [Security.Cryptography.RandomNumberGenerator]::Create
 
 | Nález | Riešenie |
 |---|---|
-| CSP s `unsafe-inline` | `style-src 'self'`, `style-src-elem 'self' 'nonce-…'`. Povolené ostávajú len atribúty `style="…"` (`style-src-attr`), ktoré nedokážu spustiť kód. Skripty: nonce + `strict-dynamic` bez `unsafe-inline` a `unsafe-eval`. |
+| CSP s `unsafe-inline` | v9d: CSP neobsahuje `unsafe-inline` ani `unsafe-eval`. Skripty: nonce + `strict-dynamic`. Štýly: `style-src 'self'`, `style-src-elem 'self' 'nonce-…'`, `style-src-attr 'none'`. Inline `style={…}` sú z kódu odstránené (triedy `u-*` v globals.css, vypočítané hodnoty cez `components/Dyn.tsx`). Statická kontrola hlási každý nový `style={…}`. |
 | Citlivé cesty v robots.txt | robots.txt už nevypisuje neverejné cesty. Ochranu zabezpečuje `X-Robots-Tag: noindex` (next.config.ts) a prihlásenie. |
 | Verejná administrácia | `/admin*` bez prihlásenia vráti 404 (proxy.ts aj requireStaff). Personál vstupuje cez Môj účet. |
 | Chýba security.txt | `/.well-known/security.txt` sa zobrazí vždy. Bez e-mailu v nastaveniach odkazuje na /kontakt. |

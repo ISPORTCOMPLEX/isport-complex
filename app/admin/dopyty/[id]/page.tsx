@@ -35,7 +35,7 @@ export default async function DopytDetail({ params, searchParams }: Props) {
 
       <div className="adm-grid">
         <Panel title="Správa">
-          <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{r.message}</p>
+          <p className="u-pre">{r.message}</p>
           {details.obdobie || details.terminy ? (
             <dl className="adm-dl">
               {details.obdobie ? (
@@ -80,9 +80,9 @@ export default async function DopytDetail({ params, searchParams }: Props) {
       </div>
 
       <Panel title="Vybavenie">
-        <form action={updateInquiryAction} className="adm-inline-form" style={{ marginTop: 0 }}>
+        <form action={updateInquiryAction} className="adm-inline-form u-mt0">
           <input type="hidden" name="id" value={r.id} />
-          <label className="adm-label" style={{ flex: '0 1 200px' }}>
+          <label className="adm-label u-f200">
             Stav
             <select name="status" defaultValue={r.status} className="adm-select">
               <option value="NEW">Nový</option>
@@ -93,7 +93,7 @@ export default async function DopytDetail({ params, searchParams }: Props) {
           </label>
           <label className="adm-label">
             Interná poznámka
-            <textarea name="staffNote" defaultValue={r.staffNote ?? ''} rows={3} maxLength={2000} className="textarea" style={{ minHeight: 80, fontSize: 15 }} />
+            <textarea name="staffNote" defaultValue={r.staffNote ?? ''} rows={3} maxLength={2000} className="textarea u-ta-sm" />
           </label>
           <button className="btn btn--sm">Uložiť</button>
         </form>

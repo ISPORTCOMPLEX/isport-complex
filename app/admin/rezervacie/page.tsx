@@ -108,11 +108,11 @@ export default async function AdminRezervacie({ searchParams }: Props) {
       <details className="adm-export">
         <summary>Export do Excelu (CSV)</summary>
         <form action="/api/admin/export" method="get" className="adm-inline-form">
-          <label className="adm-label" style={{ flex: '0 1 200px' }}>
+          <label className="adm-label u-f200">
             Od
             <input type="date" name="od" defaultValue={addDays(today, -30)} className="adm-input" required />
           </label>
-          <label className="adm-label" style={{ flex: '0 1 200px' }}>
+          <label className="adm-label u-f200">
             Do
             <input type="date" name="do" defaultValue={today} className="adm-input" required />
           </label>

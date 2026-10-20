@@ -24,7 +24,7 @@ export default async function CennikPage() {
         }
       />
       <section className="ice rz-ice">
-        <div className="wrap" style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+        <div className="wrap u-col40">
           <div className="pt" role="table" aria-label="Ceny ľadovej plochy za hodinu">
             <div className="pt__row pt__row--head" role="row">
               <span role="columnheader">Ľadová plocha · 60 minút</span>
@@ -68,7 +68,7 @@ export default async function CennikPage() {
             <div>
               <span>Sezónny prenájom</span>
               <strong className="cond">ponuka</strong>
-              <Link href="/pre-kluby" className="ulink" style={{ fontSize: 14 }}>
+              <Link href="/pre-kluby" className="ulink u-fs14">
                 Pre kluby
               </Link>
             </div>
@@ -79,7 +79,7 @@ export default async function CennikPage() {
       <section className="pp-dark">
         <div className="wrap pp__pair pp__pair--big">
           <div>
-            <h2 className="cond pp__h2" style={{ marginTop: 0 }}>
+            <h2 className="cond pp__h2 u-mt0">
               Zrušenie
             </h2>
             <dl className="v3-rows">
@@ -98,7 +98,7 @@ export default async function CennikPage() {
             </dl>
           </div>
           <div>
-            <h2 className="cond pp__h2" style={{ marginTop: 0 }}>
+            <h2 className="cond pp__h2 u-mt0">
               Platba
             </h2>
             <dl className="v3-rows">

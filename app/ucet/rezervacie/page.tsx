@@ -27,7 +27,7 @@ export default async function MojeRezervacie() {
       </header>
 
       <div className="card acct__panel">
-        <div className="tfa__head" style={{ width: '100%' }}>
+        <div className="tfa__head u-w100">
           <h2 className="h-card">Nadchádzajúce</h2>
           <Link href="/rezervacia" className="btn btn--sm">
             Nová rezervácia

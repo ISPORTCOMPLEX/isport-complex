@@ -22,12 +22,12 @@ export function ResetLinkForm({ userId }: { userId: string }) {
       </form>
       <FormAlert error={state.error} success={state.success} />
       {link ? (
-        <div className="devlink" style={{ marginTop: 10 }}>
-          <code style={{ wordBreak: 'break-all' }}>{link}</code>
+        <div className="devlink u-mt10">
+          <code className="u-break">{link}</code>
           <button
             type="button"
-            className="btn btn--sm btn--ghost"
-            style={{ alignSelf: 'flex-start' }}
+            className="btn btn--sm btn--ghost u-start"
+           
             onClick={() => {
               navigator.clipboard?.writeText(link).then(() => setCopied(true));
             }}

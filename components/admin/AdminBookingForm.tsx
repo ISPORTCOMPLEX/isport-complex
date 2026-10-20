@@ -62,7 +62,7 @@ export function AdminBookingForm({ iso, slots, showersEnabled, showerPrice }: { 
             );
           })}
         </div>
-        <div className="rez__count" style={{ maxWidth: 360 }}>
+        <div className="rez__count u-mw360">
           <span>Dĺžka</span>
           <div className="rez__stepper">
             <button type="button" aria-label="Kratšie" disabled={start === null || len <= 1} onClick={() => setHours(Math.max(1, len - 1))}>
@@ -118,8 +118,8 @@ export function AdminBookingForm({ iso, slots, showersEnabled, showerPrice }: { 
         <div className="adm-panel__head">
           <h2>4. Platba</h2>
         </div>
-        <div className="adm-inline-form" style={{ marginTop: 0 }}>
-          <label className="adm-label" style={{ flex: '0 1 240px' }}>
+        <div className="adm-inline-form u-mt0">
+          <label className="adm-label u-f240">
             Spôsob platby
             <select name="platba" defaultValue={v.platba ?? 'ONSITE'} className="adm-select">
               <option value="ONSITE">Na recepcii</option>

@@ -72,14 +72,14 @@ export function ReceptionScanner() {
             </button>
           </div>
         ) : supported ? (
-          <button type="button" className="btn btn--icon" onClick={() => setScanning(true)} style={{ alignSelf: 'flex-start' }}>
+          <button type="button" className="btn btn--icon u-start" onClick={() => setScanning(true)}>
             Skenovať QR kód kamerou
             <span className="btn__ic">⌁</span>
           </button>
         ) : (
           <p className="muted adm-note">Tento prehliadač nevie skenovať QR kód. Zadaj kód ručne alebo použi Chrome.</p>
         )}
-        <form ref={formRef} action={action} className="adm-search" style={{ maxWidth: '100%' }}>
+        <form ref={formRef} action={action} className="adm-search u-mw100">
           <input type="hidden" name="op" value="lookup" />
           <input ref={inputRef} name="q" placeholder="ISP-XXXXXX" autoComplete="off" autoCapitalize="characters" aria-label="Kód rezervácie" maxLength={200} />
           <button className="btn btn--sm">Nájsť</button>

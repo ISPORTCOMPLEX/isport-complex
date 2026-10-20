@@ -102,12 +102,12 @@ export default async function AdminBookingDetail({ params, searchParams }: Props
                   Dôvod
                   <input name="reason" className="adm-input" maxLength={300} placeholder="napr. na žiadosť zákazníka, porucha rolby" />
                 </label>
-                <label className="check" style={{ flex: '1 1 100%' }}>
+                <label className="check u-full">
                   <input type="checkbox" name="notify" defaultChecked />
                   <span>Poslať zákazníkovi e-mail o zrušení</span>
                 </label>
                 {pay && cardLeft > 0 ? (
-                  <label className="check" style={{ flex: '1 1 100%' }}>
+                  <label className="check u-full">
                     <input type="checkbox" name="refund" defaultChecked />
                     <span>Vrátiť {euros(cardLeft)} na kartu zákazníka</span>
                   </label>
@@ -176,7 +176,7 @@ export default async function AdminBookingDetail({ params, searchParams }: Props
               </div>
             ) : null}
             {b.note ? (
-              <div style={{ gridColumn: '1 / -1' }}>
+              <div className="u-span">
                 <dt>Poznámka zákazníka</dt>
                 <dd>{b.note}</dd>
               </div>
@@ -244,7 +244,7 @@ export default async function AdminBookingDetail({ params, searchParams }: Props
                     <td>
                       {p.refundedCents > 0 ? euros(p.refundedCents) : '—'}
                       {p.refunds.map((r) => (
-                        <small key={r.id} className="muted" style={{ display: 'block' }}>
+                        <small key={r.id} className="muted u-block">
                           {fmtDateTime(r.createdAt)} · {euros(r.amountCents)} · {r.status}
                           {r.reason ? ` · ${r.reason}` : ''}
                         </small>

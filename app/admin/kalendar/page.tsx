@@ -7,6 +7,7 @@ import { addDays, euros, fmtDayLong, hallParts, hallTime, isIsoDate, pad2, today
 import { AdmHead, Panel, Stat } from '@/components/admin/ui';
 import { FormAlert } from '@/components/forms/FormAlert';
 import { adminCreateBlock, adminDeleteBlock } from '@/lib/actions/adminBooking';
+import { Dyn } from '@/components/Dyn';
 
 export const metadata: Metadata = { title: 'Kalendár ľadu' };
 
@@ -65,7 +66,7 @@ export default async function KalendarPage({ searchParams }: Props) {
           <Link href="/admin/kalendar">Dnes</Link>
           <Link href={`/admin/kalendar?datum=${addDays(iso, 1)}`}>Ďalší →</Link>
         </nav>
-        <form action="/admin/kalendar" className="adm-inline-form" style={{ marginTop: 0 }}>
+        <form action="/admin/kalendar" className="adm-inline-form u-mt0">
           <input type="date" name="datum" defaultValue={iso} className="adm-input" aria-label="Dátum" />
           <button className="btn btn--sm btn--ghost">Zobraziť</button>
         </form>
@@ -82,24 +83,24 @@ export default async function KalendarPage({ searchParams }: Props) {
 
       <Panel>
         <div className="adm-table-wrap">
-          <div className="cal" style={{ gridTemplateRows: `44px repeat(${close - open}, 64px)` }}>
-            <div className="cal__head" style={{ gridColumn: '1', gridRow: '1' }} />
-            <div className="cal__head" style={{ gridColumn: '2', gridRow: '1' }}>
+          <Dyn className="cal" css={{ 'grid-template-rows': `44px repeat(${close - open}, 64px)` }}>
+            <div className="cal__head u-g11" />
+            <div className="cal__head u-g21">
               Ľadová plocha
             </div>
             {hours.map((h, i) => (
-              <div key={`t${h}`} className="cal__time" style={{ gridColumn: '1', gridRow: String(i + 2) }}>
+              <Dyn key={`t${h}`} className="cal__time" css={{ 'grid-column': '1', 'grid-row': String(i + 2) }}>
                 {pad2(h)}
-              </div>
+              </Dyn>
             ))}
             {hours.map((h, i) => (
-              <div key={`a${h}`} className="cal__cell" style={{ gridColumn: '2', gridRow: String(i + 2) }} />
+              <Dyn key={`a${h}`} className="cal__cell" css={{ 'grid-column': '2', 'grid-row': String(i + 2) }} />
             ))}
             {blocks.map((bl) => {
               const r = row(bl.startsAt, bl.endsAt);
               if (r.b <= open || r.a >= close) return null;
               return (
-                <div key={bl.id} className="cal__item cal__item--block" style={{ gridColumn: col(bl.area), gridRow: r.css }}>
+                <Dyn key={bl.id} className="cal__item cal__item--block" css={{ 'grid-column': col(bl.area), 'grid-row': r.css }}>
                   <strong>{bl.reason}</strong>
                   <small>
                     {pad2(r.a)} – {pad2(r.b)}
@@ -113,7 +114,7 @@ export default async function KalendarPage({ searchParams }: Props) {
                       </button>
                     </form>
                   ) : null}
-                </div>
+                </Dyn>
               );
             })}
             {bookings.map((b) => {
@@ -121,17 +122,17 @@ export default async function KalendarPage({ searchParams }: Props) {
               if (r.b <= open || r.a >= close) return null;
               const tone = b.status === 'NO_SHOW' ? 'noshow' : b.checkedInAt ? 'in' : b.paymentStatus === 'PAID' ? 'paid' : 'unpaid';
               return (
-                <Link key={b.id} href={`/admin/rezervacie/${b.id}`} className={`cal__item cal__item--${tone}`} style={{ gridColumn: col(b.area), gridRow: r.css }}>
+                <Dyn as="a" key={b.id} href={`/admin/rezervacie/${b.id}`} className={`cal__item cal__item--${tone}`} css={{ 'grid-column': col(b.area), 'grid-row': r.css }}>
                   <strong>{b.teamName || b.contactName}</strong>
                   <small>
                     {pad2(r.a)} – {pad2(r.b)} · {b.code}
                     {b.showers ? ' · sprchy' : ''}
                   </small>
                   <small>{b.status === 'NO_SHOW' ? 'Neprišiel' : b.checkedInAt ? 'Na ľade / prišiel' : b.paymentStatus === 'PAID' ? 'Zaplatená' : 'Nezaplatená'}</small>
-                </Link>
+                </Dyn>
               );
             })}
-          </div>
+          </Dyn>
         </div>
         <div className="cal__legend">
           <span>
@@ -155,9 +156,9 @@ export default async function KalendarPage({ searchParams }: Props) {
 
       {manage ? (
         <Panel title="Zablokovať čas">
-          <form action={adminCreateBlock} className="adm-inline-form" style={{ marginTop: 0 }}>
+          <form action={adminCreateBlock} className="adm-inline-form u-mt0">
             <input type="hidden" name="datum" value={iso} />
-            <label className="adm-label" style={{ flex: '0 1 120px' }}>
+            <label className="adm-label u-f120">
               Od
               <select name="od" className="adm-select" defaultValue={String(open)}>
                 {hours.map((h) => (
@@ -167,7 +168,7 @@ export default async function KalendarPage({ searchParams }: Props) {
                 ))}
               </select>
             </label>
-            <label className="adm-label" style={{ flex: '0 1 120px' }}>
+            <label className="adm-label u-f120">
               Do
               <select name="do" className="adm-select" defaultValue={String(open + 1)}>
                 {hours.map((h) => (

@@ -85,7 +85,7 @@ export default async function AdminHome() {
 
   return (
     <div className="adm__stack">
-      <AdmHead title="Prehľad" sub={<span style={{ textTransform: 'capitalize' }}>{today.format(new Date())}</span>}>
+      <AdmHead title="Prehľad" sub={<span className="u-cap">{today.format(new Date())}</span>}>
         {showBookings ? (
           <>
             <a href={ex} className="btn btn--sm btn--ghost">

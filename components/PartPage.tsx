@@ -56,7 +56,7 @@ export async function PartGallery({ slot, skip = 1 }: { slot: SlotKey; skip?: nu
 
 export function PartCta({ href, children }: { href: string; children: React.ReactNode }) {
   return (
-    <Link href={href} className="qb__cta" style={{ alignSelf: 'flex-start' }}>
+    <Link href={href} className="qb__cta u-start">
       {children}
       <span aria-hidden="true">
         <svg width="14" height="14" viewBox="0 0 14 14">

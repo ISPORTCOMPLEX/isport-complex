@@ -32,13 +32,13 @@ export default async function NovaRezervacia({ searchParams }: Props) {
       <AdmHead title="Nová rezervácia" sub="Pre zákazníka, ktorý volá alebo prišiel na recepciu. Môže mať účet alebo nie." />
 
       <Panel title="1. Deň">
-        <form action="/admin/rezervacie/nova" className="adm-inline-form" style={{ marginTop: 0 }}>
-          <label className="adm-label" style={{ flex: '0 1 200px' }}>
+        <form action="/admin/rezervacie/nova" className="adm-inline-form u-mt0">
+          <label className="adm-label u-f200">
             Dátum
             <input type="date" name="datum" defaultValue={iso} className="adm-input" />
           </label>
           <button className="btn btn--sm btn--ghost">Zobraziť voľné hodiny</button>
-          <span className="muted adm-note" style={{ alignSelf: 'center' }}>
+          <span className="muted adm-note u-center">
             {fmtDayLong(hallTime(iso, 12))} ·{' '}
             <Link href={`/admin/rezervacie/nova?datum=${addDays(iso, 1)}`} className="link-red">
               ďalší deň →

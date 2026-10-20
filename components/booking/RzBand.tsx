@@ -8,7 +8,7 @@ export function RzBand({ crumbs, title, lead, step }: { crumbs: { href?: string;
         <div className="rz-band__top">
           <nav aria-label="Omrvinky" className="crumbs">
             {crumbs.map((c, i) => (
-              <span key={c.label} style={{ display: 'contents' }}>
+              <span className="u-contents" key={c.label}>
                 {i > 0 ? <span aria-hidden="true">/</span> : null}
                 {c.href ? <Link href={c.href}>{c.label}</Link> : <span aria-current={i === crumbs.length - 1 ? 'page' : undefined}>{c.label}</span>}
               </span>

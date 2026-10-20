@@ -1928,3 +1928,44 @@ html { scroll-padding-top: 96px; }
 .pay__opt input:not(:checked) { border-color: #64686e; }
 .ice .pay__opt input:not(:checked) { border-color: #7f8b97; }
 .rz-switch:not(:checked):not(.rz-switch--dark) { background: #7f8b97; }
+
+/* ───────────── Pomocné triedy namiesto style="…" (CSP bez 'unsafe-inline', v9d) ───────────── */
+.u-start { align-self: flex-start; }
+.u-center { align-self: center; }
+.u-row10 { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.u-pre { margin: 0; white-space: pre-wrap; line-height: 1.6; }
+.u-mt0 { margin-top: 0; }
+.u-mt10 { margin-top: 10px; }
+.u-mt8-15 { margin-top: 8px; font-size: 15px; }
+.u-f120 { flex: 0 1 120px; }
+.u-f200 { flex: 0 1 200px; }
+.u-f240 { flex: 0 1 240px; }
+.u-full { flex: 1 1 100%; }
+.u-ta-sm { min-height: 80px; font-size: 15px; }
+.u-cap { text-transform: capitalize; }
+.u-span { grid-column: 1 / -1; }
+.u-block { display: block; }
+.u-contents { display: contents; }
+.u-btnreset { border: none; cursor: pointer; font: inherit; font-weight: 700; }
+.u-col40 { display: flex; flex-direction: column; gap: 40px; }
+.u-fs14 { font-size: 14px; }
+.u-w100 { width: 100%; }
+.u-mw100 { max-width: 100%; }
+.u-mw360 { max-width: 360px; }
+.u-break { word-break: break-all; }
+.u-wauto { width: 100%; height: auto; }
+.u-rel { position: relative; }
+.u-m0-13 { margin: 0; font-size: 13px; }
+.u-g11 { grid-column: 1; grid-row: 1; }
+.u-g21 { grid-column: 2; grid-row: 1; }
+/* popisky v ilustrácii komplexu (pozície z PARTS v ComplexSection.tsx) */
+.cx__label--p0 { left: 13.6%; top: 9.3%; }
+.cx__label--p1 { left: 63%; top: 37.5%; }
+.cx__label--p2 { left: 58.7%; top: 88.2%; }
+.cx__label--p3 { left: 77%; top: 34.3%; }
+.cx__label--p4 { left: 77%; top: 88.9%; }
+.cx__label--p5 { left: 82.4%; top: 62.9%; }
+/* kým sa po načítaní nastaví vypočítaná šírka (Dyn), pruhy začínajú prázdne */
+.mt__bar, .fn__track i, .md-progress__bar i { width: 0; }
+/* čísla hodín pod časovou osou sa ukážu až s vypočítanou pozíciou (inak by sa na okamih zliali vľavo) */
+.qb__ticks span { visibility: hidden; }

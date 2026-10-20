@@ -55,6 +55,11 @@ for (const f of code.filter((f) => /^app\/admin\/.*page\.tsx$/.test(rel(f)))) {
   if (!/requireStaff\('/.test(read(f))) add('KRITICKÉ', rel(f), 'stránka administrácie bez requireStaff');
 }
 
+// 3b) Žiadne inline štýly – CSP ich blokuje (style-src-attr 'none'); výnimka je komponent Dyn
+for (const f of code.filter((f) => /^(app|components)\/.*\.tsx$/.test(rel(f)) && rel(f) !== 'components/Dyn.tsx')) {
+  if (/\sstyle=\{/.test(read(f))) add('STREDNÉ', rel(f), 'inline style={…} – CSP ho zablokuje, použi triedu alebo <Dyn css={…}>');
+}
+
 // 4) API: overenie alebo výslovne verejný endpoint
 const PUBLIC_API = new Set(['app/api/a/route.ts', 'app/api/security-txt/route.ts']);
 for (const f of code.filter((f) => /^app\/api\/.*route\.ts$/.test(rel(f)))) {

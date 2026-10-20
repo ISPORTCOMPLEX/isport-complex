@@ -22,11 +22,12 @@ export function buildCsp(nonce: string, isDev: boolean): string {
   const directives = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
-    // Štýlové bloky a súbory: len z vlastnej domény alebo s nonce. Atribúty style="…" (React ich používa na pozície
-    // a šírky grafov) sú povolené len ako atribúty – nedokážu spustiť kód ani načítať nič zvonka.
+    // Štýly len zo súborov webu alebo s nonce. Atribúty style="…" sú zakázané úplne – vypočítané rozmery
+    // (grafy, kalendár) nastavuje komponent Dyn cez element.style po načítaní, čo CSP nebráni.
+    // Nový kód: žiadne style={{…}} – použi triedu v globals.css alebo <Dyn css={{…}}>.
     "style-src 'self'",
     `style-src-elem 'self' 'nonce-${nonce}'`,
-    "style-src-attr 'unsafe-inline'",
+    "style-src-attr 'none'",
     "img-src 'self' data: blob: https://res.cloudinary.com",
     "font-src 'self'",
     `connect-src 'self' https://api.cloudinary.com${isDev ? ' ws: wss:' : ''}`,

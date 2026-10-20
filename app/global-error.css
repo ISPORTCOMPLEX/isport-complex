@@ -1,0 +1,7 @@
+/* Posledná záchrana – vlastné štýly, lebo pri tejto chybe sa nenačíta hlavné rozloženie. */
+.ge { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #070708; color: #f4f6f7; font-family: system-ui, sans-serif; }
+.ge__box { max-width: 520px; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+.ge__box h1, .ge__box p { margin: 0; }
+.ge__lead { color: #c8cdd2; }
+.ge__code { color: #9aa1a8; }
+.ge__link { color: #ff3d45; }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Dyn } from '@/components/Dyn';
 
 // Jednoduché grafy administrácie (HTML/CSS, bez knižníc): jeden odtieň, tenké značky, popis pri prejdení myšou
 // a vždy aj tabuľkový pohľad pre presné čísla.
@@ -39,12 +40,12 @@ export function BarChart({
   const fmt = (v: number, u: string) => `${fmtNum(v)}${u ? ` ${u}` : ''}`;
   return (
     <div className="ch">
-      <div className="ch__plot" style={{ height }} onMouseLeave={() => setHover(null)}>
+      <Dyn className="ch__plot" css={{ height: typeof height === 'number' ? `${height}px` : height }} onMouseLeave={() => setHover(null)}>
         <div className="ch__grid" aria-hidden="true">
           {[1, 0.5, 0].map((f) => (
-            <span key={f} style={{ bottom: `${f * 100}%` }}>
+            <Dyn as="span" key={f} css={{ bottom: `${f * 100}%` }}>
               <em>{fmtNum(max * f)}</em>
-            </span>
+            </Dyn>
           ))}
         </div>
         <div className="ch__bars" role="img" aria-label={`${valueLabel} po dňoch`}>
@@ -58,12 +59,12 @@ export function BarChart({
               onBlur={() => setHover(null)}
               aria-label={`${p.label}: ${fmt(p.value, unit)}`}
             >
-              <i style={{ height: `${(p.value / max) * 100}%` }} />
+              <Dyn as="i" css={{ height: `${(p.value / max) * 100}%` }} />
             </button>
           ))}
         </div>
         {h ? (
-          <div className="ch__tip" style={{ left: `calc(44px + (100% - 44px) * ${(hover! + 0.5) / points.length})` }}>
+          <Dyn className="ch__tip" css={{ left: `calc(44px + (100% - 44px) * ${(hover! + 0.5) / points.length})` }}>
             <strong>{h.label}</strong>
             <span>
               {valueLabel}: <b>{fmt(h.value, unit)}</b>
@@ -73,9 +74,9 @@ export function BarChart({
                 {extraLabel}: <b>{fmt(h.extra, extraUnit)}</b>
               </span>
             ) : null}
-          </div>
+          </Dyn>
         ) : null}
-      </div>
+      </Dyn>
       <div className="ch__x" aria-hidden="true">
         {points.map((p, i) => (
           <span key={p.key}>{i % every === 0 ? p.label : ''}</span>
@@ -117,7 +118,7 @@ export function Heatmap({ grid, fromHour = 0, toHour = 24, percent = false, unit
   const cur = hover ? grid[hover.d][hover.h] : null;
   return (
     <div className="hm">
-      <div className="hm__grid" style={{ gridTemplateColumns: `28px repeat(${hours.length}, minmax(0, 1fr))` }} onMouseLeave={() => setHover(null)}>
+      <Dyn className="hm__grid" css={{ 'grid-template-columns': `28px repeat(${hours.length}, minmax(0, 1fr))` }} onMouseLeave={() => setHover(null)}>
         <span />
         {hours.map((h) => (
           <span key={h} className="hm__h">
@@ -125,17 +126,18 @@ export function Heatmap({ grid, fromHour = 0, toHour = 24, percent = false, unit
           </span>
         ))}
         {DAYS.map((d, di) => (
-          <div key={d} style={{ display: 'contents' }}>
+          <div className="u-contents" key={d}>
             <span className="hm__d">{d}</span>
             {hours.map((h) => {
               const v = grid[di][h];
               const a = v < 0 ? 0 : Math.min(1, v / max);
               return (
-                <button
+                <Dyn
+                  as="button"
                   type="button"
                   key={h}
                   className={`hm__c${v < 0 ? ' hm__c--off' : ''}${hover?.d === di && hover.h === h ? ' is-hover' : ''}`}
-                  style={v < 0 ? undefined : { background: `color-mix(in oklab, #2350C8 ${Math.round(8 + a * 92)}%, #FFFFFF)` }}
+                  css={{ background: v < 0 ? undefined : `color-mix(in oklab, #2350C8 ${Math.round(8 + a * 92)}%, #FFFFFF)` }}
                   onMouseEnter={() => setHover({ d: di, h })}
                   onFocus={() => setHover({ d: di, h })}
                   aria-label={`${d} ${h}:00 – ${show(v)}`}
@@ -144,7 +146,7 @@ export function Heatmap({ grid, fromHour = 0, toHour = 24, percent = false, unit
             })}
           </div>
         ))}
-      </div>
+      </Dyn>
       <div className="hm__foot">
         <span className="hm__readout" aria-live="polite">
           {hover && cur !== null ? (

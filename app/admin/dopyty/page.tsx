@@ -26,7 +26,7 @@ export default async function DopytyPage({ searchParams }: Props) {
   return (
     <div className="adm__stack">
       <AdmHead title="Dopyty" sub="Správy z kontaktného formulára a dopyty klubov na sezónny prenájom." />
-      <nav className="adm-filters" aria-label="Filter" style={{ alignSelf: 'flex-start' }}>
+      <nav className="adm-filters u-start" aria-label="Filter">
         {FILTERS.map((x) => (
           <Link key={x.key} href={`/admin/dopyty?f=${x.key}`} aria-current={f.key === x.key ? 'true' : undefined}>
             {x.label}

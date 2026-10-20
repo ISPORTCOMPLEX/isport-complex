@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Dyn } from '@/components/Dyn';
 
 // Drobné stavebné prvky administrácie (serverové komponenty).
 
@@ -189,7 +190,7 @@ export function Meters({ rows, total, unit = '', empty = 'Zatiaľ bez údajov.' 
               {sum ? <small> · {Math.round((r.value / sum) * 100)} %</small> : null}
             </span>
           </div>
-          <i className="mt__bar" style={{ width: `${Math.max(1.5, (r.value / max) * 100)}%` }} />
+          <Dyn as="i" className="mt__bar" css={{ width: `${Math.max(1.5, (r.value / max) * 100)}%` }} />
           {r.note ? <small className="mt__note">{r.note}</small> : null}
         </li>
       ))}
