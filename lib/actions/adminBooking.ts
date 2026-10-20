@@ -87,11 +87,12 @@ export async function adminCancelBooking(form: FormData): Promise<void> {
   if (!ok) back(b.id, 'nie-aktivna');
   await audit(actor.id, 'booking.cancel', b.id, { code: b.code, reason });
   if (checked(form, 'notify')) {
-    const user = await prisma.user.findUnique({ where: { id: b.userId } });
-    if (user && !user.deletedAt) {
+    const user = b.userId ? await prisma.user.findUnique({ where: { id: b.userId } }) : null;
+    const to = user && !user.deletedAt ? user.email : b.guestEmail;
+    if (to) {
       const base = await getBaseUrl();
       try {
-        await sendBookingCancelledEmail(user.email, user.firstName, `${base}/rezervacia`, bookingRows(b), true);
+        await sendBookingCancelledEmail(to, user?.firstName ?? b.contactName.split(' ')[0], `${base}/rezervacia`, bookingRows(b), true);
       } catch (err) {
         console.error('[email:admin-cancel]', err);
       }
