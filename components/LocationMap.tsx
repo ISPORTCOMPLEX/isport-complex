@@ -20,12 +20,16 @@ export function LocationMap({
   className?: string;
 }) {
   const [on, setOn] = useState(false);
+  // Waze len na telefóne (na počítači nenaviguje), Apple Mapy len na zariadeniach Apple.
+  const [dev, setDev] = useState({ mobile: false, apple: false });
   useEffect(() => {
     try {
       if (window.localStorage.getItem(KEY) === '1') setOn(true);
     } catch {
       /* súkromné okno – nevadí */
     }
+    const ua = navigator.userAgent;
+    setDev({ mobile: window.matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad/i.test(ua), apple: /iPhone|iPad|Macintosh/i.test(ua) });
   }, []);
   const show = () => {
     setOn(true);
@@ -55,7 +59,7 @@ export function LocationMap({
             </div>
             <div className="lm__gate">
               <strong className="lm__addr">{address}</strong>
-              <button type="button" className="lm__btn" onClick={show}>
+              <button type="button" className="lm__btn" onClick={show} autoFocus={false}>
                 <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
                   <circle cx="12" cy="10" r="2.6" fill="currentColor" />
@@ -71,12 +75,16 @@ export function LocationMap({
         <a href={links.google} target="_blank" rel="noopener noreferrer" className="lm__go lm__go--main">
           Navigovať<span className="lm__long"> v Google Mapách</span>{nw}
         </a>
-        <a href={links.waze} target="_blank" rel="noopener noreferrer" className="lm__go">
-          Waze{nw}
-        </a>
-        <a href={links.apple} target="_blank" rel="noopener noreferrer" className="lm__go">
-          Apple Mapy{nw}
-        </a>
+        {dev.mobile ? (
+          <a href={links.waze} target="_blank" rel="noopener noreferrer" className="lm__go">
+            Waze{nw}
+          </a>
+        ) : null}
+        {dev.apple ? (
+          <a href={links.apple} target="_blank" rel="noopener noreferrer" className="lm__go">
+            Apple Mapy{nw}
+          </a>
+        ) : null}
       </nav>
     </div>
   );

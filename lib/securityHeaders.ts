@@ -39,7 +39,8 @@ export function buildCsp(nonce: string, isDev: boolean, uploads = false): string
     "form-action 'self' https://checkout.stripe.com",
     "frame-ancestors 'none'",
     // jediné vložené okno: mapa Google, a to až po kliknutí návštevníka (components/LocationMap.tsx)
-    "frame-src https://www.google.com",
+    // Google pre EÚ najprv presmeruje na consent.google.com – bez neho by mapa ostala prázdna
+    "frame-src https://maps.google.com https://www.google.com https://consent.google.com",
     "worker-src 'self' blob:",
     "manifest-src 'self'",
     "media-src 'self' blob:",
