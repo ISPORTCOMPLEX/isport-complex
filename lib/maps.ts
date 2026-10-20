@@ -13,7 +13,8 @@ export function mapLinks(hall: Hall) {
     address,
     exact: Boolean(coords),
     embed: `https://maps.google.com/maps?q=${q}&t=m&z=17&hl=sk&output=embed`,
-    google: hall.mapUrl || `https://www.google.com/maps/dir/?api=1&destination=${q}`,
+    directions: `https://www.google.com/maps/dir/?api=1&destination=${q}`,
+    google: hall.mapUrl || `https://www.google.com/maps/search/?api=1&query=${q}`,
     waze: coords ? `https://waze.com/ul?ll=${encodeURIComponent(coords)}&navigate=yes` : `https://waze.com/ul?q=${q}&navigate=yes`,
     apple: coords ? `https://maps.apple.com/?daddr=${q}&dirflg=d` : `https://maps.apple.com/?daddr=${q}&dirflg=d`,
   };

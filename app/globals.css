@@ -2155,37 +2155,59 @@ html:has(.mnav[open]) { overflow: hidden; }
   .pt__row > span { padding: 14px 10px; }
 }
 
-/* ───────────── Presná mapa (v13) ───────────── */
-.lm { display: flex; flex-direction: column; gap: 12px; }
-.lm__frame { position: relative; min-height: 440px; border-radius: 22px; overflow: hidden; background: #d7e1e8; border: 1px solid var(--ice-edge); }
-.lm__iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
-.lm__preview { position: absolute; inset: 0; filter: saturate(0.9); }
-.lm__preview svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.lm__gate { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); width: min(420px, calc(100% - 32px)); box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px; border-radius: 18px; background: rgba(255, 255, 255, 0.94); box-shadow: 0 20px 50px rgba(11, 15, 20, 0.18); text-align: center; }
-.lm__addr { font-size: 17px; color: var(--ice-ink); }
-.lm__btn { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--ice-ink); color: #fff; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; }
-.lm__btn:hover { background: #1b222b; }
-.lm__btn:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
-.lm__note { font-size: 12px; line-height: 1.4; color: #5f6a74; }
-.lm__nav { display: flex; flex-wrap: wrap; gap: 8px; }
-.lm__go { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid #7f8b97; background: #fff; color: var(--ice-ink); font-weight: 700; font-size: 14px; text-decoration: none; }
-.lm__go:hover { border-color: var(--ice-ink); color: var(--ice-ink); }
-.lm__go--main { background: var(--red); border-color: var(--red); color: #fff; }
-.lm__go--main:hover { background: var(--red-hover); border-color: var(--red-hover); color: #fff; }
-/* na úvode vypĺňa pravú polovicu sekcie „Príď na Juh“ */
-.vx__map { background: transparent; }
-.lm--fill { position: absolute; inset: 0; gap: 0; }
-.lm--fill .lm__frame { flex: 1; min-height: 0; border-radius: 0; border: 0; }
-.lm--fill .lm__nav { position: absolute; left: 20px; top: 20px; right: 20px; z-index: 2; }
-.kmap { padding: 0 0 90px; }
-.kmap__t { margin: 0 0 22px; font-size: clamp(34px, 4vw, 52px); line-height: 0.95; text-transform: uppercase; }
-@media (max-width: 700px) {
-  .lm__frame { min-height: 360px; border-radius: 16px; }
-  .lm__gate { bottom: 14px; padding: 16px; }
-  .lm--fill .lm__nav { left: 12px; top: 12px; right: 12px; }
-  .lm__go { min-height: 40px; padding: 0 14px; font-size: 13px; }
-  .vx__map { min-height: 420px !important; }
-  .kmap { padding-bottom: 56px; }
+/* ───────────── Kde nás nájdete – karta + mapa (v14) ───────────── */
+.loc { background: var(--ice); color: var(--ice-ink); padding: 96px 0; }
+.loc__wrap { max-width: 1280px; margin: 0 auto; padding: 0 var(--gutter); }
+.loc__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 28px; }
+.loc__kick { margin: 0 0 10px; font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #c40f17; }
+.loc__title { margin: 0; font-size: clamp(42px, 5vw, 64px); line-height: 0.9; text-transform: uppercase; }
+.loc__lead { margin: 0; max-width: 420px; color: #4a5560; font-size: 17px; line-height: 1.5; }
+.loc__grid { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 20px; align-items: stretch; }
+.loc__card { display: flex; flex-direction: column; gap: 22px; padding: 28px; border-radius: 24px; background: #fff; border: 1px solid #dde3e8; box-shadow: 0 1px 2px rgba(11, 15, 20, 0.04), 0 18px 40px rgba(11, 15, 20, 0.06); }
+.loc__lbl { margin: 0 0 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #5f6a74; }
+.loc__addr { margin: 0; font-size: 26px; font-weight: 800; line-height: 1.2; }
+.loc__city { margin: 4px 0 0; color: #4a5560; }
+.loc__rows { margin: 0; border-top: 1px solid #e6ebef; }
+.loc__rows > div { display: flex; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid #e6ebef; font-size: 15px; }
+.loc__rows dt { color: #5f6a74; }
+.loc__rows dd { margin: 0; font-weight: 700; text-align: right; }
+.loc__rows a { color: var(--ice-ink); }
+.loc__btns { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
+.loc__primary { display: flex; align-items: center; justify-content: center; gap: 10px; height: 54px; border-radius: 14px; background: var(--red); color: #fff; font-weight: 800; font-size: 16px; text-decoration: none; transition: background 0.15s; }
+.loc__primary:hover { background: var(--red-hover); color: #fff; }
+.loc__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.loc__secondary { display: flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 10px; border-radius: 14px; border: 1px solid #c9d2d9; background: #fff; color: var(--ice-ink); font: inherit; font-weight: 700; font-size: 14px; text-decoration: none; cursor: pointer; white-space: nowrap; transition: border-color 0.15s; }
+.loc__secondary:hover { border-color: var(--ice-ink); color: var(--ice-ink); }
+.loc__primary:focus-visible, .loc__secondary:focus-visible, .loc__load:focus-visible { outline: 3px solid var(--ice-ink); outline-offset: 3px; }
+.loc__mapcol { display: flex; flex-direction: column; min-width: 0; }
+.loc__map { position: relative; flex: 1; min-height: 560px; border-radius: 24px; overflow: hidden; border: 1px solid #dde3e8; background: #eef1f3; box-shadow: 0 18px 40px rgba(11, 15, 20, 0.06); }
+.loc__iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+.loc__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; }
+.loc__pin { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.loc__chip { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--ice-ink); color: #fff; font-weight: 700; font-size: 13px; white-space: nowrap; box-shadow: 0 8px 20px rgba(11, 15, 20, 0.25); }
+.loc__chip img { width: 26px; height: 26px; border-radius: 7px; display: block; }
+.loc__tip { width: 12px; height: 12px; margin-top: -7px; background: var(--ice-ink); transform: rotate(45deg); }
+.loc__dot { width: 16px; height: 16px; margin-top: 6px; border-radius: 50%; background: var(--red); border: 3px solid #fff; box-shadow: 0 0 0 6px rgba(227, 18, 27, 0.18); }
+.loc__veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(238, 243, 246, 0) 30%, rgba(238, 243, 246, 0.85) 100%); pointer-events: none; }
+.loc__gate { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 10px 10px 10px 18px; border-radius: 999px; background: #fff; border: 1px solid #e1e6ea; box-shadow: 0 12px 30px rgba(11, 15, 20, 0.16); white-space: nowrap; }
+.loc__gate small { font-size: 13px; color: #5f6a74; }
+.loc__load { display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--ice-ink); color: #fff; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
+.loc__load:hover { background: #1b222b; }
+.loc__note { margin: 12px 4px 0; font-size: 12px; color: #5f6a74; }
+@media (max-width: 960px) {
+  .loc__grid { grid-template-columns: 1fr; }
+  .loc__map { min-height: 420px; }
 }
-.vx__map .lm__btn svg { position: static; inset: auto; width: 18px; height: 18px; }
-@media (max-width: 700px) { .lm--fill .lm__long { display: none; } }
+@media (max-width: 700px) {
+  .loc { padding: 48px 0; }
+  .loc__head { display: block; }
+  .loc__lead { margin-top: 10px; }
+  .loc__card { padding: 22px; border-radius: 20px; }
+  .loc__addr { font-size: 22px; }
+  .loc__map { min-height: 340px; border-radius: 20px; }
+  .loc__gate { left: 12px; right: 12px; transform: none; bottom: 12px; justify-content: space-between; white-space: normal; }
+  .loc__gate small { font-size: 12px; }
+}
+.loc__load, .loc__secondary { white-space: nowrap; flex-shrink: 0; }
+.loc__secondary svg, .loc__primary svg, .loc__load svg { flex-shrink: 0; }
+@media (max-width: 420px) { .loc__secondary { font-size: 13px; gap: 6px; padding: 0 8px; } .loc__load { padding: 0 14px; } }

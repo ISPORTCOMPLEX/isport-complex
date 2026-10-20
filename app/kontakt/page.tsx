@@ -4,16 +4,13 @@ import { getSite } from '@/lib/siteSettings';
 import { InquiryForm } from '@/components/InquiryForm';
 import { createFormStamp } from '@/lib/formGuard';
 import { RzBand } from '@/components/booking/RzBand';
-import { LocationMap } from '@/components/LocationMap';
-import { MapIllustration } from '@/components/MapIllustration';
-import { mapLinks } from '@/lib/maps';
+import { LocationSection } from '@/components/location/LocationSection';
 
 export const metadata: Metadata = { title: 'Kontakt', description: 'Kontakt, adresa a otváracie hodiny I-SPORT COMPLEX, Jarmočná 2627/10, Košice – Juh.' };
 
 export default async function KontaktPage() {
   const site = await getSite();
   const c = site.company;
-  const map = mapLinks(site.hall);
   return (
     <>
       <RzBand
@@ -88,12 +85,7 @@ export default async function KontaktPage() {
           </div>
         </div>
       </section>
-      <section id="mapa" className="ice kmap" aria-labelledby="kmap-t">
-        <div className="wrap">
-          <h2 id="kmap-t" className="cond kmap__t">Ako sa k nám dostanete</h2>
-          <LocationMap embed={map.embed} address={map.address} links={map} preview={<MapIllustration />} />
-        </div>
-      </section>
+      <LocationSection site={site} title="Ako sa k nám dostanete" lead="" />
     </>
   );
 }

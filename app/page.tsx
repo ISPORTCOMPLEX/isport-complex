@@ -8,9 +8,7 @@ import { getBookingSettings } from '@/lib/booking/settings';
 import { dayAvailability } from '@/lib/booking/availability';
 import { slotPhotos, type SlotKey } from '@/lib/media';
 import { CloudImage } from '@/components/CloudImage';
-import { LocationMap } from '@/components/LocationMap';
-import { MapIllustration } from '@/components/MapIllustration';
-import { mapLinks } from '@/lib/maps';
+import { LocationSection } from '@/components/location/LocationSection';
 
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
 
@@ -24,7 +22,6 @@ const PARTS = [
 
 export default async function HomePage() {
   const [site, settings] = await Promise.all([getSite(), getBookingSettings()]);
-  const map = mapLinks(site.hall);
   const days = nextDays(5);
   const avail = await Promise.all(days.map((d) => dayAvailability(settings, d.iso)));
   const qbDays = days.map((d, i) => ({ ...d, slots: avail[i].map((s) => ({ hour: s.hour, ok: s.free && s.bookable, price: s.price })) }));
@@ -174,44 +171,7 @@ export default async function HomePage() {
       </section>
 
       {/* NÁVŠTEVA */}
-      <section className="ice vx">
-        <div className="vx__in">
-          <div className="vx__copy">
-            <h2 className="cond vx__title">
-              Príď
-              <br />
-              na Juh
-            </h2>
-            <div className="vx__item">
-              <span>Adresa</span>
-              <strong>
-                {orTbd(site.hall.street)}, {site.hall.city}
-              </strong>
-            </div>
-            <div className="vx__two">
-              <div className="vx__item">
-                <span>Recepcia</span>
-                {site.phone ? <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a> : <strong className="tbd">Doplníme</strong>}
-              </div>
-              <div className="vx__item">
-                <span>E-mail</span>
-                {site.email ? <a href={`mailto:${site.email}`}>{site.email}</a> : <strong className="tbd">Doplníme</strong>}
-              </div>
-            </div>
-            <dl className="vx__hours">
-              {site.hours.map((h) => (
-                <div key={h.days}>
-                  <dt>{h.days}</dt>
-                  <dd>{orTbd(h.time)}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-          <div className="vx__map">
-            <LocationMap embed={map.embed} address={map.address} links={map} preview={<MapIllustration />} className="lm--fill" />
-          </div>
-        </div>
-      </section>
+      <LocationSection site={site} />
     </>
   );
 }
