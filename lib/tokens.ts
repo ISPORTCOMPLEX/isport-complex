@@ -9,6 +9,7 @@ import { randomToken, sha256 } from './crypto';
 export const TOKEN_TTL: Record<TokenType, number> = {
   VERIFY_EMAIL: 24 * 60 * 60 * 1000,
   RESET_PASSWORD: 60 * 60 * 1000,
+  LOGIN_LINK: 15 * 60 * 1000, // rezervované pre prihlásenie odkazom z e-mailu (zatiaľ nepoužité)
 };
 
 export async function createAuthToken(userId: string, type: TokenType): Promise<string> {
