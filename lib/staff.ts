@@ -45,7 +45,9 @@ export function can(role: string, perm: Permission): boolean {
 
 export async function requireStaff(perm: Permission, next = '/admin'): Promise<SessionUser> {
   const user = await getSessionUser();
-  if (!user) redirect(`/prihlasenie?next=${encodeURIComponent(next)}`);
+  // Neprihlásený návštevník dostane 404 – nevidí ani to, že administrácia existuje (personál vstupuje cez Môj účet).
+  void next;
+  if (!user) notFound();
   if (!isStaff(user.role)) notFound();
   if (!user.twoFactorEnabledAt) redirect('/ucet/zabezpecenie?stav=admin-2fa');
   if (!can(user.role, perm)) notFound();

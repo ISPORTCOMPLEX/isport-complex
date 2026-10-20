@@ -21,6 +21,8 @@ try {
   const csp = h('content-security-policy');
   check('CSP: nonce + strict-dynamic', /script-src[^;]*'nonce-[^']+'[^;]*'strict-dynamic'/.test(csp), csp.slice(0, 120));
   check('CSP: bez unsafe-eval', !csp.includes('unsafe-eval'));
+  const styleSrc = csp.split(';').map((d) => d.trim()).find((d) => d.startsWith('style-src ')) ?? '';
+  check('CSP: style-src bez unsafe-inline', styleSrc !== '' && !styleSrc.includes('unsafe-inline'), styleSrc);
   check("CSP: frame-ancestors 'none'", csp.includes("frame-ancestors 'none'"));
   check("CSP: object-src 'none'", csp.includes("object-src 'none'"));
   check('HSTS aspoň 1 rok', /max-age=(\d+)/.test(h('strict-transport-security')) && Number(h('strict-transport-security').match(/max-age=(\d+)/)[1]) >= 31536000, h('strict-transport-security'));
@@ -34,7 +36,9 @@ try {
 
   // 3) Administrácia a API bez prihlásenia
   const admin = await get('/admin');
-  check('/admin bez prihlásenia → presmerovanie na prihlásenie', [302, 303, 307, 308].includes(admin.status) && (admin.headers.get('location') ?? '').includes('/prihlasenie'), `${admin.status} ${admin.headers.get('location') ?? ''}`);
+  check('/admin bez prihlásenia → 404 (administrácia je skrytá)', admin.status === 404, String(admin.status));
+  const adminSub = await get('/admin/rezervacie');
+  check('/admin/rezervacie bez prihlásenia → 404', adminSub.status === 404, String(adminSub.status));
   const adminEx = await get('/api/admin/export');
   check('/api/admin/export bez prihlásenia → 404', adminEx.status === 404, String(adminEx.status));
   const cross = await get('/api/admin/export', { headers: { 'sec-fetch-site': 'cross-site' } });
@@ -64,7 +68,7 @@ try {
   const st = await get('/.well-known/security.txt');
   check('/.well-known/security.txt existuje', st.status === 200, String(st.status));
   const robots = await (await get('/robots.txt')).text();
-  check('robots.txt nepozýva do /admin', /Disallow:\s*\/admin/i.test(robots) || !/admin/i.test(robots));
+  check('robots.txt neprezrádza neverejné cesty', !/admin|ucet|api|prihlasenie/i.test(robots), robots.slice(0, 120));
 
   // 7) Zdrojové mapy nie sú verejné
   const html = await (await get('/')).text();

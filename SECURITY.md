@@ -62,3 +62,14 @@ $b = New-Object byte[] 48; [Security.Cryptography.RandomNumberGenerator]::Create
 - `.env` nikdy do gitu ani do chatu. Repozitár na GitHube musí byť **súkromný**.
 - 2FA zapnuté na GitHube, Verceli, Neone, Gmaile a pre všetok personál webu (web ho vyžaduje).
 - Vývoj používa **vlastnú vetvu databázy**, nie produkčnú.
+
+## v9c – nálezy externého skenera (20. 10. 2026)
+
+| Nález | Riešenie |
+|---|---|
+| CSP s `unsafe-inline` | `style-src 'self'`, `style-src-elem 'self' 'nonce-…'`. Povolené ostávajú len atribúty `style="…"` (`style-src-attr`), ktoré nedokážu spustiť kód. Skripty: nonce + `strict-dynamic` bez `unsafe-inline` a `unsafe-eval`. |
+| Citlivé cesty v robots.txt | robots.txt už nevypisuje neverejné cesty. Ochranu zabezpečuje `X-Robots-Tag: noindex` (next.config.ts) a prihlásenie. |
+| Verejná administrácia | `/admin*` bez prihlásenia vráti 404 (proxy.ts aj requireStaff). Personál vstupuje cez Môj účet. |
+| Chýba security.txt | `/.well-known/security.txt` sa zobrazí vždy. Bez e-mailu v nastaveniach odkazuje na /kontakt. |
+| HSTS preload, MTA-STS, DNSSEC | Dajú sa nastaviť až na vlastnej doméne, na vercel.app nie. |
+| Odhalené technológie | `X-Powered-By` je vypnutá. Hlavičky `server: Vercel` a `x-vercel-*` pridáva hosting a nedajú sa odstrániť. |

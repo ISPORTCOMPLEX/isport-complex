@@ -140,3 +140,13 @@ test('CSP povoľuje len Cloudinary navyše', () => {
   assert.ok(csp.includes("img-src 'self' data: blob: https://res.cloudinary.com"));
   assert.ok(csp.includes("connect-src 'self' https://api.cloudinary.com"));
 });
+
+test('CSP: skripty ani štýlové bloky bez unsafe-inline / unsafe-eval', () => {
+  const csp = buildCsp('abc', false);
+  const dir = (name: string) => csp.split('; ').find((d) => d.startsWith(`${name} `)) ?? '';
+  for (const d of ['script-src', 'style-src', 'style-src-elem']) {
+    assert.ok(dir(d), `chýba ${d}`);
+    assert.ok(!dir(d).includes('unsafe-inline') && !dir(d).includes('unsafe-eval'), d);
+  }
+  assert.ok(dir('style-src-elem').includes("'nonce-abc'"));
+});
