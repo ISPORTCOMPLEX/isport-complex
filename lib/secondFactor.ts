@@ -1,6 +1,6 @@
 import 'server-only';
 import { prisma } from './prisma';
-import { decrypt, sha256 } from './crypto';
+import { decrypt, keyedHash, sha256 } from './crypto';
 import { normalizeBackupCode, verifyTotp } from './totp';
 
 type TwoFactorUser = { id: string; twoFactorSecretEnc: string | null; twoFactorLastStep: number | null; twoFactorBackupHashes: string[] };
@@ -25,8 +25,11 @@ export async function checkSecondFactor(user: TwoFactorUser, input: string): Pro
     });
     return r.count === 1;
   }
-  const hash = sha256(normalizeBackupCode(input));
-  if (!user.twoFactorBackupHashes.includes(hash)) return false;
+  const norm = normalizeBackupCode(input);
+  if (!/^[0-9A-F]{5}-[0-9A-F]{5}$/.test(norm)) return false;
+  // nové kódy: HMAC so serverovým kľúčom; staršie (pred v6): SHA-256
+  const hash = [keyedHash(norm), sha256(norm)].find((h) => user.twoFactorBackupHashes.includes(h));
+  if (!hash) return false;
   const remaining = user.twoFactorBackupHashes.filter((h) => h !== hash);
   const r = await prisma.user.updateMany({
     where: { id: user.id, twoFactorBackupHashes: { has: hash } },

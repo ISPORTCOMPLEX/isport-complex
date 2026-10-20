@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import QRCode from 'qrcode';
 import { prisma } from '@/lib/prisma';
 import type { FormState } from '@/lib/formState';
-import { getSessionUser, createSession, destroySession } from '@/lib/session';
+import { getSessionUser, createSession, destroySession, revokeAllSessions } from '@/lib/session';
 import { hitLimit, minutes } from '@/lib/rateLimit';
 import { getBaseUrl, getRequestInfo } from '@/lib/requestInfo';
 import { logSecurity } from '@/lib/securityLog';
@@ -183,6 +183,7 @@ export async function logoutOthersAction(): Promise<void> {
   const user = await me();
   const { ip, userAgent } = await getRequestInfo();
   await prisma.user.update({ where: { id: user.id }, data: { sessionsRevokedAt: new Date() } });
+  await revokeAllSessions(user.id);
   await createSession(user.id);
   await logSecurity({ type: 'sessions', ok: true, reason: 'logout-others', userId: user.id, ip, userAgent });
   redirect('/ucet/zabezpecenie?stav=odhlasene');

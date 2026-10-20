@@ -1,0 +1,31 @@
+# Denná šifrovaná záloha databázy (Neon Free má obnovu len 6 hodín dozadu – toto je druhá, nezávislá vrstva).
+# Potrebné tajomstvá v GitHube (Settings → Secrets and variables → Actions):
+#   BACKUP_DATABASE_URL – pripojenie BEZ -pooler, ideálne rola len na čítanie (isport_backup)
+#   BACKUP_PASSPHRASE   – dlhé náhodné heslo na zašifrovanie zálohy (ulož si ho aj do správcu hesiel)
+name: Záloha databázy
+on:
+  schedule:
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  zaloha:
+    runs-on: ubuntu-latest
+    steps:
+      - name: pg_dump (PostgreSQL 17) a šifrovanie AES-256
+        env:
+          DB: ${{ secrets.BACKUP_DATABASE_URL }}
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          test -n "$DB" && test -n "$PASS"
+          docker run --rm -e DB postgres:17 sh -c 'pg_dump --no-owner --no-privileges --format=custom "$DB"' > db.dump
+          test -s db.dump
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$PASS" --symmetric --cipher-algo AES256 -o "isport-$(date -u +%F).dump.gpg" db.dump
+          shred -u db.dump
+      - uses: actions/upload-artifact@v4
+        with:
+          name: isport-db-${{ github.run_id }}
+          path: isport-*.dump.gpg
+          retention-days: 30

@@ -53,6 +53,23 @@ model User {
   auditLogs  AuditLog[]
   authTokens AuthToken[]
   bookings   Booking[]
+  sessions   Session[]
+}
+
+// Prihlásené zariadenia. Cookie nesie podpísaný JWT s id relácie; odhlásenie reláciu zruší aj na serveri,
+// takže ukradnutá cookie po odhlásení už nefunguje.
+model Session {
+  id        String    @id
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+  ip        String?
+  userAgent String?
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 // Jednorazové odkazy z e-mailov (overenie e-mailu, obnova hesla). V DB je len odtlačok tokenu.

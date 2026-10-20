@@ -5,9 +5,11 @@ import { redirect } from 'next/navigation';
 import { SignJWT, jwtVerify } from 'jose';
 import { prisma } from './prisma';
 import { getSecret } from './secrets';
+import { randomToken } from './crypto';
+import { getRequestInfo } from './requestInfo';
 
-// Relácia = podpísaný JWT v HttpOnly cookie. Pri každom čítaní sa overí aj v databáze:
-// zablokovaný alebo zmazaný účet, zmena hesla a „odhlásiť všade“ staré relácie zneplatnia.
+// Relácia = podpísaný JWT v HttpOnly cookie s id relácie v databáze. Pri každom čítaní sa overí,
+// že relácia nie je zrušená (odhlásenie), účet nie je zablokovaný a heslo sa odvtedy nezmenilo.
 
 const secure = process.env.NODE_ENV === 'production';
 // Predpona __Host- (len cez HTTPS): cookie nemôže nastaviť ani prepísať subdoména ani iná cesta.
@@ -23,7 +25,10 @@ function key() {
 }
 
 export async function createSession(userId: string): Promise<void> {
-  const token = await new SignJWT({ typ: 'session' })
+  const sid = randomToken(18);
+  const { ip, userAgent } = await getRequestInfo();
+  await prisma.session.create({ data: { id: sid, userId, expiresAt: new Date(Date.now() + SESSION_DAYS * 86400000), ip, userAgent } });
+  const token = await new SignJWT({ typ: 'session', sid })
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject(userId)
     .setIssuedAt()
@@ -36,8 +41,22 @@ export async function createSession(userId: string): Promise<void> {
 
 export async function destroySession(): Promise<void> {
   const jar = await cookies();
+  const token = jar.get(SESSION_COOKIE)?.value;
+  if (token) {
+    try {
+      const { payload } = await jwtVerify(token, key(), { algorithms: ['HS256'] });
+      if (typeof payload.sid === 'string') await prisma.session.updateMany({ where: { id: payload.sid, revokedAt: null }, data: { revokedAt: new Date() } });
+    } catch {
+      // neplatná cookie – stačí ju zmazať
+    }
+  }
   jar.delete(SESSION_COOKIE);
   jar.delete(PENDING_2FA_COOKIE);
+}
+
+// Zruší všetky relácie používateľa v databáze (odhlásenie zo všetkých zariadení).
+export async function revokeAllSessions(userId: string): Promise<void> {
+  await prisma.session.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } });
 }
 
 export type SessionUser = {
@@ -62,8 +81,10 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, key(), { algorithms: ['HS256'] });
-    if (payload.typ !== 'session' || typeof payload.sub !== 'string' || typeof payload.iat !== 'number') return null;
-    const user = await prisma.user.findUnique({ where: { id: payload.sub } });
+    if (payload.typ !== 'session' || typeof payload.sub !== 'string' || typeof payload.iat !== 'number' || typeof payload.sid !== 'string') return null;
+    const session = await prisma.session.findUnique({ where: { id: payload.sid }, include: { user: true } });
+    if (!session || session.revokedAt || session.expiresAt < new Date() || session.userId !== payload.sub) return null;
+    const user = session.user;
     if (!user || user.bannedAt || user.deletedAt || !user.emailVerifiedAt) return null;
     if (revokedAfter(payload.iat, user.passwordChangedAt, user.sessionsRevokedAt)) return null;
     if (STAFF.includes(user.role) && Date.now() / 1000 - payload.iat > STAFF_SESSION_HOURS * 3600) return null;

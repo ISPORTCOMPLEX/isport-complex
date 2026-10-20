@@ -31,6 +31,11 @@ export function unsign(purpose: 'captcha' | 'form', signed: string): string | nu
   return safeEqual(expected, signed) ? data : null;
 }
 
+// HMAC-SHA256 s tajným kľúčom – odtlačok, ktorý sa bez kľúča nedá hrubou silou dopočítať (záložné kódy 2FA).
+export function keyedHash(data: string): string {
+  return createHmac('sha256', getSecret('two-factor')).update(`backup:${data}`).digest('hex');
+}
+
 // AES-256-GCM pre citlivé údaje v databáze (napr. tajomstvo 2FA).
 function aesKey(): Buffer {
   return createHash('sha256').update(getSecret('two-factor')).digest();

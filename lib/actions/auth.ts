@@ -9,7 +9,7 @@ import { clearLimit, hitLimit, minutes, peekLimit } from '@/lib/rateLimit';
 import { getBaseUrl, getRequestInfo } from '@/lib/requestInfo';
 import { logSecurity } from '@/lib/securityLog';
 import { checked, isEmail, isName, isPhone, normalizeEmail, normalizePhone, raw, str } from '@/lib/validate';
-import { hashPassword, passwordProblemStrong, verifyPassword } from '@/lib/password';
+import { hashPassword, needsRehash, passwordProblemStrong, verifyPassword } from '@/lib/password';
 import { checkEmailDomain } from '@/lib/disposableEmail';
 import { createAuthToken, consumeAuthToken } from '@/lib/tokens';
 import { emailEnabled, sendAlreadyRegisteredEmail, sendResetEmail, sendVerifyEmail } from '@/lib/email';
@@ -238,8 +238,11 @@ export async function loginAction(_prev: FormState, form: FormData): Promise<For
       : { error: 'Účet čaká na aktiváciu recepciou (zvyčajne do 24 hodín). Ak sa ponáhľaš, zavolaj nám.', values };
   }
 
-  if (user.failedLoginCount > 0 || user.lockedUntil) {
-    await prisma.user.update({ where: { id: user.id }, data: { failedLoginCount: 0, lockedUntil: null } });
+  if (user.failedLoginCount > 0 || user.lockedUntil || needsRehash(user.passwordHash)) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { failedLoginCount: 0, lockedUntil: null, ...(needsRehash(user.passwordHash) ? { passwordHash: await hashPassword(password) } : {}) },
+    });
   }
 
   if (user.twoFactorEnabledAt && user.twoFactorSecretEnc) {
@@ -259,9 +262,10 @@ export async function twoFactorLoginAction(_prev: FormState, form: FormData): Pr
   if (!pending) return { error: 'Čas na zadanie kódu vypršal. Prihlás sa znova.' };
 
   const limit = await hitLimit(`2fa:user:${pending.userId}`, 10, 15 * 60);
-  if (!limit.ok) {
+  const daily = await hitLimit(`2fa:day:${pending.userId}`, 30, 24 * 60 * 60);
+  if (!limit.ok || !daily.ok) {
     await logSecurity({ type: 'login-2fa', ok: false, reason: 'rate-limit', userId: pending.userId, ip, userAgent });
-    return { error: tooMany(limit.retryAfterSec) };
+    return { error: tooMany(limit.ok ? daily.retryAfterSec : limit.retryAfterSec) };
   }
 
   const user = await prisma.user.findUnique({ where: { id: pending.userId } });

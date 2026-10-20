@@ -1,6 +1,6 @@
 import 'server-only';
 import { createHmac, randomBytes } from 'node:crypto';
-import { sha256 } from './crypto';
+import { keyedHash } from './crypto';
 
 // TOTP podľa RFC 6238 (Google/Microsoft Authenticator): 6 číslic, 30 s, HMAC-SHA1, bez externej knižnice.
 
@@ -79,7 +79,7 @@ export function generateBackupCodes(): { codes: string[]; hashes: string[] } {
     const raw = randomBytes(5).toString('hex').toUpperCase();
     return `${raw.slice(0, 5)}-${raw.slice(5)}`;
   });
-  return { codes, hashes: codes.map((c) => sha256(c)) };
+  return { codes, hashes: codes.map((c) => keyedHash(normalizeBackupCode(c))) };
 }
 
 export function normalizeBackupCode(code: string): string {

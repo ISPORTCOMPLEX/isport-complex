@@ -3,9 +3,11 @@ import { getSessionUser } from '@/lib/session';
 import { hitLimit } from '@/lib/rateLimit';
 import { getRequestInfo } from '@/lib/requestInfo';
 import { logSecurity } from '@/lib/securityLog';
+import { isCrossSite } from '@/lib/sameSite';
 
 // Export osobných údajov (GDPR čl. 15 a 20). Bez hesiel, tajomstiev 2FA a interných príznakov.
-export async function GET() {
+export async function GET(req: Request) {
+  if (isCrossSite(req)) return new Response('Forbidden', { status: 403 });
   const session = await getSessionUser();
   if (!session) return new Response('Neprihlásený', { status: 401 });
 

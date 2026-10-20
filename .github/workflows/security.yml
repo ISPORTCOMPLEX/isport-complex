@@ -1,0 +1,28 @@
+# Automatická bezpečnostná kontrola pri každom pushi a raz týždenne.
+name: Bezpečnosť
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1'
+permissions:
+  contents: read
+jobs:
+  kontrola:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Zraniteľné balíky (npm audit)
+        run: npm audit --omit=dev --audit-level=high
+      - name: Statická kontrola a tajomstvá
+        run: node scripts/security-audit.mjs
+      - name: Bezpečnostné testy
+        run: npm test
+      - name: Typová kontrola
+        run: npx prisma generate && npx tsc --noEmit

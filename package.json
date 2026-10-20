@@ -11,16 +11,19 @@
     "db:studio": "prisma studio",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate",
-    "ucet": "node --env-file=.env scripts/ucet.mjs"
+    "ucet": "node --env-file=.env scripts/ucet.mjs",
+    "test": "node --import ./tests/register.mjs --experimental-strip-types --no-warnings --test tests/security.test.ts",
+    "audit:static": "node scripts/security-audit.mjs",
+    "security:check": "node scripts/security-check.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.16.0",
     "bcryptjs": "^2.4.3",
     "jose": "^5.9.6",
-    "next": "^16.0.0",
+    "next": "^16.4.2",
     "qrcode": "^1.5.4",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react": "^19.2.9",
+    "react-dom": "^19.2.9",
     "server-only": "^0.0.1"
   },
   "devDependencies": {

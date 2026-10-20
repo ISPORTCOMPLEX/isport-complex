@@ -3,6 +3,7 @@ import { getSessionUser } from '@/lib/session';
 import { can, isStaff } from '@/lib/staff';
 import { getRequestInfo } from '@/lib/requestInfo';
 import { addDays, hallTime, isIsoDate, todayIso } from '@/lib/booking/time';
+import { isCrossSite } from '@/lib/sameSite';
 import { METHOD_LABEL, PAYMENT_LABEL, STATUS_LABEL } from '@/lib/booking/format';
 
 // Export rezervácií do CSV (Excel, slovenské nastavenie: bodkočiarka, čiarka v číslach, UTF-8 s BOM).
@@ -20,6 +21,7 @@ function cell(v: unknown): string {
 const money = (c: number) => (c / 100).toFixed(2).replace('.', ',');
 
 export async function GET(req: Request) {
+  if (isCrossSite(req)) return new Response('Forbidden', { status: 403 });
   const user = await getSessionUser();
   if (!user || !isStaff(user.role) || !user.twoFactorEnabledAt || !can(user.role, 'bookings.view')) return new Response('Not found', { status: 404 });
 

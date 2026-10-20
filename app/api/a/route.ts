@@ -12,6 +12,7 @@ export const dynamic = 'force-dynamic';
 
 const SKIP = /^\/(admin|api|_next)(\/|$)/;
 const noContent = () => new Response(null, { status: 204 });
+const isCrossSiteBeacon = (req: Request) => req.headers.get('sec-fetch-site') === 'cross-site';
 
 function cleanPath(raw: unknown): string | null {
   if (typeof raw !== 'string' || !raw.startsWith('/') || raw.length > 300) return null;
@@ -34,6 +35,7 @@ function host(raw: unknown, self: string): string | null {
 export async function POST(req: Request) {
   const ua = (req.headers.get('user-agent') ?? '').slice(0, 300);
   if (isBot(ua) || req.headers.get('sec-gpc') === '1' || req.headers.get('dnt') === '1') return noContent();
+  if (isCrossSiteBeacon(req)) return noContent();
   const origin = req.headers.get('origin');
   const selfHost = new URL(req.url).hostname.replace(/^www\./, '');
   if (origin && new URL(origin).hostname.replace(/^www\./, '') !== selfHost) return noContent();
@@ -51,6 +53,9 @@ export async function POST(req: Request) {
   const ip = raw.split(',')[0]?.trim() || 'unknown';
   const limit = await hitLimit(`a:${ip}`, 90, 60);
   if (!limit.ok) return noContent();
+  // Strop na celý web: ochrana databázy pred zaplavením falošnými návštevami z mnohých adries.
+  const global = await hitLimit('a:global:day', 50000, 24 * 60 * 60);
+  if (!global.ok) return noContent();
 
   // Ukončenie zobrazenia: doplní čas strávený na stránke.
   if (body.t === 'leave') {

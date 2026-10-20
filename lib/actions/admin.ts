@@ -10,6 +10,7 @@ import { createAuthToken } from '@/lib/tokens';
 import { sendResetEmail } from '@/lib/email';
 import { hitLimit } from '@/lib/rateLimit';
 import { str } from '@/lib/validate';
+import { revokeAllSessions } from '@/lib/session';
 import type { FormState } from '@/lib/formState';
 
 // Zásahy administrátora do účtov. Každý zásah: kontrola oprávnenia, ochrana pred zásahom do vlastného účtu,
@@ -74,6 +75,7 @@ export async function adminRevokeSessions(form: FormData): Promise<void> {
   const { actor, user } = await target(form);
   if (user.id === actor.id) back(user.id, 'nie-sebe');
   await prisma.user.update({ where: { id: user.id }, data: { sessionsRevokedAt: new Date() } });
+  await revokeAllSessions(user.id);
   await audit(actor.id, 'user.revoke-sessions', user.id, { email: user.email });
   back(user.id, 'odhlaseny');
 }

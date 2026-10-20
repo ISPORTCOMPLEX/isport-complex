@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/session';
 import { isStaff } from '@/lib/staff';
 import { AREA_LABEL } from '@/lib/booking/format';
+import { isCrossSite } from '@/lib/sameSite';
 
 // Súbor .ics – pridanie tréningu do kalendára v telefóne (Google, Apple, Outlook).
 function icsDate(d: Date): string {
@@ -9,10 +10,11 @@ function icsDate(d: Date): string {
 }
 
 function esc(s: string): string {
-  return s.replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+  return s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
 }
 
-export async function GET(_req: Request, { params }: { params: Promise<{ code: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ code: string }> }) {
+  if (isCrossSite(req)) return new Response('Forbidden', { status: 403 });
   const { code } = await params;
   const user = await getSessionUser();
   if (!user) return new Response('Neprihlásený', { status: 401 });

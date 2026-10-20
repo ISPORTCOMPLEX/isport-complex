@@ -11,7 +11,8 @@ export const securityHeaders: { key: string; value: string }[] = [
     value: 'camera=(self), microphone=(), geolocation=(), payment=(self), usb=()',
   },
   { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
-  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+  // preload až s vlastnou doménou a po overení, že všetky subdomény bežia na HTTPS
+  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
   { key: 'X-DNS-Prefetch-Control', value: 'off' },
   { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
   { key: 'Origin-Agent-Cluster', value: '?1' },

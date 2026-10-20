@@ -2,8 +2,8 @@ import 'server-only';
 import bcrypt from 'bcryptjs';
 import { randomToken } from './crypto';
 
-// Heslá len ako bcrypt hash (cost 10), nikdy čistý text.
-const COST = 10;
+// Heslá len ako bcrypt hash (cost 12), nikdy čistý text. Staršie hashe (cost 10) sa pri prihlásení prepočítajú.
+const COST = 12;
 
 export const PASSWORD_RULES = 'Aspoň 8 znakov, malé a veľké písmeno a číslica.';
 
@@ -30,6 +30,15 @@ export async function verifyPassword(pw: string, hash: string | null | undefined
     return false;
   }
   return bcrypt.compare(pw, hash);
+}
+
+export function needsRehash(hash: string | null | undefined): boolean {
+  if (!hash) return false;
+  try {
+    return bcrypt.getRounds(hash) < COST;
+  } catch {
+    return false;
+  }
 }
 
 export async function randomPasswordHash(): Promise<string> {
