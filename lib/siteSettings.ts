@@ -19,7 +19,7 @@ export function mergeSite(raw: unknown): SiteFull {
     ...d,
     phone: s(r.phone, d.phone, 40),
     email: s(r.email, d.email, 200),
-    hall: { street: s(r.hall?.street, d.hall.street), city: s(r.hall?.city, d.hall.city), mapUrl: s(r.hall?.mapUrl, d.hall.mapUrl, 500) },
+    hall: { street: s(r.hall?.street, d.hall.street) || d.hall.street, city: s(r.hall?.city, d.hall.city) || d.hall.city, mapUrl: s(r.hall?.mapUrl, d.hall.mapUrl, 500), lat: s(r.hall?.lat, d.hall.lat, 20), lng: s(r.hall?.lng, d.hall.lng, 20) },
     company: {
       name: s(r.company?.name, d.company.name),
       street: s(r.company?.street, d.company.street),

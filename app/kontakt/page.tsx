@@ -4,12 +4,16 @@ import { getSite } from '@/lib/siteSettings';
 import { InquiryForm } from '@/components/InquiryForm';
 import { createFormStamp } from '@/lib/formGuard';
 import { RzBand } from '@/components/booking/RzBand';
+import { LocationMap } from '@/components/LocationMap';
+import { MapIllustration } from '@/components/MapIllustration';
+import { mapLinks } from '@/lib/maps';
 
-export const metadata: Metadata = { title: 'Kontakt', description: 'Kontakt, adresa a otváracie hodiny I-SPORT COMPLEX, Fejova 1527/2, Košice.' };
+export const metadata: Metadata = { title: 'Kontakt', description: 'Kontakt, adresa a otváracie hodiny I-SPORT COMPLEX, Jarmočná 2627/10, Košice – Juh.' };
 
 export default async function KontaktPage() {
   const site = await getSite();
   const c = site.company;
+  const map = mapLinks(site.hall);
   return (
     <>
       <RzBand
@@ -39,11 +43,9 @@ export default async function KontaktPage() {
               <strong>
                 {orTbd(site.hall.street)}, {site.hall.city}
               </strong>
-              {site.hall.mapUrl ? (
-                <a href={site.hall.mapUrl} className="ulink u-mt8-15" rel="noopener noreferrer" target="_blank">
-                  Navigovať<span className="sr-only"> (otvorí sa v novom okne)</span>
-                </a>
-              ) : null}
+              <a href="#mapa" className="ulink u-mt8-15">
+                Ukázať na mape
+              </a>
             </div>
             <div>
               <h2 className="v3-label">Otváracie hodiny</h2>
@@ -84,6 +86,12 @@ export default async function KontaktPage() {
           <div className="rz-card">
             <InquiryForm type="CONTACT" stamp={createFormStamp()} />
           </div>
+        </div>
+      </section>
+      <section id="mapa" className="ice kmap" aria-labelledby="kmap-t">
+        <div className="wrap">
+          <h2 id="kmap-t" className="cond kmap__t">Ako sa k nám dostanete</h2>
+          <LocationMap embed={map.embed} address={map.address} links={map} preview={<MapIllustration />} />
         </div>
       </section>
     </>

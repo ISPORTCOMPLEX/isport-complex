@@ -314,6 +314,15 @@ export async function adminSaveSiteAction(_prev: FormState, form: FormData): Pro
   for (const k of ['mapUrl', 'facebook', 'instagram']) if (!urlOk(v(k, 500))) errors[k] = 'Adresa musí začínať https://';
   const iban = v('iban', 40).replace(/\s/g, '').toUpperCase();
   if (iban && !/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(iban)) errors.iban = 'Neplatný IBAN.';
+  // Poloha: „48.70123, 21.25456“ skopírované z Google Máp (pravý klik na budovu)
+  const gps = v('gps', 60).replace(/\s+/g, '');
+  let lat = '';
+  let lng = '';
+  if (gps) {
+    const m = /^(-?\d{1,2}\.\d{3,8}),(-?\d{1,3}\.\d{3,8})$/.exec(gps.replace(';', ','));
+    if (!m || +m[1] < 47.5 || +m[1] > 49.8 || +m[2] < 16.7 || +m[2] > 22.7) errors.gps = 'Zadaj polohu v tvare 48.70123, 21.25456 (v Google Mapách pravý klik na budovu a klikni na čísla).';
+    else [lat, lng] = [m[1], m[2]];
+  }
   if (Object.keys(errors).length) return { error: 'Skontroluj označené polia.', errors };
 
   const next = {
@@ -321,7 +330,7 @@ export async function adminSaveSiteAction(_prev: FormState, form: FormData): Pro
     phone: v('phone', 40),
     email,
     notifyEmail,
-    hall: { street: v('hallStreet'), city: v('hallCity') || current.hall.city, mapUrl: v('mapUrl', 500) },
+    hall: { street: v('hallStreet') || current.hall.street, city: v('hallCity') || current.hall.city, mapUrl: v('mapUrl', 500), lat, lng },
     company: {
       name: v('companyName') || current.company.name,
       street: v('companyStreet') || current.company.street,

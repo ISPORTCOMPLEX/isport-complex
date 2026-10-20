@@ -11,7 +11,7 @@ type SiteData = {
   phone: string;
   email: string;
   notifyEmail: string;
-  hall: { street: string; city: string; mapUrl: string };
+  hall: { street: string; city: string; mapUrl: string; lat: string; lng: string };
   company: { name: string; street: string; city: string; ico: string; dic: string; icDph: string; register: string };
   social: { facebook: string; instagram: string };
   hours: { days: string; time: string }[];
@@ -35,7 +35,8 @@ export function SiteForm({ s }: { s: SiteData }) {
           <Field label="E-mail pre upozornenia" name="notifyEmail" type="email" defaultValue={s.notifyEmail} error={e.notifyEmail} optional maxLength={200} hint="Sem chodia nové dopyty. Prázdne = e-mail pre zákazníkov." />
           <Field label="Ulica haly" name="hallStreet" defaultValue={s.hall.street} optional />
           <Field label="Mesto haly" name="hallCity" defaultValue={s.hall.city} optional />
-          <Field label="Odkaz na mapu" name="mapUrl" defaultValue={s.hall.mapUrl} error={e.mapUrl} optional maxLength={500} placeholder="https://maps.google.com/…" />
+          <Field label="Presná poloha (GPS)" name="gps" defaultValue={s.hall.lat && s.hall.lng ? `${s.hall.lat}, ${s.hall.lng}` : ''} error={e.gps} optional maxLength={60} placeholder="48.70123, 21.25456" hint="V Google Mapách klikni pravým tlačidlom presne na vchod do haly a klikni na čísla hore – skopírujú sa. Prázdne = mapa hľadá podľa adresy." />
+          <Field label="Vlastný odkaz na mapu" name="mapUrl" defaultValue={s.hall.mapUrl} error={e.mapUrl} optional maxLength={500} placeholder="https://maps.app.goo.gl/…" hint="Nepovinné – napr. odkaz na firemný profil v Google. Inak sa odkaz vytvorí z polohy." />
         </div>
       </section>
 

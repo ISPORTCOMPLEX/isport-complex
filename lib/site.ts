@@ -10,7 +10,8 @@ export type Site = {
   hallName: string;
   tagline: string;
   company: { name: string; street: string; city: string; ico: string; dic: string; icDph: string; register: string };
-  hall: { street: string; city: string; mapUrl: string };
+  // lat/lng: presná poloha vchodu (GPS), napr. 48.70, 21.25 – mapa a navigácia ju použijú pred adresou
+  hall: { street: string; city: string; mapUrl: string; lat: string; lng: string };
   phone: string;
   email: string;
   social: { facebook: string; instagram: string };
@@ -38,10 +39,13 @@ export const site: Site = {
     register: '',
   },
 
+  // Adresa haly (kam ľudia prichádzajú). Sídlo firmy (Fejova) je vyššie v company.
   hall: {
-    street: '',
-    city: 'Košice',
+    street: 'Jarmočná 2627/10',
+    city: '040 01 Košice – Juh',
     mapUrl: '',
+    lat: '',
+    lng: '',
   },
 
   phone: '',
