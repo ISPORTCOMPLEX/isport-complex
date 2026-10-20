@@ -1576,3 +1576,109 @@ a.cal__item:hover { color: var(--text); filter: brightness(1.15); }
 .adm__brand .logo__lockup { height: 34px; width: auto; }
 .ft__brand .logo__lockup { height: 58px; width: auto; }
 @media (max-width: 640px) { .hd__logo .logo__lockup { height: 32px; } }
+
+/* ===================================================================
+   Úvod – živý rez komplexom (animácie po prejdení myšou / ťuknutí)
+   =================================================================== */
+/* zóny – priehľadné plochy na prejdenie myšou */
+.a-hit{fill:transparent;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent}
+.a-hit:focus-visible{stroke:#F2F5F7;stroke-width:1.5;stroke-dasharray:4 4}
+.a-fx{opacity:0;transition:opacity .25s;pointer-events:none}
+.a-dots,.a-gym-static,.a-ball-static{transition:opacity .2s}
+.cx__art svg g,.cx__art svg path,.cx__art svg circle,.cx__art svg ellipse,.cx__art svg rect,.cx__art svg text{transform-box:fill-box}
+
+/* ---------- ĽAD: hokej ---------- */
+.cx__art.is-ice .a-fx-ice{opacity:1}
+.cx__art.is-ice .a-pl1{animation:cxa-pl1 4s ease-in-out infinite}
+.cx__art.is-ice .a-pl2{animation:cxa-pl2 4s ease-in-out infinite}
+.cx__art.is-ice .a-pl3{animation:cxa-pl3 4s ease-in-out infinite}
+.cx__art.is-ice .a-pl4{animation:cxa-pl4 2s ease-in-out infinite}
+.cx__art.is-ice .a-bob{animation:cxa-bob .5s ease-in-out infinite alternate}
+.cx__art.is-ice .a-stk{animation:cxa-stk 4s ease-in-out infinite;transform-origin:0% 0%}
+.cx__art.is-ice .a-puck{animation:cxa-puck 4s linear infinite}
+.cx__art.is-ice .a-lamp{animation:cxa-lamp 4s steps(1) infinite}
+.cx__art.is-ice .a-gol{animation:cxa-gol 4s ease-out infinite;transform-origin:50% 100%}
+.cx__art.is-ice .a-fan{animation:cxa-cheer 4s ease-in-out infinite}
+.cx__art.is-ice .a-fan:nth-child(2){animation-delay:.08s}.cx__art.is-ice .a-fan:nth-child(3){animation-delay:.16s}
+.cx__art.is-ice .a-dots{opacity:0}
+@keyframes cxa-pl1{0%{transform:translateX(0)}30%{transform:translateX(150px)}60%{transform:translateX(300px)}80%{transform:translateX(330px)}100%{transform:translateX(0)}}
+@keyframes cxa-pl2{0%{transform:translateX(0) scaleX(-1)}35%{transform:translateX(-120px) scaleX(-1)}65%{transform:translateX(-40px) scaleX(-1)}100%{transform:translateX(0) scaleX(-1)}}
+@keyframes cxa-pl3{0%{transform:translateX(0)}40%{transform:translateX(90px)}75%{transform:translateX(160px)}100%{transform:translateX(0)}}
+@keyframes cxa-pl4{0%,100%{transform:translateX(0) scaleX(-1)}50%{transform:translateX(-8px) scaleX(-1)}}
+@keyframes cxa-bob{to{transform:translateY(-2px) rotate(-3deg)}}
+@keyframes cxa-stk{0%,22%,52%,66%,100%{transform:rotate(0)}26%,70%{transform:rotate(-28deg)}30%,74%{transform:rotate(12deg)}}
+@keyframes cxa-puck{0%{transform:translate(0,0)}28%{transform:translate(170px,0)}32%{transform:translate(200px,-1px)}62%{transform:translate(330px,0)}72%{transform:translate(372px,0)}78%{transform:translate(426px,-3px)}100%{transform:translate(426px,-3px);opacity:0}}
+@keyframes cxa-lamp{0%,77%{fill:#3A1013}78%,100%{fill:#FF2A33}}
+@keyframes cxa-gol{0%,76%{opacity:0;transform:scale(.4)}82%{opacity:1;transform:scale(1.15)}90%{transform:scale(1)}100%{opacity:1}}
+@keyframes cxa-cheer{0%,76%,100%{transform:translateY(0)}80%,88%{transform:translateY(-7px)}84%,92%{transform:translateY(0)}}
+.a-arm-up{opacity:0}
+.cx__art.is-ice .a-arm-up{animation:cxa-armsup 4s steps(1) infinite}
+@keyframes cxa-armsup{0%,77%{opacity:0}78%,99%{opacity:1}}
+
+/* ---------- SKYBOXY: fanúšikovia ---------- */
+.cx__art.is-sky .a-fan{animation:cxa-cheer2 .9s ease-in-out infinite}
+.cx__art.is-sky .a-fan:nth-child(2){animation-delay:.15s}.cx__art.is-sky .a-fan:nth-child(3){animation-delay:.3s}
+.cx__art.is-sky .a-arm-up{opacity:1}
+.cx__art.is-sky .a-fx-sky{opacity:1}
+@keyframes cxa-cheer2{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* ---------- POSILŇOVŇA: činky ---------- */
+.cx__art.is-gym .a-fx-gym{opacity:1}
+.cx__art.is-gym .a-gym-static{opacity:0}
+.cx__art.is-gym .a-bar{animation:cxa-press 1.4s ease-in-out infinite}
+.cx__art.is-gym .a-lifter{animation:cxa-squat 1.4s ease-in-out infinite}
+.cx__art.is-gym .a-lifter2 .a-db{animation:cxa-curl 1s ease-in-out infinite;transform-origin:0% 0%}
+.cx__art.is-gym .a-sweat{animation:cxa-sweat 1.4s ease-in infinite}
+@keyframes cxa-press{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+@keyframes cxa-squat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes cxa-curl{0%,100%{transform:rotate(0)}50%{transform:rotate(-120deg)}}
+@keyframes cxa-sweat{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(14px);opacity:0}}
+
+/* ---------- WELLNESS: para ---------- */
+.cx__art.is-well .a-steam{animation:cxa-steam 2.4s ease-in infinite}
+.cx__art.is-well .a-steam:nth-of-type(2){animation-delay:.8s}.cx__art.is-well .a-steam:nth-of-type(3){animation-delay:1.6s}
+.cx__art.is-well .a-wave{animation:cxa-wave 1.6s ease-in-out infinite alternate}
+.cx__art.is-well .a-fx-well{opacity:1}
+@keyframes cxa-steam{0%{transform:translateY(0);opacity:0}25%{opacity:.8}100%{transform:translateY(-34px);opacity:0}}
+@keyframes cxa-wave{to{transform:translateX(-8px)}}
+
+/* ---------- IHRISKO: futbal ---------- */
+.cx__art.is-pitch .a-fx-pitch{opacity:1}
+.cx__art.is-pitch .a-ballx{animation:cxa-ballx 2s ease-in-out infinite alternate}
+.cx__art.is-pitch .a-bally{animation:cxa-bally 1s ease-out infinite alternate}
+.cx__art.is-pitch .a-kick1{animation:cxa-kick 2s ease-in-out infinite;transform-origin:0% 0%}
+.cx__art.is-pitch .a-kick2{animation:cxa-kick 2s ease-in-out infinite 1s;transform-origin:0% 0%}
+.cx__art.is-pitch .a-fb1{animation:cxa-run1 2s ease-in-out infinite alternate}
+.cx__art.is-pitch .a-fb2{animation:cxa-run2 2s ease-in-out infinite alternate}
+.cx__art.is-pitch .a-ball-static{opacity:0}
+@keyframes cxa-ballx{from{transform:translateX(0)}to{transform:translateX(96px)}}
+@keyframes cxa-bally{from{transform:translateY(0)}to{transform:translateY(-26px)}}
+@keyframes cxa-kick{0%,8%,100%{transform:rotate(0)}3%{transform:rotate(-45deg)}}
+@keyframes cxa-run1{from{transform:translateX(0)}to{transform:translateX(10px)}}
+@keyframes cxa-run2{from{transform:translateX(0)}to{transform:translateX(-10px)}}
+
+/* ---------- BUFET: jedenie a plné brucho ---------- */
+.cx__art.is-food .a-fx-food{opacity:1}
+.cx__art.is-food .a-eatarm{animation:cxa-eat 1.1s ease-in-out infinite;transform-origin:15% 15%}
+.cx__art.is-food .a-belly{animation:cxa-belly 5s ease-out forwards;transform-origin:0% 50%}
+.cx__art.is-food .a-burger{animation:cxa-bite 5s steps(4) forwards;transform-origin:50% 50%}
+.cx__art.is-food .a-mnam{animation:cxa-mnam 1.1s ease-out infinite}
+.cx__art.is-food .a-mnam2{animation:cxa-full 5s ease-out forwards}
+.cx__art.is-food .a-chew{animation:cxa-chew .28s ease-in-out infinite alternate}
+@keyframes cxa-eat{0%,100%{transform:rotate(0)}45%,55%{transform:rotate(-62deg)}}
+@keyframes cxa-belly{0%{transform:scaleX(1)}100%{transform:scaleX(1.85)}}
+@keyframes cxa-bite{0%{transform:scale(1)}100%{transform:scale(.25)}}
+@keyframes cxa-mnam{0%{opacity:0;transform:translateY(4px)}30%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
+@keyframes cxa-full{0%,80%{opacity:0;transform:scale(.6)}90%{opacity:1;transform:scale(1.1)}100%{opacity:1;transform:scale(1)}}
+@keyframes cxa-chew{to{transform:translateY(1px)}}
+
+
+.a-goltext{font-family:var(--font-display),var(--font-archivo),sans-serif;font-style:italic;font-weight:900;font-size:46px}
+.a-say{font-family:var(--font-archivo),sans-serif;font-weight:800;font-size:13px}
+.a-say--sm{font-size:11px}
+.cx__note{display:flex;align-items:center;gap:8px;font-weight:600}
+.cx__note i{width:8px;height:8px;border-radius:50%;background:var(--red);animation:cxa-blink 1.6s infinite}
+@keyframes cxa-blink{50%{opacity:.25}}
+.cx__note-touch{display:none}
+@media (hover:none){.cx__note-mouse{display:none}.cx__note-touch{display:inline}}
+@media (prefers-reduced-motion: reduce){.cx__art *{animation:none!important}.cx__note{display:none}}
