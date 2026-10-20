@@ -33,8 +33,8 @@ export default function BufetSkyboxyPage() {
           </div>
         </div>
         <div className="wrap">
-          <PartGallery slot="skyboxy" />
-          <PartGallery slot="bufet" />
+          <PartGallery slot="skyboxy" title="Skyboxy" />
+          <PartGallery slot="bufet" title="Bufet" />
         </div>
       </section>
     </PartPage>

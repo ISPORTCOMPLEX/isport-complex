@@ -51,3 +51,43 @@ export async function slotPhotos(slot: SlotKey, ratio?: string): Promise<WebPhot
   const all = await photosBySlot();
   return (all[slot] ?? []).map((p) => toWebPhoto(p, ratio)).filter((p): p is WebPhoto => p !== null);
 }
+
+// ───────────── Fotky v štýle IMDb: sekcia na stránke, prehliadač /fotky/<id>, prehľad /fotky ─────────────
+
+// Stránka webu, kam sekcia fotiek patrí (kam vedie „Zavrieť“ v prehliadači).
+export const SLOT_PAGE: Record<SlotKey, string> = {
+  komplex: '/',
+  'ladova-plocha': '/ladova-plocha',
+  skyboxy: '/bufet-skyboxy',
+  bufet: '/bufet-skyboxy',
+  ihrisko: '/ihrisko',
+  posilnovna: '/fitness-wellness',
+  wellness: '/fitness-wellness',
+};
+
+export type GalleryPhoto = WebPhoto & { slot: SlotKey; label: string; ratio: number };
+
+// Fotky v pôvodnom tvare (bez orezania) – jednej sekcie alebo všetky, v poradí sekcií a podľa poradia v administrácii.
+export async function galleryPhotos(slot?: SlotKey): Promise<GalleryPhoto[]> {
+  const all = await photosBySlot();
+  const keys = slot ? [slot] : SLOTS.map((s) => s.key);
+  const out: GalleryPhoto[] = [];
+  for (const key of keys) {
+    const label = SLOTS.find((s) => s.key === key)?.label ?? '';
+    for (const p of all[key] ?? []) {
+      const w = toWebPhoto(p);
+      if (w) out.push({ ...w, slot: key, label, ratio: p.width > 0 && p.height > 0 ? p.width / p.height : 1.5 });
+    }
+  }
+  return out;
+}
+
+export async function photoCounts(): Promise<Record<SlotKey, number>> {
+  const all = await photosBySlot();
+  return Object.fromEntries(SLOTS.map((s) => [s.key, (all[s.key] ?? []).length])) as Record<SlotKey, number>;
+}
+
+// Pomer strán → trieda .jr-N (N = pomer × 20, od 0,5 po 2,2). Rozmery bez style="…" (CSP).
+export function ratioClass(r: number): string {
+  return `jr-${Math.round(Math.min(2.2, Math.max(0.5, r)) * 20)}`;
+}

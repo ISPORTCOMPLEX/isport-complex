@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { PartPage, PartPhoto } from '@/components/PartPage';
+import { PartGallery, PartPage, PartPhoto } from '@/components/PartPage';
 import { InquiryForm } from '@/components/InquiryForm';
 import { createFormStamp } from '@/lib/formGuard';
 
@@ -37,6 +37,10 @@ export default function FitnessWellnessPage() {
           <div className="pp__form ice">
             <InquiryForm type="CONTACT" stamp={createFormStamp()} />
           </div>
+        </div>
+        <div className="wrap">
+          <PartGallery slot="posilnovna" title="Posilňovňa" />
+          <PartGallery slot="wellness" title="Wellness" />
         </div>
       </section>
     </PartPage>

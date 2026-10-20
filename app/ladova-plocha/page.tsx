@@ -77,7 +77,7 @@ export default async function LadovaPlochaPage() {
           </div>
         </div>
         <div className="wrap">
-          <PartGallery slot="ladova-plocha" skip={0} />
+          <PartGallery slot="ladova-plocha" />
         </div>
       </section>
 
