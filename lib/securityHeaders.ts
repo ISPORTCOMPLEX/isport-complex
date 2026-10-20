@@ -24,9 +24,9 @@ export function buildCsp(nonce: string, isDev: boolean): string {
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
     // React vkladá style="…", štýly nedokážu spustiť kód
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    "img-src 'self' data: blob: https://res.cloudinary.com",
     "font-src 'self'",
-    `connect-src 'self'${isDev ? ' ws: wss:' : ''}`,
+    `connect-src 'self' https://api.cloudinary.com${isDev ? ' ws: wss:' : ''}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

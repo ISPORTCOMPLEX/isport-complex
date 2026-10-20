@@ -6,15 +6,17 @@ import { getSite } from '@/lib/siteSettings';
 import { orTbd } from '@/lib/site';
 import { getBookingSettings } from '@/lib/booking/settings';
 import { dayAvailability } from '@/lib/booking/availability';
+import { slotPhotos, type SlotKey } from '@/lib/media';
+import { CloudImage } from '@/components/CloudImage';
 
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
 
 const PARTS = [
-  { href: '/bufet-skyboxy', name: 'Skyboxy', text: 'Presklené boxy nad ľadovou plochou. Rodiny hráčov a hostia sledujú tréning v teple.', photo: 'Foto: skybox' },
-  { href: '/bufet-skyboxy', name: 'Bufet', text: 'Občerstvenie po tréningu aj počas zápasu, priamo v hale.', photo: 'Foto: bufet' },
-  { href: '/ihrisko', name: 'Futbalové ihrisko', text: 'Menšie vonkajšie ihrisko pri komplexe. Prenájom dohodneš na recepcii.', photo: 'Foto: ihrisko' },
-  { href: '/fitness-wellness', name: 'Posilňovňa', text: 'Kondičná príprava pre hráčov aj verejnosť. Otvorenie oznámime tu.', photo: 'Vizualizácia', soon: true },
-  { href: '/fitness-wellness', name: 'Wellness', text: 'Regenerácia po tréningu pod jednou strechou s ľadom.', photo: 'Vizualizácia', soon: true },
+  { slot: 'skyboxy' as SlotKey, href: '/bufet-skyboxy', name: 'Skyboxy', text: 'Presklené boxy nad ľadovou plochou. Rodiny hráčov a hostia sledujú tréning v teple.', photo: 'Foto: skybox' },
+  { slot: 'bufet' as SlotKey, href: '/bufet-skyboxy', name: 'Bufet', text: 'Občerstvenie po tréningu aj počas zápasu, priamo v hale.', photo: 'Foto: bufet' },
+  { slot: 'ihrisko' as SlotKey, href: '/ihrisko', name: 'Futbalové ihrisko', text: 'Menšie vonkajšie ihrisko pri komplexe. Prenájom dohodneš na recepcii.', photo: 'Foto: ihrisko' },
+  { slot: 'posilnovna' as SlotKey, href: '/fitness-wellness', name: 'Posilňovňa', text: 'Kondičná príprava pre hráčov aj verejnosť. Otvorenie oznámime tu.', photo: 'Vizualizácia', soon: true },
+  { slot: 'wellness' as SlotKey, href: '/fitness-wellness', name: 'Wellness', text: 'Regenerácia po tréningu pod jednou strechou s ľadom.', photo: 'Vizualizácia', soon: true },
 ];
 
 export default async function HomePage() {
@@ -33,6 +35,7 @@ export default async function HomePage() {
         ? `Dnes plno. Zajtra voľné ${freeTomorrow.slice(0, 3).join(', ')}`
         : 'Najbližšie voľné časy nájdeš v rezervácii';
   const p = settings.prices.full;
+  const rowPhotos = await Promise.all(PARTS.map((r) => slotPhotos(r.slot, '2:1')));
 
   return (
     <>
@@ -109,7 +112,7 @@ export default async function HomePage() {
             <p>Ľad je srdcom komplexu, ale nie všetkým. Tu je, čo ešte nájdeš pod jednou strechou a hneď vedľa.</p>
           </div>
           <ul className="bx__rows">
-            {PARTS.map((r) => (
+            {PARTS.map((r, i) => (
               <li key={r.name} className={r.soon ? 'is-soon' : undefined}>
                 <Link href={r.href} className="bx__row">
                   <span className="bx__name">
@@ -117,7 +120,7 @@ export default async function HomePage() {
                     {r.soon ? <span className="bx__soon">Pripravujeme</span> : null}
                   </span>
                   <span className="bx__text">{r.text}</span>
-                  <span className="bx__photo">{r.photo}</span>
+                  {rowPhotos[i][0] ? <CloudImage photo={rowPhotos[i][0]} sizes="220px" className="bx__img" /> : <span className="bx__photo">{r.photo}</span>}
                   <span className="bx__go" aria-hidden="true">
                     <svg width="14" height="14" viewBox="0 0 14 14">
                       <path d="M3 11L11 3M5 3h6v6" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" />

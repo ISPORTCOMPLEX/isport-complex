@@ -1839,3 +1839,50 @@ a.cal__item:hover { color: var(--text); filter: brightness(1.15); }
   .rz-band__top { flex-wrap: wrap; gap: 4px 16px; }
 }
 @media (max-width: 1100px) { .cx__note { position: static; padding: 10px var(--gutter) 0; } }
+
+/* ===================================================================
+   Fotky (Cloudinary) – web a administrácia
+   =================================================================== */
+.pp__img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 18px; background: #12161b; }
+.pp__gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 28px; }
+.pp__gallery img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 14px; background: #12161b; }
+.bx__img { display: block; width: 100%; height: 120px; object-fit: cover; border-radius: 14px; background: #12161b; }
+@media (max-width: 900px) { .bx__img { display: none; } }
+
+.md-up { display: flex; flex-direction: column; gap: 10px; }
+.md-drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 110px; padding: 18px; border-radius: 14px; border: 2px dashed var(--ice-edge-2); background: #f7f9fb; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
+.md-drop strong { font-size: 15px; color: var(--ice-ink); }
+.md-drop span { font-size: 13px; color: var(--ice-muted); }
+.md-drop:hover, .md-drop.is-drag, .md-drop:focus-within { border-color: var(--line-blue); background: #eef3ff; }
+.md-drop.is-busy { cursor: progress; opacity: .8; }
+.md-progress { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.md-progress li { display: grid; grid-template-columns: minmax(0, 1fr) 160px minmax(0, 1.2fr); gap: 10px; align-items: center; }
+.md-progress__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ice-ink); }
+.md-progress__bar { height: 6px; border-radius: 999px; background: #e3e9ee; overflow: hidden; }
+.md-progress__bar i { display: block; height: 100%; background: var(--line-blue); transition: width .2s; }
+.md-progress .is-ok .md-progress__st { color: #14834a; font-weight: 700; }
+.md-progress .is-ok .md-progress__bar i { background: #1ea85e; }
+.md-progress .is-err .md-progress__st { color: #b30d14; }
+.md-progress .is-err .md-progress__bar i { background: var(--red); }
+.md-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.md-item { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 14px; border: 1px solid var(--ice-edge); background: #fff; }
+.md-thumb { position: relative; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; background: #e9eef2; }
+.md-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.md-badge { position: absolute; left: 8px; top: 8px; padding: 2px 8px; border-radius: 999px; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; }
+.md-alt { display: flex; gap: 6px; }
+.md-alt .adm-input { flex: 1; min-width: 0; height: 38px; font-size: 13px; }
+.md-alt .btn { height: 38px; padding: 0 12px; font-size: 12px; }
+.md-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; color: var(--ice-muted); }
+.md-actions { display: flex; align-items: center; gap: 4px; }
+.md-actions form { display: flex; gap: 4px; }
+.md-btn { height: 30px; min-width: 30px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--ice-edge-2); background: #fff; color: var(--ice-ink); font: inherit; font-size: 13px; cursor: pointer; list-style: none; display: inline-flex; align-items: center; justify-content: center; }
+.md-btn:hover { border-color: var(--ice-ink); }
+.md-btn--red { color: var(--red); border-color: #f2a9ad; }
+.md-del { position: relative; }
+.md-del summary::-webkit-details-marker { display: none; }
+.md-del form { position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 2; padding: 8px; border-radius: 10px; background: #fff; border: 1px solid var(--ice-edge); box-shadow: 0 10px 30px rgba(11, 15, 20, .12); }
+.md-del .btn { height: 34px; white-space: nowrap; }
+@media (max-width: 640px) { .md-progress li { grid-template-columns: 1fr; gap: 2px; } }
+.md-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.md-meta { flex-wrap: wrap; row-gap: 6px; }
+.md-actions { flex-wrap: wrap; margin-left: auto; }

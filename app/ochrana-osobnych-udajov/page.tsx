@@ -41,7 +41,7 @@ export default function OchranaPage() {
       <h2>4. Komu údaje poskytujeme</h2>
       <p>
         Údaje spracúvajú len poverení zamestnanci a sprostredkovatelia, ktorí zabezpečujú prevádzku webu: hosting (Vercel, servery v EÚ – Frankfurt), databáza
-        (Neon, EÚ – Frankfurt) a odosielanie e-mailov (Resend). Údaje nepredávame a nepoužívame na reklamu tretích strán.
+        (Neon, EÚ – Frankfurt) a odosielanie e-mailov (Resend) a ukladanie fotiek webu (Cloudinary). Údaje nepredávame a nepoužívame na reklamu tretích strán.
       </p>
       <h2>5. Tvoje práva</h2>
       <p>

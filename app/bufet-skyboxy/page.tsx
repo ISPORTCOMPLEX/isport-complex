@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { PartPage, PartPhoto } from '@/components/PartPage';
+import { PartGallery, PartPage, PartPhoto } from '@/components/PartPage';
 
 export const metadata: Metadata = { title: 'Bufet a skyboxy', description: 'Bufet a skyboxy nad ľadovou plochou v I-SPORT COMPLEX Košice.' };
 
@@ -19,7 +19,7 @@ export default function BufetSkyboxyPage() {
       <section className="pp-dark">
         <div className="wrap pp__pair pp__pair--big">
           <div>
-            <PartPhoto label="Foto: skybox" />
+            <PartPhoto label="Foto: skybox" slot="skyboxy" />
             <h2 className="cond pp__h2">Skyboxy</h2>
             <p className="pp__p">Sledujte tréningy a zápasy v teple, s výhľadom na celú plochu. O možnostiach využitia sa informujte na recepcii.</p>
             <Link href="/kontakt" className="ulink">
@@ -27,10 +27,14 @@ export default function BufetSkyboxyPage() {
             </Link>
           </div>
           <div>
-            <PartPhoto label="Foto: bufet" />
+            <PartPhoto label="Foto: bufet" slot="bufet" />
             <h2 className="cond pp__h2">Bufet</h2>
             <p className="pp__p">Občerstvenie po tréningu aj počas zápasu, priamo v komplexe – pre hráčov, rodičov aj fanúšikov.</p>
           </div>
+        </div>
+        <div className="wrap">
+          <PartGallery slot="skyboxy" />
+          <PartGallery slot="bufet" />
         </div>
       </section>
     </PartPage>

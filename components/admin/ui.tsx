@@ -149,6 +149,9 @@ Object.assign(AUDIT_LABEL, {
   'block.delete': 'Zrušil blokovanie',
   'settings.booking': 'Zmenil cenník a nastavenia',
   'booking.export': 'Exportoval rezervácie (CSV)',
+  'photo.upload': 'Nahral fotku',
+  'photo.update': 'Upravil fotku',
+  'photo.delete': 'Zmazal fotku',
 });
 
 export const INQUIRY_STATUS: Record<string, { label: string; tone: 'ok' | 'warn' | 'red' | 'blue' | 'muted' }> = {

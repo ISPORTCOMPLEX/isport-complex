@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { RzBand } from '@/components/booking/RzBand';
+import { CloudImage } from '@/components/CloudImage';
+import { slotPhotos, type SlotKey } from '@/lib/media';
 
 // Spoločné rozloženie stránok jednotlivých častí komplexu.
 export function PartPage({
@@ -32,8 +34,24 @@ export function PartPage({
   );
 }
 
-export function PartPhoto({ label }: { label: string }) {
+// Fotka časti komplexu z Cloudinary; kým nie je nahraná, ukáže sa sivý zástupca s popisom.
+export async function PartPhoto({ label, slot, index = 0 }: { label: string; slot?: SlotKey; index?: number }) {
+  const photo = slot ? (await slotPhotos(slot, '16:10'))[index] : undefined;
+  if (photo) return <CloudImage photo={photo} className="pp__img" />;
   return <div className="pp__photo">{label}</div>;
+}
+
+// Ďalšie fotky časti ako galéria (ak nejaké sú).
+export async function PartGallery({ slot, skip = 1 }: { slot: SlotKey; skip?: number }) {
+  const photos = (await slotPhotos(slot, '4:3')).slice(skip);
+  if (photos.length === 0) return null;
+  return (
+    <div className="pp__gallery">
+      {photos.map((p) => (
+        <CloudImage key={p.id} photo={p} sizes="(max-width: 640px) 50vw, 25vw" />
+      ))}
+    </div>
+  );
 }
 
 export function PartCta({ href, children }: { href: string; children: React.ReactNode }) {

@@ -24,6 +24,7 @@ To isté beží automaticky v GitHube (`.github/workflows/security.yml`) pri ka�
 | `AUTH_SECRET` | áno | min. 32 náhodných znakov, **iný ako lokálne** |
 | `APP_URL` | áno | `https://isport-complex.vercel.app` (neskôr vlastná doména) |
 | `CRON_SECRET` | áno | min. 16 znakov – bez neho nebeží denná údržba ani pripomienky |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | pre fotky | `API_SECRET` nikdy do prehliadača ani do gitu; pri úniku Cloudinary → API Keys → nový kľúč |
 | `RESEND_API_KEY`, `EMAIL_FROM` | po doméne | bez nich web e-maily neposiela (aktivácie rieši recepcia) |
 
 Nový náhodný kľúč (PowerShell, kryptograficky bezpečný generátor):

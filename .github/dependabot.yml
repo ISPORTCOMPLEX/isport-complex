@@ -1,4 +1,5 @@
 # Automatické návrhy aktualizácií (bezpečnostné opravy knižníc) raz týždenne.
+# Veľké verzie (napr. Prisma 6 → 7) menia spôsob práce a rozbijú build – tie robíme ručne, nie automaticky.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -6,9 +7,14 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       next-react:
         patterns: ['next', 'react', 'react-dom', '@types/react*']
+      prisma:
+        patterns: ['prisma', '@prisma/client']
   - package-ecosystem: github-actions
     directory: /
     schedule:

@@ -56,6 +56,24 @@ model User {
   sessions   Session[]
 }
 
+// Fotky webu. Samotné súbory sú v Cloudinary – tu je len odkaz a popis.
+model Photo {
+  id          String   @id @default(cuid())
+  publicId    String   @unique
+  version     Int
+  slot        String // časť webu: ladova-plocha, skyboxy, bufet, ihrisko, posilnovna, wellness, komplex
+  alt         String   @default("")
+  width       Int
+  height      Int
+  format      String
+  bytes       Int
+  sort        Int      @default(0)
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@index([slot, sort])
+}
+
 // Prihlásené zariadenia. Cookie nesie podpísaný JWT s id relácie; odhlásenie reláciu zruší aj na serveri,
 // takže ukradnutá cookie po odhlásení už nefunguje.
 model Session {

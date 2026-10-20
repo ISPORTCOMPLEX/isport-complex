@@ -23,12 +23,12 @@ export default function FitnessWellnessPage() {
           <div className="pp__copy">
             <div className="pp__pair">
               <div>
-                <PartPhoto label="Vizualizácia: posilňovňa" />
+                <PartPhoto label="Vizualizácia: posilňovňa" slot="posilnovna" />
                 <h2 className="cond pp__h2">Posilňovňa</h2>
                 <p className="pp__p">Kondičná príprava pre hráčov aj verejnosť.</p>
               </div>
               <div>
-                <PartPhoto label="Vizualizácia: wellness" />
+                <PartPhoto label="Vizualizácia: wellness" slot="wellness" />
                 <h2 className="cond pp__h2">Wellness</h2>
                 <p className="pp__p">Regenerácia po tréningu pod jednou strechou s ľadom.</p>
               </div>

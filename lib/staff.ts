@@ -10,6 +10,7 @@ export const STAFF_ROLES = ['ADMIN', 'RECEPTION', 'ACCOUNTANT'] as const;
 export type Permission =
   | 'dashboard'
   | 'analytics.view'
+  | 'media.manage'
   | 'users.view'
   | 'users.manage'
   | 'security.view'
@@ -21,8 +22,8 @@ export type Permission =
   | 'inquiries.manage';
 
 const PERMS: Record<string, Permission[]> = {
-  ADMIN: ['dashboard', 'analytics.view', 'users.view', 'users.manage', 'security.view', 'audit.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'settings.manage', 'inquiries.manage'],
-  RECEPTION: ['dashboard', 'users.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'inquiries.manage'],
+  ADMIN: ['dashboard', 'analytics.view', 'media.manage', 'users.view', 'users.manage', 'security.view', 'audit.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'settings.manage', 'inquiries.manage'],
+  RECEPTION: ['dashboard', 'media.manage', 'users.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'inquiries.manage'],
   ACCOUNTANT: ['dashboard', 'analytics.view', 'users.view', 'bookings.view', 'payments.manage'],
 };
 

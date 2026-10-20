@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { PartPage, PartPhoto } from '@/components/PartPage';
+import { PartGallery, PartPage, PartPhoto } from '@/components/PartPage';
 import { InquiryForm } from '@/components/InquiryForm';
 import { createFormStamp } from '@/lib/formGuard';
 import { getSite } from '@/lib/siteSettings';
@@ -23,7 +23,8 @@ export default async function IhriskoPage() {
       <section className="pp-dark">
         <div className="wrap pp__grid">
           <div className="pp__copy">
-            <PartPhoto label="Foto: ihrisko" />
+            <PartPhoto label="Foto: ihrisko" slot="ihrisko" />
+            <PartGallery slot="ihrisko" />
             <p className="pp__p">
               Na ihrisko si môžeš dohodnúť pravidelný termín pre tím aj jednorazový zápas.
               {site.phone ? (

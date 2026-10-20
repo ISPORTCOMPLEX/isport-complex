@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { PartCta, PartPage } from '@/components/PartPage';
+import { PartCta, PartGallery, PartPage } from '@/components/PartPage';
 import { RinkPlan } from '@/components/Rink';
 import { getBookingSettings } from '@/lib/booking/settings';
 
@@ -75,6 +75,9 @@ export default async function LadovaPlochaPage() {
           <div className="pp__rink">
             <RinkPlan highlight="full" />
           </div>
+        </div>
+        <div className="wrap">
+          <PartGallery slot="ladova-plocha" skip={0} />
         </div>
       </section>
 

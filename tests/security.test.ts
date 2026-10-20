@@ -11,6 +11,7 @@ import { isBot, device } from '../lib/analytics/ua.ts';
 import { passwordProblem } from '../lib/password.ts';
 import { buildCsp, securityHeaders } from '../lib/securityHeaders.ts';
 import { isCrossSite } from '../lib/sameSite.ts';
+import { signParams, imageUrl } from '../lib/cloudinary.ts';
 
 test('open redirect: povolené len cesty v rámci webu', () => {
   for (const bad of ['//evil.com', '/\\evil.com', 'https://evil.com', 'javascript:alert(1)', '/\r\nSet-Cookie:x', '\\\\evil.com', '/\tevil', '', 'evil', 'http:/evil.com'])
@@ -122,4 +123,20 @@ test('analytika: roboty sa nemerajú', () => {
   assert.ok(isBot(''));
   assert.ok(!isBot('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148'));
   assert.equal(device('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile'), 'mobile');
+});
+
+test('Cloudinary: podpis podľa dokumentácie a bezpečná adresa', () => {
+  // príklad z dokumentácie Cloudinary (Authentication signatures)
+  assert.equal(
+    signParams({ eager: 'w_400,h_300,c_pad|w_260,h_200,c_crop', public_id: 'sample_image', timestamp: 1315060510 }, 'abcd'),
+    'bfd09f95f331f558cbd1320e67aa8d488770583e',
+  );
+  const u = imageUrl('demo', 'isport/bufet/a b', 3, 800, '16:10');
+  assert.equal(u, 'https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,c_fill,g_auto,ar_16:10,w_800/v3/isport/bufet/a%20b');
+});
+
+test('CSP povoľuje len Cloudinary navyše', () => {
+  const csp = buildCsp('n', false);
+  assert.ok(csp.includes("img-src 'self' data: blob: https://res.cloudinary.com"));
+  assert.ok(csp.includes("connect-src 'self' https://api.cloudinary.com"));
 });
