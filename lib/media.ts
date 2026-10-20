@@ -1,7 +1,7 @@
 import 'server-only';
 import { cache } from 'react';
 import { prisma } from './prisma';
-import { cloudName, imageUrl } from './cloudinary';
+import { cloudName, photoPath, IMG_WIDTHS } from './cloudinary';
 
 // Miesta na webe, kam sa dajú nahrať fotky.
 export const SLOTS = [
@@ -18,21 +18,24 @@ export const isSlot = (v: string): v is SlotKey => SLOTS.some((s) => s.key === v
 // Náhradný alternatívny text, kým personál nenapíše vlastný (WCAG 1.1.1 – fotka nesmie byť pre čítačku prázdna).
 export const slotAlt = (slot: string) => `${SLOTS.find((s) => s.key === slot)?.label ?? 'I-SPORT COMPLEX'} – fotka z I-SPORT COMPLEX Košice`;
 
-export type WebPhoto = { id: string; alt: string; width: number; height: number; src: string; srcSet: string };
+export type WebPhoto = { id: string; alt: string; width: number; height: number; src: string; srcSet: string; avif: string; webp: string; thumb: string };
 
-const WIDTHS = [480, 800, 1200, 1600, 2000];
 
 export function toWebPhoto(p: { id: string; publicId: string; version: number; alt: string; width: number; height: number }, ratio?: string): WebPhoto | null {
   const cloud = cloudName();
   if (!cloud) return null;
-  const widths = WIDTHS.filter((w) => w <= Math.max(p.width, 480));
+  const widths = IMG_WIDTHS.filter((w) => w <= Math.max(p.width, 480));
+  const set = (fmt: 'avif' | 'webp' | 'jpg') => widths.map((w) => `${photoPath(p.publicId, p.version, w, ratio, fmt)} ${w}w`).join(', ');
   return {
     id: p.id,
     alt: p.alt || 'Fotka z I-SPORT COMPLEX Košice',
     width: p.width,
     height: p.height,
-    src: imageUrl(cloud, p.publicId, p.version, 1200, ratio),
-    srcSet: widths.map((w) => `${imageUrl(cloud, p.publicId, p.version, w, ratio)} ${w}w`).join(', '),
+    src: photoPath(p.publicId, p.version, 1200, ratio, 'jpg'),
+    srcSet: set('jpg'),
+    avif: set('avif'),
+    webp: set('webp'),
+    thumb: photoPath(p.publicId, p.version, 480, ratio, 'webp'),
   };
 }
 

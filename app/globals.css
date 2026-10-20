@@ -1969,3 +1969,18 @@ html { scroll-padding-top: 96px; }
 .mt__bar, .fn__track i, .md-progress__bar i { width: 0; }
 /* čísla hodín pod časovou osou sa ukážu až s vypočítanou pozíciou (inak by sa na okamih zliali vľavo) */
 .qb__ticks span { visibility: hidden; }
+
+/* Fotky webu: obal <picture> neovplyvní rozloženie; bez ťahania, označovania a ponuky „Uložiť“ na iPhone */
+picture.ph { display: contents; }
+.ph img { -webkit-user-drag: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+
+/* Fotky v administrácii – hromadné mazanie */
+.md-thumb { position: relative; }
+.md-pick { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: rgba(255, 255, 255, 0.92); box-shadow: 0 2px 8px rgba(11, 15, 20, 0.2); cursor: pointer; }
+.md-pick input { width: 18px; height: 18px; margin: 0; accent-color: var(--red); cursor: pointer; }
+.md-bulk { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.md-bulk__form { display: contents; }
+.md-bulk__confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.md-bulk__confirm summary { list-style: none; }
+.md-bulk__confirm summary::-webkit-details-marker { display: none; }
+.md-bulk__confirm[open] summary { border-color: var(--red); }

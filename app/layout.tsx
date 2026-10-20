@@ -6,6 +6,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { SiteChrome } from '@/components/SiteChrome';
 import { Analytics } from '@/components/Analytics';
+import { PhotoGuard } from '@/components/PhotoGuard';
 import { appUrl } from '@/lib/requestInfo';
 import './globals.css';
 
@@ -43,6 +44,9 @@ export const metadata: Metadata = {
     template: '%s · I-SPORT COMPLEX',
   },
   description: 'Športový komplex v Košiciach: tréningová ľadová plocha s online rezerváciou, futbalové ihrisko, bufet a skyboxy, pripravujeme wellness a posilňovňu.',
+  // autor webu – <meta name="author"> a <link rel="author" href="/humans.txt">
+  authors: [{ name: 'Matúš Bereš', url: '/humans.txt' }],
+  creator: 'Matúš Bereš',
 };
 
 export const viewport: Viewport = {
@@ -65,6 +69,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {children}
         </SiteChrome>
         <Analytics />
+        <PhotoGuard />
       </body>
     </html>
   );

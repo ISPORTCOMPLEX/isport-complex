@@ -5,7 +5,7 @@ import { buildCsp, securityHeaders } from './lib/securityHeaders';
 // Každá stránka dostane jednorazový nonce, spustí sa len skript, ktorý ho nesie.
 export function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
-  const csp = buildCsp(nonce, process.env.NODE_ENV === 'development');
+  const csp = buildCsp(nonce, process.env.NODE_ENV === 'development', request.nextUrl.pathname.startsWith('/admin/fotky'));
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
@@ -29,7 +29,7 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     {
-      source: '/((?!api|_next/static|_next/image|favicon.ico|icon.svg|robots.txt).*)',
+      source: '/((?!api|obrazky|_next/static|_next/image|favicon.ico|icon.svg|robots.txt|humans.txt).*)',
       missing: [
         { type: 'header', key: 'next-router-prefetch' },
         { type: 'header', key: 'purpose', value: 'prefetch' },

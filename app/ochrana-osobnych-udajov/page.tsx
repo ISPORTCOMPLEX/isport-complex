@@ -41,7 +41,7 @@ export default function OchranaPage() {
       <h2>4. Komu údaje poskytujeme</h2>
       <p>
         Údaje spracúvajú len poverení zamestnanci a sprostredkovatelia, ktorí zabezpečujú prevádzku webu: hosting (Vercel, servery v EÚ – Frankfurt), databáza
-        (Neon, EÚ – Frankfurt), odosielanie e-mailov (Resend), ukladanie fotiek webu (Cloudinary) a pri platbe kartou online platobná brána (Stripe Payments Europe, Írsko), ktorá spracúva údaje o karte priamo – my ich nevidíme ani neukladáme, dostaneme len informáciu o úspešnej platbe a jej identifikátor. Údaje nepredávame a nepoužívame na reklamu tretích strán.
+        (Neon, EÚ – Frankfurt), odosielanie e-mailov (Resend), externé úložisko fotiek webu a pri platbe kartou online platobná brána (Stripe Payments Europe, Írsko), ktorá spracúva údaje o karte priamo – my ich nevidíme ani neukladáme, dostaneme len informáciu o úspešnej platbe a jej identifikátor. Údaje nepredávame a nepoužívame na reklamu tretích strán.
       </p>
       <h2>5. Tvoje práva</h2>
       <p>

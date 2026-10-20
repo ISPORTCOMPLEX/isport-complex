@@ -5,7 +5,11 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   async rewrites() {
-    return [{ source: '/.well-known/security.txt', destination: '/api/security-txt' }];
+    return [
+      { source: '/.well-known/security.txt', destination: '/api/security-txt' },
+      { source: '/robots.txt', destination: '/api/robots' },
+      { source: '/humans.txt', destination: '/api/humans' },
+    ];
   },
   async redirects() {
     return [{ source: '/hala', destination: '/ladova-plocha', permanent: true }];

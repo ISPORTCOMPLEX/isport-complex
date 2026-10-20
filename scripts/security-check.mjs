@@ -69,6 +69,12 @@ try {
   check('/.well-known/security.txt existuje', st.status === 200, String(st.status));
   const robots = await (await get('/robots.txt')).text();
   check('robots.txt neprezrádza neverejné cesty', !/admin|ucet|api|prihlasenie/i.test(robots), robots.slice(0, 120));
+  const humans = await get('/humans.txt');
+  check('/humans.txt existuje', humans.status === 200, String(humans.status));
+  // úložisko fotiek sa nesmie objaviť v stránke ani v hlavičkách
+  const front = await get('/');
+  const frontHtml = await front.text();
+  check('úvodná stránka neprezrádza úložisko fotiek', !/cloudinary/i.test(frontHtml) && !/cloudinary/i.test(front.headers.get('content-security-policy') ?? ''));
 
   // 7) Zdrojové mapy nie sú verejné
   const html = await (await get('/')).text();

@@ -18,7 +18,8 @@ export const securityHeaders: { key: string; value: string }[] = [
   { key: 'Origin-Agent-Cluster', value: '?1' },
 ];
 
-export function buildCsp(nonce: string, isDev: boolean): string {
+// uploads: len administrácia fotiek smie posielať súbory do úložiska (inde sa jeho adresa v CSP neobjaví)
+export function buildCsp(nonce: string, isDev: boolean, uploads = false): string {
   const directives = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
@@ -28,9 +29,10 @@ export function buildCsp(nonce: string, isDev: boolean): string {
     "style-src 'self'",
     `style-src-elem 'self' 'nonce-${nonce}'`,
     "style-src-attr 'none'",
-    "img-src 'self' data: blob: https://res.cloudinary.com",
+    // fotky idú cez našu doménu (/obrazky/…), úložisko prehliadač nekontaktuje
+    "img-src 'self' data: blob:",
     "font-src 'self'",
-    `connect-src 'self' https://api.cloudinary.com${isDev ? ' ws: wss:' : ''}`,
+    `connect-src 'self'${uploads ? ' https://api.cloudinary.com' : ''}${isDev ? ' ws: wss:' : ''}`,
     "object-src 'none'",
     "base-uri 'self'",
     // Stripe Checkout: po odoslaní rezervácie presmerujeme na platobnú stránku brány

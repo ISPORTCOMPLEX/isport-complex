@@ -61,7 +61,7 @@ for (const f of code.filter((f) => /^(app|components)\/.*\.tsx$/.test(rel(f)) &&
 }
 
 // 4) API: overenie alebo výslovne verejný endpoint
-const PUBLIC_API = new Set(['app/api/a/route.ts', 'app/api/security-txt/route.ts']);
+const PUBLIC_API = new Set(['app/api/a/route.ts', 'app/api/security-txt/route.ts', 'app/api/robots/route.ts', 'app/api/humans/route.ts']);
 for (const f of code.filter((f) => /^app\/api\/.*route\.ts$/.test(rel(f)))) {
   const s = read(f);
   if (PUBLIC_API.has(rel(f))) continue;

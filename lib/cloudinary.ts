@@ -79,8 +79,35 @@ export async function destroyResource(cfg: CloudinaryConfig, publicId: string): 
   return j.result === 'ok' || j.result === 'not found';
 }
 
-// Adresa na zobrazenie: automatický formát (AVIF/WebP), kvalita, výrez podľa obsahu, bez EXIF údajov (napr. GPS).
-export function imageUrl(cloud: string, publicId: string, version: number, w: number, ratio?: string): string {
-  const t = ['f_auto', 'q_auto', ratio ? `c_fill,g_auto,ar_${ratio}` : 'c_limit', `w_${w}`].join(',');
+// Adresa priamo v Cloudinary – používa ju LEN server (app/obrazky/[...path]/route.ts), návštevník ju nikdy nevidí.
+// Kvalita automaticky, výrez podľa obsahu, bez EXIF údajov (napr. GPS).
+export const IMG_FORMATS = ['avif', 'webp', 'jpg'] as const;
+export type ImgFormat = (typeof IMG_FORMATS)[number];
+export function imageUrl(cloud: string, publicId: string, version: number, w: number, ratio?: string, fmt: ImgFormat | 'auto' = 'auto'): string {
+  const t = [`f_${fmt}`, 'q_auto', ratio ? `c_fill,g_auto,ar_${ratio}` : 'c_limit', `w_${w}`].join(',');
   return `https://res.cloudinary.com/${cloud}/image/upload/${t}/v${version}/${publicId.split('/').map(encodeURIComponent).join('/')}`;
+}
+
+// Verejná adresa fotky na našej doméne: /obrazky/<šírka>/<pomer>/<formát>/v<verzia>/<id>
+// Prehliadač aj návštevník vidia len náš web; odkiaľ fotka pochádza, nezistí.
+export const IMG_WIDTHS = [480, 800, 1200, 1600, 2000] as const;
+export const IMG_RATIOS = ['4:3', '16:10', '2:1'] as const;
+export function photoPath(publicId: string, version: number, w: number, ratio: string | undefined, fmt: ImgFormat): string {
+  const r = ratio ? ratio.replace(':', 'x') : 'o';
+  return `/obrazky/${w}/${r}/${fmt}/v${version}/${publicId.split('/').map(encodeURIComponent).join('/')}`;
+}
+
+// Rozbor adresy /obrazky/… – vráti null pri čomkoľvek neočakávanom (proxy nesmie sťahovať cudzie súbory).
+export function parsePhotoPath(parts: string[]): { w: number; ratio?: string; fmt: ImgFormat; version: number; publicId: string } | null {
+  if (parts.length < 6) return null;
+  const [ws, rs, fs, vs, ...id] = parts;
+  const w = Number(ws);
+  if (!(IMG_WIDTHS as readonly number[]).includes(w)) return null;
+  const ratio = rs === 'o' ? undefined : rs.replace('x', ':');
+  if (ratio !== undefined && !(IMG_RATIOS as readonly string[]).includes(ratio)) return null;
+  if (!(IMG_FORMATS as readonly string[]).includes(fs)) return null;
+  const vm = /^v(\d{1,12})$/.exec(vs);
+  if (!vm) return null;
+  if (id[0] !== 'isport' || id.length > 6 || !id.every((x) => /^[\w.-]{1,120}$/.test(x) && x !== '..' && x !== '.')) return null;
+  return { w, ratio, fmt: fs as ImgFormat, version: Number(vm[1]), publicId: id.join('/') };
 }

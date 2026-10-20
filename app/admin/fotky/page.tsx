@@ -3,7 +3,7 @@ import { requireStaff } from '@/lib/staff';
 import { prisma } from '@/lib/prisma';
 import { cloudinaryConfig } from '@/lib/cloudinary';
 import { SLOTS, toWebPhoto } from '@/lib/media';
-import { deletePhotoAction, updatePhotoAction } from '@/lib/actions/media';
+import { deletePhotoAction, deletePhotosAction, updatePhotoAction } from '@/lib/actions/media';
 import { AdmHead, Empty, Panel } from '@/components/admin/ui';
 import { MediaUploader } from '@/components/admin/MediaUploader';
 
@@ -19,7 +19,7 @@ export default async function FotkyPage() {
 
   return (
     <div className="adm__stack">
-      <AdmHead title="Fotky" sub={`${rows.length} fotiek · ${kb(total)} v Cloudinary · databáza ukladá len odkazy`} />
+      <AdmHead title="Fotky" sub={`${rows.length} fotiek · ${kb(total)} v úložisku · návštevníci ich vidia len cez adresu webu`} />
 
       {!ready ? (
         <Panel title="Cloudinary ešte nie je pripojené">
@@ -45,8 +45,12 @@ export default async function FotkyPage() {
                     <li key={r.id} className="md-item">
                       <div className="md-thumb">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        {w ? <img src={w.src.replace('w_1200', 'w_480')} alt={r.alt} loading="lazy" /> : null}
+                        {w ? <img src={w.thumb} alt={r.alt} loading="lazy" draggable={false} /> : null}
                         {i === 0 ? <span className="md-badge">Hlavná</span> : null}
+                        <label className="md-pick">
+                          <input type="checkbox" name="ids" value={r.id} form={`del-${slot.key}`} />
+                          <span className="sr-only">Označiť fotku na zmazanie</span>
+                        </label>
                       </div>
                       <form action={updatePhotoAction} className="md-alt">
                         <input type="hidden" name="id" value={r.id} />
@@ -99,6 +103,29 @@ export default async function FotkyPage() {
                 })}
               </ul>
             )}
+            {list.length > 0 ? (
+              <div className="md-bulk">
+                <form id={`del-${slot.key}`} action={deletePhotosAction} className="md-bulk__form">
+                  <input type="hidden" name="slot" value={slot.key} />
+                  <details className="md-bulk__confirm">
+                    <summary className="btn btn--sm btn--ghost">Zmazať označené</summary>
+                    <button type="submit" className="btn btn--sm btn--danger">
+                      Naozaj zmazať označené fotky
+                    </button>
+                  </details>
+                </form>
+                <form action={deletePhotosAction} className="md-bulk__form">
+                  <input type="hidden" name="slot" value={slot.key} />
+                  <input type="hidden" name="all" value="1" />
+                  <details className="md-bulk__confirm">
+                    <summary className="btn btn--sm btn--ghost">Zmazať všetky v sekcii ({list.length})</summary>
+                    <button type="submit" className="btn btn--sm btn--danger">
+                      Naozaj zmazať všetkých {list.length}
+                    </button>
+                  </details>
+                </form>
+              </div>
+            ) : null}
           </Panel>
         );
       })}

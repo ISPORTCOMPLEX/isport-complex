@@ -11,7 +11,7 @@ import { isBot, device } from '../lib/analytics/ua.ts';
 import { passwordProblem } from '../lib/password.ts';
 import { buildCsp, securityHeaders } from '../lib/securityHeaders.ts';
 import { isCrossSite } from '../lib/sameSite.ts';
-import { signParams, imageUrl } from '../lib/cloudinary.ts';
+import { signParams, imageUrl, photoPath, parsePhotoPath } from '../lib/cloudinary.ts';
 
 test('open redirect: povolené len cesty v rámci webu', () => {
   for (const bad of ['//evil.com', '/\\evil.com', 'https://evil.com', 'javascript:alert(1)', '/\r\nSet-Cookie:x', '\\\\evil.com', '/\tevil', '', 'evil', 'http:/evil.com'])
@@ -135,10 +135,28 @@ test('Cloudinary: podpis podľa dokumentácie a bezpečná adresa', () => {
   assert.equal(u, 'https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,c_fill,g_auto,ar_16:10,w_800/v3/isport/bufet/a%20b');
 });
 
-test('CSP povoľuje len Cloudinary navyše', () => {
-  const csp = buildCsp('n', false);
-  assert.ok(csp.includes("img-src 'self' data: blob: https://res.cloudinary.com"));
-  assert.ok(csp.includes("connect-src 'self' https://api.cloudinary.com"));
+test('CSP: úložisko fotiek sa neprezrádza, upload len v administrácii fotiek', () => {
+  const pub = buildCsp('n', false);
+  assert.ok(!pub.includes('cloudinary'), 'verejná CSP nesmie obsahovať adresu úložiska');
+  assert.ok(pub.includes("img-src 'self' data: blob:"));
+  assert.ok(buildCsp('n', false, true).includes("connect-src 'self' https://api.cloudinary.com"));
+});
+
+test('fotky: adresy na našej doméne a prísna kontrola cesty', () => {
+  assert.equal(photoPath('isport/bufet/abc', 7, 800, '4:3', 'webp'), '/obrazky/800/4x3/webp/v7/isport/bufet/abc');
+  assert.deepEqual(parsePhotoPath(['800', '4x3', 'webp', 'v7', 'isport', 'bufet', 'abc']), { w: 800, ratio: '4:3', fmt: 'webp', version: 7, publicId: 'isport/bufet/abc' });
+  assert.equal(parsePhotoPath(['1200', 'o', 'jpg', 'v1', 'isport', 'x'])?.ratio, undefined);
+  for (const bad of [
+    ['801', 'o', 'jpg', 'v1', 'isport', 'x'], // neznáma šírka
+    ['800', '9x9', 'jpg', 'v1', 'isport', 'x'], // neznámy pomer
+    ['800', 'o', 'gif', 'v1', 'isport', 'x'], // neznámy formát
+    ['800', 'o', 'jpg', '1', 'isport', 'x'],
+    ['800', 'o', 'jpg', 'v1', 'ine', 'x'], // len naše fotky
+    ['800', 'o', 'jpg', 'v1', 'isport', '..'],
+    ['800', 'o', 'jpg', 'v1', 'isport', 'a b'],
+    ['800', 'o', 'jpg', 'v1', 'isport'],
+  ])
+    assert.equal(parsePhotoPath(bad), null, bad.join('/'));
 });
 
 test('CSP: skripty ani štýlové bloky bez unsafe-inline / unsafe-eval', () => {

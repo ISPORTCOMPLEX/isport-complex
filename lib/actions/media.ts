@@ -94,13 +94,40 @@ export async function updatePhotoAction(form: FormData): Promise<void> {
 }
 
 export async function deletePhotoAction(form: FormData): Promise<void> {
-  const me = await requireStaff('media.manage');
-  const cfg = cloudinaryConfig();
+  await requireStaff('media.manage');
   const id = String(form.get('id') ?? '').slice(0, 40);
-  const photo = await prisma.photo.findUnique({ where: { id } });
-  if (!photo) return;
-  if (cfg) await destroyResource(cfg, photo.publicId);
-  await prisma.photo.delete({ where: { id } });
-  await audit(me.id, 'photo.delete', photo.publicId, { slot: photo.slot });
+  await removePhotos([id]);
+}
+
+// Hromadné mazanie: označené fotky (ids) alebo celá sekcia (all=1 + slot).
+export async function deletePhotosAction(form: FormData): Promise<void> {
+  await requireStaff('media.manage');
+  const slot = String(form.get('slot') ?? '');
+  if (form.get('all') === '1' && isSlot(slot)) {
+    const rows = await prisma.photo.findMany({ where: { slot }, select: { id: true } });
+    await removePhotos(rows.map((r) => r.id));
+    return;
+  }
+  const ids = form.getAll('ids').map((v) => String(v).slice(0, 40)).slice(0, 100);
+  await removePhotos(ids);
+}
+
+// Zmaže fotku z úložiska aj z databázy. Ak úložisko zlyhá, záznam ostane (aby v úložisku nezostala „sirota“)
+// a dá sa zmazať znova.
+async function removePhotos(ids: string[]): Promise<void> {
+  const me = await requireStaff('media.manage');
+  const limit = await hitLimit(`media:delete:${me.id}`, 200, 60 * 60);
+  if (!limit.ok || ids.length === 0) return;
+  const cfg = cloudinaryConfig();
+  const photos = await prisma.photo.findMany({ where: { id: { in: ids } } });
+  for (const photo of photos) {
+    const gone = cfg ? await destroyResource(cfg, photo.publicId).catch(() => false) : true;
+    if (!gone) {
+      console.error('[media:delete] úložisko fotku nezmazalo', photo.publicId);
+      continue;
+    }
+    await prisma.photo.delete({ where: { id: photo.id } }).catch(() => undefined);
+    await audit(me.id, 'photo.delete', photo.publicId, { slot: photo.slot });
+  }
   refresh();
 }
