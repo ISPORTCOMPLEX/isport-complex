@@ -93,3 +93,8 @@ Premenné: `AUTH_SECRET`, `APP_URL`, `RESEND_API_KEY`, `EMAIL_FROM` (pozri `.env
 - Ochrana kalendára: max. počet nadchádzajúcich rezervácií na účet, databázová poistka proti dvojitej rezervácii.
 - Režim bez e-mailov (kým nie je doména): aktiváciu účtu a obnovu hesla robí recepcia (jednorazový odkaz).
 - Denný cron: mazanie starých záznamov a neaktivovaných účtov podľa zásad ochrany údajov.
+
+## v3 – web celého komplexu
+- Úvod: rez budovou komplexu (ľad, skyboxy, bufet, posilňovňa, wellness, ihrisko), stav ľadu naživo, rýchla rezervácia.
+- Stránky: /ladova-plocha (namiesto /hala), /ihrisko, /fitness-wellness, /bufet-skyboxy.
+- Rezervácia: len celá plocha + šatne (cena a počet v Nastaveniach), Booking.lockerRooms / lockerCents.

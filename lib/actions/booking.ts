@@ -22,8 +22,8 @@ export async function createBookingAction(_prev: FormState, form: FormData): Pro
   const iso = str(form, 'datum', 10);
   const startHour = Number.parseInt(str(form, 'od', 2), 10);
   const hours = Number.parseInt(str(form, 'hodiny', 2), 10);
-  const area = str(form, 'plocha', 10) === 'polovica' ? 'polovica' : 'cela';
-  if (!user) redirect(`/prihlasenie?next=${encodeURIComponent(`/rezervacia/udaje?datum=${iso}&od=${startHour}&hodiny=${hours}&plocha=${area}`)}`);
+  const rooms = Math.max(0, Number.parseInt(str(form, 'satne', 2), 10) || 0);
+  if (!user) redirect(`/prihlasenie?next=${encodeURIComponent(`/rezervacia/udaje?datum=${iso}&od=${startHour}&hodiny=${hours}&satne=${rooms}`)}`);
 
   const values = {
     contactName: str(form, 'contactName', 120),
@@ -61,7 +61,7 @@ export async function createBookingAction(_prev: FormState, form: FormData): Pro
     iso,
     startHour,
     hours,
-    area,
+    lockerRooms: rooms,
     contactName: values.contactName,
     contactPhone: values.contactPhone,
     teamName: values.teamName || null,

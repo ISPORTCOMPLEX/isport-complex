@@ -5,9 +5,10 @@ import { requireUser } from '@/lib/session';
 import { getBookingSettings } from '@/lib/booking/settings';
 import { dayAvailability } from '@/lib/booking/availability';
 import { validateSlot } from '@/lib/booking/create';
-import { totalCents } from '@/lib/booking/pricing';
+import { iceCents, lockerCents } from '@/lib/booking/pricing';
 import { euros, fmtDayLong, hallTime, isIsoDate, pad2 } from '@/lib/booking/time';
 import { BookingForm } from '@/components/booking/BookingForm';
+import { RzBand } from '@/components/booking/RzBand';
 
 export const metadata: Metadata = { title: 'Údaje k rezervácii', robots: { index: false } };
 
@@ -19,11 +20,11 @@ export default async function UdajePage({ searchParams }: Props) {
   const iso = one(sp.datum);
   const startHour = Number.parseInt(one(sp.od), 10);
   const hours = Number.parseInt(one(sp.hodiny), 10);
-  const area = one(sp.plocha) === 'polovica' ? 'polovica' : 'cela';
   const presun = /^ISP-[A-Z0-9]{6}$/.test(one(sp.presun)) ? one(sp.presun) : null;
-  const self = `/rezervacia/udaje?datum=${iso}&od=${startHour}&hodiny=${hours}&plocha=${area}${presun ? `&presun=${presun}` : ''}`;
-  const user = await requireUser(self);
   const settings = await getBookingSettings();
+  const rooms = Math.max(0, Math.min(settings.lockerRooms, Number.parseInt(one(sp.satne), 10) || 0));
+  const self = `/rezervacia/udaje?datum=${iso}&od=${startHour}&hodiny=${hours}&satne=${rooms}${presun ? `&presun=${presun}` : ''}`;
+  const user = await requireUser(self);
 
   let problem = isIsoDate(iso) ? validateSlot(settings, iso, startHour, hours) : 'Neplatný dátum.';
   const old = presun ? await prisma.booking.findUnique({ where: { code: presun } }) : null;
@@ -33,53 +34,49 @@ export default async function UdajePage({ searchParams }: Props) {
   if (!problem) {
     const slots = await dayAvailability(settings, iso);
     const wanted = slots.filter((s) => s.hour >= startHour && s.hour < startHour + hours);
-    const ok =
-      wanted.length === hours &&
-      (area === 'cela' ? wanted.every((s) => s.freeA && s.freeB) : wanted.every((s) => s.freeA) || wanted.every((s) => s.freeB));
-    if (!ok) problem = 'Vybraný čas už nie je voľný.';
+    if (wanted.length !== hours || !wanted.every((s) => s.free)) problem = 'Vybraný čas už nie je voľný.';
   }
 
   if (problem) {
     return (
-      <section className="soon">
-        <div className="wrap soon__in">
-          <span className="kicker">Rezervácia</span>
-          <h1 className="display h2">Termín nie je dostupný</h1>
-          <p className="lead">{problem}</p>
-          <Link href={isIsoDate(iso) ? `/rezervacia?datum=${iso}&plocha=${area}` : '/rezervacia'} className="btn" style={{ alignSelf: 'flex-start' }}>
-            Vybrať iný čas
-          </Link>
-        </div>
-      </section>
+      <>
+        <RzBand crumbs={[{ href: '/', label: 'Domov' }, { href: '/rezervacia', label: 'Rezervácia' }]} title="Termín nie je dostupný" />
+        <section className="ice rz-ice">
+          <div className="wrap rz-narrow">
+            <p className="rz-lead">{problem}</p>
+            <Link href={isIsoDate(iso) ? `/rezervacia?datum=${iso}&satne=${rooms}` : '/rezervacia'} className="btn" style={{ alignSelf: 'flex-start' }}>
+              Vybrať iný čas
+            </Link>
+          </div>
+        </section>
+      </>
     );
   }
 
   const start = hallTime(iso, startHour);
-  const cents = totalCents(settings, area, iso, startHour, hours);
-  const last = old ?? await prisma.booking.findFirst({
-    where: { userId: user.id },
-    orderBy: { createdAt: 'desc' },
-    select: { teamName: true, contactPhone: true, contactName: true },
-  });
+  const ice = iceCents(settings, iso, startHour, hours);
+  const lockers = lockerCents(settings, rooms);
+  const last =
+    old ??
+    (await prisma.booking.findFirst({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      select: { teamName: true, contactPhone: true, contactName: true },
+    }));
 
   return (
     <>
-      <section className="page-head page-head--tight">
-        <div className="wrap page-head__in">
-          <nav aria-label="Omrvinky" className="crumbs">
-            <Link href="/rezervacia">Rezervácia</Link>
-            <span>/</span>
-            Údaje
-          </nav>
-          <h1 className="display h2">{old ? `Presun rezervácie ${old.code}` : 'Dokončenie rezervácie'}</h1>
-        </div>
-      </section>
-      <section className="section section--tight">
-        <div className="wrap rez">
-          <div className="rez__main">
-            <div className="card rez__panel">
+      <RzBand
+        crumbs={[{ href: '/', label: 'Domov' }, { href: `/rezervacia?datum=${iso}&cas=${startHour}&satne=${rooms}`, label: 'Rezervácia' }, { label: 'Údaje' }]}
+        step="Krok 2 z 2 · údaje"
+        title={old ? `Presun ${old.code}` : 'Dokončenie'}
+      />
+      <section className="ice rz-ice">
+        <div className="wrap rz-grid">
+          <div className="rz-main">
+            <div className="rz-card">
               <BookingForm
-                hidden={{ datum: iso, od: String(startHour), hodiny: String(hours), plocha: area, ...(old ? { presun: old.code } : {}) }}
+                hidden={{ datum: iso, od: String(startHour), hodiny: String(hours), satne: String(rooms), ...(old ? { presun: old.code } : {}) }}
                 moving={old ? old.code : null}
                 defaults={{
                   contactName: last?.contactName ?? `${user.firstName} ${user.lastName}`,
@@ -90,39 +87,39 @@ export default async function UdajePage({ searchParams }: Props) {
               />
             </div>
           </div>
-          <aside className="rez__side">
-            <div className="booker-frame rez__summary-frame">
-              <div className="booker glass rez__summary">
-                <h2 className="rez__label">Súhrn</h2>
-                <dl className="rez__dl">
-                  <div>
-                    <dt>Plocha</dt>
-                    <dd>{area === 'cela' ? 'Celá plocha' : 'Polovica plochy'}</dd>
-                  </div>
-                  <div>
-                    <dt>Deň</dt>
-                    <dd>{fmtDayLong(start)}</dd>
-                  </div>
-                  <div>
-                    <dt>Čas</dt>
-                    <dd>
-                      {pad2(startHour)} – {pad2(startHour + hours)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Šatňa</dt>
-                    <dd>V cene</dd>
-                  </div>
-                </dl>
-                <div className="rez__total">
-                  <small>Spolu s DPH</small>
-                  <strong className="num">{euros(cents)}</strong>
-                </div>
-                <Link href={`/rezervacia?datum=${iso}&plocha=${area}&cas=${startHour}`} className="link-red rez__change">
-                  ← Zmeniť termín
-                </Link>
+          <aside className="rz-sum">
+            <h2 className="rz-sum__title">Súhrn</h2>
+            <dl className="rz-rows">
+              <div>
+                <dt>Plocha</dt>
+                <dd>Celá ľadová plocha</dd>
               </div>
+              <div>
+                <dt>Deň</dt>
+                <dd>{fmtDayLong(start)}</dd>
+              </div>
+              <div>
+                <dt>Čas</dt>
+                <dd>
+                  {pad2(startHour)} – {pad2(startHour + hours)}
+                </dd>
+              </div>
+              <div>
+                <dt>Ľad</dt>
+                <dd>{euros(ice)}</dd>
+              </div>
+              <div>
+                <dt>Šatne{rooms ? `, ${rooms} ×` : ''}</dt>
+                <dd>{rooms ? euros(lockers) : 'bez šatne'}</dd>
+              </div>
+            </dl>
+            <div className="rz-total">
+              <span>Spolu s DPH</span>
+              <strong>{euros(ice + lockers)}</strong>
             </div>
+            <Link href={`/rezervacia?datum=${iso}&cas=${startHour}&satne=${rooms}${presun ? `&presun=${presun}` : ''}`} className="rz-back">
+              Zmeniť termín alebo šatne
+            </Link>
           </aside>
         </div>
       </section>

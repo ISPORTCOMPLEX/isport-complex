@@ -120,6 +120,8 @@ CREATE TABLE "Booking" (
     "endsAt" TIMESTAMP(3) NOT NULL,
     "hours" INTEGER NOT NULL,
     "priceCents" INTEGER NOT NULL,
+    "lockerRooms" INTEGER NOT NULL DEFAULT 0,
+    "lockerCents" INTEGER NOT NULL DEFAULT 0,
     "status" "BookingStatus" NOT NULL DEFAULT 'CONFIRMED',
     "paymentStatus" "PaymentStatus" NOT NULL DEFAULT 'UNPAID',
     "paymentMethod" "PaymentMethod" NOT NULL DEFAULT 'ONSITE',

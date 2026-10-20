@@ -151,7 +151,9 @@ model Booking {
   startsAt      DateTime
   endsAt        DateTime
   hours         Int
-  priceCents    Int
+  priceCents    Int // spolu: ľad + šatne
+  lockerRooms   Int           @default(0) // počet šatní
+  lockerCents   Int           @default(0) // cena za šatne spolu
   status        BookingStatus @default(CONFIRMED)
   paymentStatus PaymentStatus @default(UNPAID)
   paymentMethod PaymentMethod @default(ONSITE)

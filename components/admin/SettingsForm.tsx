@@ -8,7 +8,9 @@ import { FormAlert } from '@/components/forms/FormAlert';
 import { SubmitButton } from '@/components/forms/SubmitButton';
 
 type S = {
-  prices: { full: { offPeak: number; peak: number; weekend: number }; half: { offPeak: number; peak: number; weekend: number } };
+  prices: { full: { offPeak: number; peak: number; weekend: number } };
+  lockerPrice: number;
+  lockerRooms: number;
   peakFromHour: number;
   openHour: number;
   closeHour: number;
@@ -40,10 +42,6 @@ export function SettingsForm({ s }: { s: S }) {
           <Field label="Celá – mimo špičky (€)" name="fullOff" inputMode="numeric" defaultValue={n(s.prices.full.offPeak)} error={e.fullOff} />
           <Field label="Celá – špička (€)" name="fullPeak" inputMode="numeric" defaultValue={n(s.prices.full.peak)} error={e.fullPeak} />
           <Field label="Celá – víkend (€)" name="fullWeekend" inputMode="numeric" defaultValue={n(s.prices.full.weekend)} error={e.fullWeekend} />
-          <strong>Polovica</strong>
-          <Field label="Polovica – mimo špičky (€)" name="halfOff" inputMode="numeric" defaultValue={n(s.prices.half.offPeak)} error={e.halfOff} />
-          <Field label="Polovica – špička (€)" name="halfPeak" inputMode="numeric" defaultValue={n(s.prices.half.peak)} error={e.halfPeak} />
-          <Field label="Polovica – víkend (€)" name="halfWeekend" inputMode="numeric" defaultValue={n(s.prices.half.weekend)} error={e.halfWeekend} />
         </div>
       </section>
 
@@ -52,6 +50,8 @@ export function SettingsForm({ s }: { s: S }) {
           <h2>Čas a pravidlá</h2>
         </div>
         <div className="adm-settings-grid">
+          <Field label="Cena šatne (€ za rezerváciu)" name="lockerPrice" inputMode="numeric" defaultValue={n(s.lockerPrice)} error={e.lockerPrice} />
+          <Field label="Počet šatní na prenájom" name="lockerRooms" inputMode="numeric" defaultValue={n(s.lockerRooms)} error={e.lockerRooms} hint="0 = šatne sa pri rezervácii neponúkajú" />
           <Field label="Ľad od (hodina)" name="openHour" inputMode="numeric" defaultValue={n(s.openHour)} error={e.openHour} hint="napr. 6 = od 6:00" />
           <Field label="Ľad do (hodina)" name="closeHour" inputMode="numeric" defaultValue={n(s.closeHour)} error={e.closeHour} hint="napr. 23 = posledná hodina 22:00 – 23:00" />
           <Field label="Špička od (hodina)" name="peakFromHour" inputMode="numeric" defaultValue={n(s.peakFromHour)} error={e.peakFromHour} hint="v pracovné dni" />

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Booking" ADD COLUMN     "lockerCents" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "lockerRooms" INTEGER NOT NULL DEFAULT 0;

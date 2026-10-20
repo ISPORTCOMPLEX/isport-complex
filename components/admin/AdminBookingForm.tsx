@@ -10,10 +10,11 @@ import { SubmitButton } from '@/components/forms/SubmitButton';
 type Slot = { hour: number; free: boolean; price: number };
 const pad = (h: number) => `${String(h).padStart(2, '0')}:00`;
 
-export function AdminBookingForm({ iso, plocha, slots }: { iso: string; plocha: string; slots: Slot[] }) {
+export function AdminBookingForm({ iso, slots, lockerRooms, lockerPrice }: { iso: string; slots: Slot[]; lockerRooms: number; lockerPrice: number }) {
   const [state, action] = useActionState(adminCreateBookingAction, EMPTY);
   const [start, setStart] = useState<number | null>(null);
   const [hours, setHours] = useState(1);
+  const [rooms, setRooms] = useState(0);
   const v = state.values ?? {};
   const e = state.errors ?? {};
   const run = (() => {
@@ -28,9 +29,9 @@ export function AdminBookingForm({ iso, plocha, slots }: { iso: string; plocha: 
   return (
     <form action={action} className="adm__stack" noValidate>
       <input type="hidden" name="datum" value={iso} />
-      <input type="hidden" name="plocha" value={plocha} />
       <input type="hidden" name="od" value={start ?? ''} />
       <input type="hidden" name="hodiny" value={len} />
+      <input type="hidden" name="satne" value={rooms} />
       <FormAlert error={state.error} />
 
       <section className="adm-panel">
@@ -38,7 +39,7 @@ export function AdminBookingForm({ iso, plocha, slots }: { iso: string; plocha: 
           <h2>2. Čas</h2>
           {start !== null ? (
             <span className="muted">
-              {pad(start)} – {pad(start + len)} · {total.toLocaleString('sk-SK')} €
+              {pad(start)} – {pad(start + len)} · {(total + rooms * lockerPrice).toLocaleString('sk-SK')} € spolu
             </span>
           ) : null}
         </div>
@@ -74,6 +75,28 @@ export function AdminBookingForm({ iso, plocha, slots }: { iso: string; plocha: 
           </div>
         </div>
       </section>
+
+      {lockerRooms > 0 ? (
+        <section className="adm-panel">
+          <div className="adm-panel__head">
+            <h2>Šatne</h2>
+          </div>
+          <div className="rez__count" style={{ maxWidth: 420 }}>
+            <span>
+              Počet šatní ({lockerPrice} € / šatňa, max. {lockerRooms})
+            </span>
+            <div className="rez__stepper">
+              <button type="button" aria-label="Menej šatní" disabled={rooms <= 0} onClick={() => setRooms(rooms - 1)}>
+                −
+              </button>
+              <strong>{rooms}</strong>
+              <button type="button" aria-label="Viac šatní" disabled={rooms >= lockerRooms} onClick={() => setRooms(rooms + 1)}>
+                +
+              </button>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="adm-panel">
         <div className="adm-panel__head">

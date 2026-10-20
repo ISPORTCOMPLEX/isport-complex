@@ -20,7 +20,7 @@ export default async function CennikPage() {
           </nav>
           <div className="section__head">
             <h1 className="display h1">Cenník ľadu</h1>
-            <p className="muted">Ceny sú za 60 minút ľadu vrátane DPH, šatne a úpravy ľadu.</p>
+            <p className="muted">Ceny sú vrátane DPH. Prenajíma sa celá plocha, úprava ľadu je v cene, šatne za príplatok.</p>
           </div>
 
           <div className="table-card">
@@ -47,20 +47,22 @@ export default async function CennikPage() {
               <tbody>
                 <tr>
                   <th scope="row">
-                    Celá plocha<span>Tímový tréning, zápas, kemp</span>
+                    Ľadová plocha<span>Celá plocha, cena za 60 minút</span>
                   </th>
                   <td className="num">{price(p.full.offPeak)}</td>
                   <td className="num">{price(p.full.peak)}</td>
                   <td className="num">{price(p.full.weekend)}</td>
                 </tr>
-                <tr>
-                  <th scope="row">
-                    Polovica plochy<span>Individuálny tréning, brankári</span>
-                  </th>
-                  <td className="num">{price(p.half.offPeak)}</td>
-                  <td className="num">{price(p.half.peak)}</td>
-                  <td className="num">{price(p.half.weekend)}</td>
-                </tr>
+                {settings.lockerRooms > 0 ? (
+                  <tr>
+                    <th scope="row">
+                      Šatňa<span>Za každú šatňu k rezervácii</span>
+                    </th>
+                    <td colSpan={3} className="num">
+                      {price(settings.lockerPrice)}
+                    </td>
+                  </tr>
+                ) : null}
                 <tr>
                   <th scope="row">
                     Sezónny prenájom<span>Pevný čas každý týždeň</span>

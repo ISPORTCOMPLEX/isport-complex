@@ -7,7 +7,9 @@ import { prisma } from '@/lib/prisma';
 export type AreaPrices = { offPeak: number; peak: number; weekend: number };
 
 export type BookingSettings = {
-  prices: { full: AreaPrices; half: AreaPrices }; // € s DPH za 60 minút
+  prices: { full: AreaPrices }; // € s DPH za 60 minút, celá plocha
+  lockerPrice: number; // € za jednu šatňu k rezervácii
+  lockerRooms: number; // koľko šatní sa dá prenajať
   peakFromHour: number; // od tejto hodiny v pracovné dni platí špička
   openHour: number; // prvá hodina, ktorá sa dá rezervovať
   closeHour: number; // ľad končí o tejto hodine
@@ -22,8 +24,9 @@ export type BookingSettings = {
 export const DEFAULT_SETTINGS: BookingSettings = {
   prices: {
     full: { offPeak: 140, peak: 180, weekend: 180 },
-    half: { offPeak: 80, peak: 100, weekend: 100 },
   },
+  lockerPrice: 20,
+  lockerRooms: 4,
   peakFromHour: 16,
   openHour: 6,
   closeHour: 23,
@@ -53,7 +56,9 @@ export function normalizeSettings(raw: unknown): BookingSettings {
   const openHour = num(r.openHour, d.openHour, 0, 23);
   const closeHour = num(r.closeHour, d.closeHour, openHour + 1, 24);
   return {
-    prices: { full: area(r.prices?.full, d.prices.full), half: area(r.prices?.half, d.prices.half) },
+    prices: { full: area(r.prices?.full, d.prices.full) },
+    lockerPrice: num(r.lockerPrice, d.lockerPrice, 0, 1000),
+    lockerRooms: num(r.lockerRooms, d.lockerRooms, 0, 20),
     peakFromHour: num(r.peakFromHour, d.peakFromHour, 0, 24),
     openHour,
     closeHour,

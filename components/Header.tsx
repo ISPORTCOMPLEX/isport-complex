@@ -1,39 +1,42 @@
 import Link from 'next/link';
-import { Logo } from './Logo';
+import { LogoMark, Wordmark } from './Logo';
 import { MobileNav, NavLinks } from './NavLinks';
 import { ArrowUpRight } from './Icons';
 import { getSessionUser } from '@/lib/session';
 
-// Plávajúca sklenená hlavička – drží sa hore pri posúvaní stránky.
+// Hlavička: logo, textové menu a jediné červené tlačidlo. Drží sa hore pri posúvaní.
 export async function Header() {
   const user = await getSessionUser();
   return (
-    <div className="wrap header-shell">
-      <header className="header glass">
-        <Logo />
+    <header className="hd">
+      <div className="wrap hd__in">
+        <Link href="/" className="hd__logo" aria-label="I-SPORT COMPLEX, domov">
+          <LogoMark size={32} />
+          <Wordmark />
+        </Link>
         <NavLinks />
-        <div className="header__actions">
+        <div className="hd__actions">
           {user ? (
-            <Link href="/ucet" className="header__login header__me">
+            <Link href="/ucet" className="hd__me">
               <span className="header__avatar" aria-hidden="true">
                 {`${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase()}
               </span>
               Môj účet
             </Link>
           ) : (
-            <Link href="/prihlasenie" className="header__login">
+            <Link href="/prihlasenie" className="hd__me">
               Prihlásiť sa
             </Link>
           )}
-          <Link href="/rezervacia" className="btn btn--sm btn--icon header__cta">
-            Rezervovať
-            <span className="btn__ic">
-              <ArrowUpRight size={16} />
+          <Link href="/rezervacia" className="hd__cta">
+            Rezervovať ľad
+            <span aria-hidden="true">
+              <ArrowUpRight size={14} />
             </span>
           </Link>
           <MobileNav loggedIn={Boolean(user)} />
         </div>
-      </header>
-    </div>
+      </div>
+    </header>
   );
 }

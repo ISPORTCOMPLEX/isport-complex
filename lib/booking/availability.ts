@@ -6,11 +6,9 @@ import { addDays, hallTime, todayIso } from './time';
 
 export type HourSlot = {
   hour: number;
-  freeA: boolean;
-  freeB: boolean;
+  free: boolean; // celá plocha je voľná (obe polovice – kvôli starším rezerváciám polovíc)
   bookable: boolean; // nie je v minulosti ani príliš blízko
-  priceFull: number;
-  priceHalf: number;
+  price: number;
 };
 
 export function dayWindow(s: BookingSettings, now = new Date()) {
@@ -32,14 +30,7 @@ export async function dayAvailability(s: BookingSettings, iso: string, now = new
   const out: HourSlot[] = [];
   for (let h = s.openHour; h < s.closeHour; h++) {
     const t = hallTime(iso, h).getTime();
-    out.push({
-      hour: h,
-      freeA: !busy.has(`${t}|A`),
-      freeB: !busy.has(`${t}|B`),
-      bookable: t >= cutoff,
-      priceFull: hourPrice(s, 'cela', iso, h),
-      priceHalf: hourPrice(s, 'polovica', iso, h),
-    });
+    out.push({ hour: h, free: !busy.has(`${t}|A`) && !busy.has(`${t}|B`), bookable: t >= cutoff, price: hourPrice(s, iso, h) });
   }
   return out;
 }

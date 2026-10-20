@@ -110,6 +110,10 @@ export default async function AdminBookingDetail({ params, searchParams }: Props
               <dd>{b.hours} h</dd>
             </div>
             <div>
+              <dt>Šatne</dt>
+              <dd>{b.lockerRooms ? `${b.lockerRooms} (${euros(b.lockerCents)})` : 'bez šatne'}</dd>
+            </div>
+            <div>
               <dt>Cena</dt>
               <dd>{euros(b.priceCents)}</dd>
             </div>

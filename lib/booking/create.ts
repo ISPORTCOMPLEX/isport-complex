@@ -4,7 +4,7 @@ import type { Area, PaymentMethod } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { randomToken } from '@/lib/crypto';
 import type { BookingSettings } from './settings';
-import { type AreaChoice, totalCents } from './pricing';
+import { iceCents, lockerCents } from './pricing';
 import { hallTime } from './time';
 import { inWindow } from './availability';
 
@@ -23,11 +23,10 @@ export type CreateInput = {
   movedFromCode?: string | null;
   paid?: boolean;
   staff?: boolean;
-  half?: 'A' | 'B';
   iso: string;
   startHour: number;
   hours: number;
-  area: AreaChoice;
+  lockerRooms: number;
   contactName: string;
   contactPhone: string;
   teamName: string | null;
@@ -64,46 +63,45 @@ export async function createBooking(s: BookingSettings, input: CreateInput): Pro
   for (let h = input.startHour; h < input.startHour + input.hours; h++) starts.push(hallTime(input.iso, h));
   const startsAt = starts[0];
   const endsAt = hallTime(input.iso, input.startHour + input.hours);
-  const priceCents = totalCents(s, input.area, input.iso, input.startHour, input.hours);
+  const rooms = Math.max(0, Math.min(s.lockerRooms, Math.floor(input.lockerRooms || 0)));
+  const lockers = lockerCents(s, rooms);
+  const priceCents = iceCents(s, input.iso, input.startHour, input.hours) + lockers;
 
-  // Polovica: vyberieme tú, ktorá je voľná počas celej rezervácie (najprv A).
-  const halvesToTry: ('A' | 'B')[][] = input.area === 'cela' ? [['A', 'B']] : input.half ? [[input.half]] : [['A'], ['B']];
-
-  for (const halves of halvesToTry) {
-    const area: Area = input.area === 'cela' ? 'FULL' : halves[0] === 'A' ? 'HALF_A' : 'HALF_B';
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const code = newCode();
-      try {
-        const booking = await prisma.booking.create({
-          data: {
-            code,
-            userId: input.userId,
-            guestEmail: input.guestEmail ?? null,
-            createdById: input.createdById ?? null,
-            movedFromCode: input.movedFromCode ?? null,
-            ...(input.paid ? { paymentStatus: 'PAID' as const, paidAt: new Date() } : {}),
-            area,
-            startsAt,
-            endsAt,
-            hours: input.hours,
-            priceCents,
-            paymentMethod: input.paymentMethod,
-            contactName: input.contactName,
-            contactPhone: input.contactPhone,
-            teamName: input.teamName,
-            note: input.note,
-            qrToken: randomToken(18),
-            slots: { create: starts.flatMap((slotStart) => halves.map((half) => ({ slotStart, half }))) },
-          },
-          select: { id: true, code: true },
-        });
-        return { ok: true, code: booking.code, id: booking.id };
-      } catch (e) {
-        if (!isUniqueViolation(e)) throw e;
-        const target = String((e as { meta?: { target?: unknown } }).meta?.target ?? '');
-        if (target.includes('code')) continue; // kolízia kódu – skúsime iný
-        break; // čas je obsadený – pri polovici skúsime druhú
-      }
+  // Prenajíma sa celá plocha = obe polovice (A, B) v každej hodine.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const code = newCode();
+    try {
+      const booking = await prisma.booking.create({
+        data: {
+          code,
+          userId: input.userId,
+          guestEmail: input.guestEmail ?? null,
+          createdById: input.createdById ?? null,
+          movedFromCode: input.movedFromCode ?? null,
+          ...(input.paid ? { paymentStatus: 'PAID' as const, paidAt: new Date() } : {}),
+          area: 'FULL' as Area,
+          startsAt,
+          endsAt,
+          hours: input.hours,
+          priceCents,
+          lockerRooms: rooms,
+          lockerCents: lockers,
+          paymentMethod: input.paymentMethod,
+          contactName: input.contactName,
+          contactPhone: input.contactPhone,
+          teamName: input.teamName,
+          note: input.note,
+          qrToken: randomToken(18),
+          slots: { create: starts.flatMap((slotStart) => (['A', 'B'] as const).map((half) => ({ slotStart, half }))) },
+        },
+        select: { id: true, code: true },
+      });
+      return { ok: true, code: booking.code, id: booking.id };
+    } catch (e) {
+      if (!isUniqueViolation(e)) throw e;
+      const target = String((e as { meta?: { target?: unknown } }).meta?.target ?? '');
+      if (target.includes('code')) continue; // kolízia kódu – skúsime iný
+      break; // čas je obsadený
     }
   }
   return { ok: false, error: 'Vybraný čas medzitým niekto obsadil. Vyber si iný termín.' };

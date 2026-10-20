@@ -96,7 +96,7 @@ export function ReceptionScanner() {
             <strong className="rcp__who">{b.who}</strong>
             <span className="rcp__when">{b.when}</span>
             <span className="muted">
-              {b.area} · {b.code}
+              {b.area} · {b.code} · {b.lockers ? `šatne: ${b.lockers}` : 'bez šatne'}
             </span>
             {!b.today && b.status === 'CONFIRMED' ? <span className="chip chip--warn">Pozor: rezervácia nie je na dnes</span> : null}
             {b.status !== 'CONFIRMED' ? <span className="chip chip--red">Rezervácia nie je aktívna</span> : null}

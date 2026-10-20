@@ -44,15 +44,15 @@ export default async function KalendarPage({ searchParams }: Props) {
     const p = hallParts(d);
     return d >= dayEnd ? 24 : p.h;
   };
-  const col = (area: string) => (area === 'FULL' ? '2 / span 2' : area === 'HALF_A' ? '2' : '3');
+  const col = (_area: string) => '2';
   const row = (start: Date, end: Date) => {
     const a = Math.max(hourOf(start), open);
     const b = Math.min(end >= dayEnd ? 24 : hourOf(end), close);
     return { a, b, css: `${a - open + 2} / ${Math.max(b, a + 1) - open + 2}` };
   };
 
-  const totalHalfHours = (close - open) * 2;
-  const usedHalfHours = bookings.reduce((sum, b) => sum + b.hours * (b.area === 'FULL' ? 2 : 1), 0);
+  const totalHalfHours = close - open;
+  const usedHalfHours = bookings.reduce((sum, b) => sum + b.hours, 0);
   const revenue = bookings.reduce((sum, b) => sum + b.priceCents, 0);
   const notice = NOTICE[one(sp.stav)];
   const hours = Array.from({ length: close - open }, (_, i) => open + i);
@@ -85,20 +85,16 @@ export default async function KalendarPage({ searchParams }: Props) {
           <div className="cal" style={{ gridTemplateRows: `44px repeat(${close - open}, 64px)` }}>
             <div className="cal__head" style={{ gridColumn: '1', gridRow: '1' }} />
             <div className="cal__head" style={{ gridColumn: '2', gridRow: '1' }}>
-              Polovica A
-            </div>
-            <div className="cal__head" style={{ gridColumn: '3', gridRow: '1' }}>
-              Polovica B
+              Ľadová plocha
             </div>
             {hours.map((h, i) => (
               <div key={`t${h}`} className="cal__time" style={{ gridColumn: '1', gridRow: String(i + 2) }}>
                 {pad2(h)}
               </div>
             ))}
-            {hours.flatMap((h, i) => [
-              <div key={`a${h}`} className="cal__cell" style={{ gridColumn: '2', gridRow: String(i + 2) }} />,
-              <div key={`b${h}`} className="cal__cell" style={{ gridColumn: '3', gridRow: String(i + 2) }} />,
-            ])}
+            {hours.map((h, i) => (
+              <div key={`a${h}`} className="cal__cell" style={{ gridColumn: '2', gridRow: String(i + 2) }} />
+            ))}
             {blocks.map((bl) => {
               const r = row(bl.startsAt, bl.endsAt);
               if (r.b <= open || r.a >= close) return null;
@@ -129,6 +125,7 @@ export default async function KalendarPage({ searchParams }: Props) {
                   <strong>{b.teamName || b.contactName}</strong>
                   <small>
                     {pad2(r.a)} – {pad2(r.b)} · {b.code}
+                    {b.lockerRooms ? ` · šatne ${b.lockerRooms}` : ''}
                   </small>
                   <small>{b.status === 'NO_SHOW' ? 'Neprišiel' : b.checkedInAt ? 'Na ľade / prišiel' : b.paymentStatus === 'PAID' ? 'Zaplatená' : 'Nezaplatená'}</small>
                 </Link>
@@ -180,14 +177,7 @@ export default async function KalendarPage({ searchParams }: Props) {
                 ))}
               </select>
             </label>
-            <label className="adm-label" style={{ flex: '0 1 180px' }}>
-              Plocha
-              <select name="plocha" className="adm-select" defaultValue="FULL">
-                <option value="FULL">Celá plocha</option>
-                <option value="HALF_A">Polovica A</option>
-                <option value="HALF_B">Polovica B</option>
-              </select>
-            </label>
+            <input type="hidden" name="plocha" value="FULL" />
             <label className="adm-label">
               Dôvod
               <input name="reason" className="adm-input" maxLength={200} placeholder="napr. úprava ľadu, údržba rolby, turnaj" required />

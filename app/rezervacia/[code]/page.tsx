@@ -11,6 +11,7 @@ import { euros, fmtDayLong, fmtRange } from '@/lib/booking/time';
 import { CancelBookingForm } from '@/components/booking/CancelBookingForm';
 import { FormAlert } from '@/components/forms/FormAlert';
 import { getSite } from '@/lib/siteSettings';
+import { emailEnabled } from '@/lib/email';
 
 export const metadata: Metadata = { title: 'Rezervácia', robots: { index: false } };
 
@@ -33,7 +34,7 @@ export default async function BookingDetail({ params, searchParams }: Props) {
   return (
     <section className="section section--tight bk">
       <div className="wrap bk__in">
-        {sp.nova ? <FormAlert success="Hotovo! Rezervácia je potvrdená. Potvrdenie sme poslali aj e-mailom." /> : null}
+        {sp.nova ? <FormAlert success={emailEnabled() ? 'Hotovo! Rezervácia je potvrdená. Potvrdenie sme poslali aj e-mailom.' : 'Hotovo! Rezervácia je potvrdená. QR kód nájdeš tu aj v Moje rezervácie.'} /> : null}
         {sp.zrusena ? <FormAlert success="Rezervácia je zrušená a čas je opäť voľný." /> : null}
 
         <div className="bk__ticket">
@@ -50,8 +51,16 @@ export default async function BookingDetail({ params, searchParams }: Props) {
                 <dt>Plocha</dt>
                 <dd>{AREA_LABEL[booking.area]}</dd>
               </div>
+              {booking.lockerRooms > 0 ? (
+                <div>
+                  <dt>Šatne</dt>
+                  <dd>
+                    {booking.lockerRooms} × · {euros(booking.lockerCents)}
+                  </dd>
+                </div>
+              ) : null}
               <div>
-                <dt>Cena</dt>
+                <dt>Spolu</dt>
                 <dd>{euros(booking.priceCents)}</dd>
               </div>
               <div>
@@ -132,7 +141,7 @@ export default async function BookingDetail({ params, searchParams }: Props) {
               <>
                 {booking.paymentStatus !== 'PAID' ? (
                   <Link
-                    href={`/rezervacia?presun=${booking.code}&plocha=${booking.area === 'FULL' ? 'cela' : 'polovica'}`}
+                    href={`/rezervacia?presun=${booking.code}&satne=${booking.lockerRooms}`}
                     className="btn btn--sm btn--ghost"
                     style={{ alignSelf: 'flex-start' }}
                   >

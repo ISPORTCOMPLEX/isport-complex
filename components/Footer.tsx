@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Logo } from './Logo';
+import { LogoMark } from './Logo';
 import { orTbd } from '@/lib/site';
 import { getSite } from '@/lib/siteSettings';
 
@@ -7,58 +7,57 @@ export async function Footer() {
   const site = await getSite();
   const c = site.company;
   return (
-    <footer className="footer">
-      <div className="wrap footer__in">
-        <div className="footer__cols">
-          <div className="footer__col footer__col--brand">
-            <Logo />
-            <p>{site.tagline}. Ľad si rezervuješ online.</p>
-          </div>
-          <div className="footer__col">
-            <h2>Hokejová hala</h2>
-            <span>
-              {orTbd(site.hall.street)}, {site.hall.city}
-            </span>
-            {site.hall.mapUrl ? (
-              <a href={site.hall.mapUrl} className="link-red" target="_blank" rel="noopener noreferrer">
-                Navigovať
-              </a>
-            ) : (
-              <Link href="/kontakt" className="link-red">
-                Ako sa k nám dostanete
-              </Link>
-            )}
-          </div>
-          <div className="footer__col">
-            <h2>Kontakt</h2>
-            <span>{orTbd(site.phone)}</span>
-            <span>{orTbd(site.email)}</span>
-          </div>
-          <div className="footer__col">
-            <h2>Prevádzkovateľ</h2>
-            <span style={{ fontWeight: 600 }}>{c.name}</span>
-            <span>
+    <footer className="ft">
+      <div className="wrap ft__in">
+        <div className="ft__cols">
+          <div className="ft__brand">
+            <LogoMark size={52} />
+            <p>
+              {c.name}
+              <br />
               {c.street}, {c.city}
-            </span>
-            <span className="muted">
-              IČO: {orTbd(c.ico)} · DIČ: {orTbd(c.dic)}
-            </span>
+            </p>
+            {c.ico ? <p className="ft__muted">IČO {c.ico}{c.dic ? ` · DIČ ${c.dic}` : ''}</p> : null}
           </div>
-          <nav className="footer__col" aria-label="Odkazy v päte">
-            <h2>Stránky</h2>
-            <Link href="/rezervacia">Rezervácia ľadu</Link>
+          <nav className="ft__col" aria-label="Komplex">
+            <h2>Komplex</h2>
+            <Link href="/ladova-plocha">Ľadová plocha</Link>
+            <Link href="/bufet-skyboxy">Bufet a skyboxy</Link>
+            <Link href="/ihrisko">Futbalové ihrisko</Link>
+            <Link href="/fitness-wellness">Fitness a wellness</Link>
+          </nav>
+          <nav className="ft__col" aria-label="Ľad">
+            <h2>Ľad</h2>
+            <Link href="/rezervacia">Rezervácia</Link>
             <Link href="/cennik">Cenník</Link>
             <Link href="/pre-kluby">Pre kluby</Link>
+            <Link href="/ucet">Môj účet</Link>
           </nav>
+          <div className="ft__col">
+            <h2>Kontakt</h2>
+            {site.phone ? <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a> : <span>{orTbd('')}</span>}
+            {site.email ? <a href={`mailto:${site.email}`}>{site.email}</a> : null}
+            <Link href="/kontakt">Napísať nám</Link>
+            {site.social.facebook ? (
+              <a href={site.social.facebook} target="_blank" rel="noopener noreferrer">
+                Facebook
+              </a>
+            ) : null}
+            {site.social.instagram ? (
+              <a href={site.social.instagram} target="_blank" rel="noopener noreferrer">
+                Instagram
+              </a>
+            ) : null}
+          </div>
         </div>
-        <div className="outline-word footer__word" aria-hidden="true">
-          {site.brand}
+        <div className="cond ft__word" aria-hidden="true">
+          I-Sport Complex
         </div>
-        <div className="footer__bottom">
+        <div className="ft__bottom">
           <span>
             © {new Date().getFullYear()} {c.name}
           </span>
-          <span className="footer__legal">
+          <span className="ft__legal">
             <Link href="/obchodne-podmienky">Obchodné podmienky</Link>
             <Link href="/ochrana-osobnych-udajov">Ochrana osobných údajov</Link>
           </span>

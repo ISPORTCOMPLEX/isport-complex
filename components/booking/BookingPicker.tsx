@@ -3,105 +3,61 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import type { DayOption } from '@/lib/dates';
-import { ArrowRight } from '@/components/Icons';
-import { RinkPlan } from '@/components/Rink';
 
-type Slot = { hour: number; freeA: boolean; freeB: boolean; bookable: boolean; priceFull: number; priceHalf: number };
-type Area = 'cela' | 'polovica';
+type Slot = { hour: number; free: boolean; bookable: boolean; price: number };
 
 type Props = {
   days: DayOption[];
   iso: string;
   slots: Slot[];
-  initialArea: Area;
   initialHour: number | null;
+  initialRooms: number;
   maxHours: number;
+  lockerRooms: number;
+  lockerPrice: number;
   presun?: string | null;
 };
 
 const pad = (h: number) => `${String(h).padStart(2, '0')}:00`;
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
+const hoursWord = (n: number) => (n === 1 ? 'hodina' : n <= 4 ? 'hodiny' : 'hodín');
 
-function freeFor(s: Slot, area: Area, half?: 'A' | 'B'): boolean {
-  if (!s.bookable) return false;
-  if (area === 'cela') return s.freeA && s.freeB;
-  if (half === 'A') return s.freeA;
-  if (half === 'B') return s.freeB;
-  return s.freeA || s.freeB;
-}
-
-// Kalendár voľných hodín. Dostupnosť a cenu na konci aj tak znova overí server.
-export function BookingPicker({ days, iso, slots, initialArea, initialHour, maxHours, presun = null }: Props) {
-  const [area, setArea] = useState<Area>(initialArea);
-  const [start, setStart] = useState<number | null>(initialHour !== null && slots.some((s) => s.hour === initialHour && freeFor(s, initialArea)) ? initialHour : null);
-  const [count, setCount] = useState(1);
-
+// Výber termínu: celá ľadová plocha + šatne. Dostupnosť aj cenu na konci znova overí server.
+export function BookingPicker({ days, iso, slots, initialHour, initialRooms, maxHours, lockerRooms, lockerPrice, presun = null }: Props) {
+  const ok = (s: Slot | undefined) => Boolean(s && s.free && s.bookable);
   const byHour = useMemo(() => new Map(slots.map((s) => [s.hour, s])), [slots]);
+  const [start, setStart] = useState<number | null>(initialHour !== null && ok(byHour.get(initialHour)) ? initialHour : null);
+  const [count, setCount] = useState(1);
+  const [rooms, setRooms] = useState(Math.min(Math.max(initialRooms, 0), lockerRooms));
 
-  // Koľko hodín za sebou sa dá od začiatku rezervovať (pri polovici rovnaká polovica celý čas).
-  const maxFrom = (h: number, a: Area): number => {
-    const run = (half?: 'A' | 'B') => {
-      let n = 0;
-      while (n < maxHours) {
-        const s = byHour.get(h + n);
-        if (!s || !freeFor(s, a, half)) break;
-        n++;
-      }
-      return n;
-    };
-    return a === 'cela' ? run() : Math.max(run('A'), run('B'));
+  const runFrom = (h: number) => {
+    let n = 0;
+    while (n < maxHours && ok(byHour.get(h + n))) n++;
+    return n;
   };
-
-  const possible = start === null ? 0 : maxFrom(start, area);
+  const possible = start === null ? 0 : runFrom(start);
   const hours = Math.min(count, Math.max(possible, 1));
   const valid = start !== null && possible >= 1;
-  const total = valid ? Array.from({ length: hours }, (_, i) => byHour.get(start! + i)).reduce((sum, s) => sum + (s ? (area === 'cela' ? s.priceFull : s.priceHalf) : 0), 0) : 0;
-  const selectedDay = days.find((d) => d.iso === iso) ?? days[0];
-
-  const pickArea = (a: Area) => {
-    setArea(a);
-    if (start !== null && maxFrom(start, a) === 0) setStart(null);
-  };
-  const pickHour = (h: number) => {
-    setStart(h);
-    setCount((c) => Math.min(c, Math.max(maxFrom(h, area), 1)));
-  };
-
+  const ice = valid ? Array.from({ length: hours }, (_, i) => byHour.get(start! + i)?.price ?? 0).reduce((a, b) => a + b, 0) : 0;
+  const lockers = rooms * lockerPrice;
+  const day = days.find((d) => d.iso === iso) ?? days[0];
   const tail = presun ? `&presun=${presun}` : '';
-  const next = valid ? `/rezervacia/udaje?datum=${iso}&od=${start}&hodiny=${hours}&plocha=${area}${tail}` : null;
-  const anyFree = slots.some((s) => freeFor(s, area));
+  const next = valid ? `/rezervacia/udaje?datum=${iso}&od=${start}&hodiny=${hours}&satne=${rooms}${tail}` : null;
+  const anyFree = slots.some((s) => ok(s));
 
   return (
-    <div className="rez">
-      <div className="rez__main">
-        <div className="rez__block">
-          <h2 className="rez__label">1. Plocha</h2>
-          <div className="rez__areas">
-            <button type="button" className="rez__area" aria-pressed={area === 'cela'} onClick={() => pickArea('cela')}>
-              <RinkPlan highlight="full" muted={area !== 'cela'} />
-              <span>
-                <strong>Celá plocha</strong>
-                <small>Tímový tréning, zápas</small>
-              </span>
-            </button>
-            <button type="button" className="rez__area" aria-pressed={area === 'polovica'} onClick={() => pickArea('polovica')}>
-              <RinkPlan highlight="half" muted={area !== 'polovica'} />
-              <span>
-                <strong>Polovica plochy</strong>
-                <small>Individuálny tréning, brankári</small>
-              </span>
-            </button>
-          </div>
-        </div>
-
-        <div className="rez__block">
-          <h2 className="rez__label">2. Deň</h2>
-          <nav className="rez__days" aria-label="Deň">
+    <div className="rz-grid">
+      <div className="rz-main">
+        <section className="rz-step">
+          <h2 className="rz-h">
+            <span>1</span>Deň
+          </h2>
+          <nav className="rz-days" aria-label="Deň">
             {days.map((d) => (
               <Link
                 key={d.iso}
-                href={`/rezervacia?datum=${d.iso}&plocha=${area}${presun ? `&presun=${presun}` : ''}`}
-                className={`day${d.weekend ? ' day--weekend' : ''}`}
+                href={`/rezervacia?datum=${d.iso}&satne=${rooms}${tail}`}
+                className={`rz-day${d.weekend ? ' rz-day--we' : ''}`}
                 aria-current={d.iso === iso ? 'date' : undefined}
                 aria-label={d.label}
                 scroll={false}
@@ -111,93 +67,121 @@ export function BookingPicker({ days, iso, slots, initialArea, initialHour, maxH
               </Link>
             ))}
           </nav>
-        </div>
+        </section>
 
-        <div className="rez__block">
-          <div className="rez__label-row">
-            <h2 className="rez__label">3. Začiatok · {selectedDay?.label}</h2>
-            <div className="rez__legend" aria-hidden="true">
-              <span><i className="lg lg--free" />Voľné</span>
-              <span><i className="lg lg--taken" />Obsadené</span>
-              <span><i className="lg lg--sel" />Tvoj výber</span>
-            </div>
+        <section className="rz-step">
+          <div className="rz-step__row">
+            <h2 className="rz-h">
+              <span>2</span>Čas · {day?.label}
+            </h2>
+            <span className="rz-note">Šrafované = obsadené</span>
           </div>
-          {anyFree ? null : <p className="muted rez__none">V tento deň už nie je voľný čas pre {area === 'cela' ? 'celú plochu' : 'polovicu'}. Skús iný deň alebo polovicu plochy.</p>}
-          <div className="rez__slots" role="group" aria-label="Začiatok">
+          {anyFree ? null : <p className="rz-empty">V tento deň už nie je voľný čas. Vyber si iný deň.</p>}
+          <div className="rz-slots" role="group" aria-label="Začiatok">
             {slots.map((s) => {
-              const free = freeFor(s, area);
-              const inSel = valid && s.hour >= start! && s.hour < start! + hours;
-              const price = area === 'cela' ? s.priceFull : s.priceHalf;
-              const halfNote = area === 'polovica' && free && s.freeA !== s.freeB ? 'posledná polovica' : '';
+              const free = ok(s);
+              const sel = valid && s.hour >= start! && s.hour < start! + hours;
               return (
                 <button
                   key={s.hour}
                   type="button"
-                  className={`rez-slot${inSel ? ' rez-slot--sel' : ''}${free ? '' : ' rez-slot--off'}`}
+                  className={`rz-slot${sel ? ' rz-slot--sel' : ''}${free ? '' : ' rz-slot--off'}`}
                   disabled={!free}
-                  aria-pressed={inSel}
-                  onClick={() => pickHour(s.hour)}
+                  aria-pressed={sel}
+                  onClick={() => {
+                    setStart(s.hour);
+                    setCount((c) => Math.min(c, Math.max(runFrom(s.hour), 1)));
+                  }}
                 >
                   <b>{pad(s.hour)}</b>
-                  <small>{!s.bookable ? 'nedostupné' : free ? halfNote || eur(price) : 'obsadené'}</small>
+                  <small>{!s.bookable ? 'nedostupné' : s.free ? eur(s.price) : 'obsadené'}</small>
                 </button>
               );
             })}
           </div>
-        </div>
-      </div>
+        </section>
 
-      <aside className="rez__side">
-        <div className="booker-frame rez__summary-frame">
-          <div className="booker glass rez__summary">
-            <h2 className="rez__label">Tvoja rezervácia</h2>
-            <dl className="rez__dl">
+        {lockerRooms > 0 ? (
+          <section className="rz-step">
+            <h2 className="rz-h">
+              <span>3</span>Šatne
+            </h2>
+            <div className="rz-lockers">
               <div>
-                <dt>Plocha</dt>
-                <dd>{area === 'cela' ? 'Celá plocha' : 'Polovica plochy'}</dd>
+                <strong>Koľko šatní potrebuješ?</strong>
+                <span>
+                  {eur(lockerPrice)} za šatňu na celý čas rezervácie. K dispozícii {lockerRooms}.
+                </span>
               </div>
-              <div>
-                <dt>Deň</dt>
-                <dd>{selectedDay?.label}</dd>
-              </div>
-              <div>
-                <dt>Čas</dt>
-                <dd>{valid ? `${pad(start!)} – ${pad(start! + hours)}` : 'Vyber začiatok'}</dd>
-              </div>
-            </dl>
-            <div className="rez__count">
-              <span>Dĺžka</span>
-              <div className="rez__stepper">
-                <button type="button" aria-label="Kratšie" disabled={!valid || hours <= 1} onClick={() => setCount(Math.max(1, hours - 1))}>
+              <div className="rz-stepper">
+                <button type="button" aria-label="Menej šatní" disabled={rooms <= 0} onClick={() => setRooms(rooms - 1)}>
                   −
                 </button>
-                <strong>
-                  {hours} {hours === 1 ? 'hodina' : hours <= 4 ? 'hodiny' : 'hodín'}
-                </strong>
-                <button type="button" aria-label="Dlhšie" disabled={!valid || hours >= possible} onClick={() => setCount(Math.min(possible, hours + 1))}>
+                <strong aria-live="polite">{rooms}</strong>
+                <button type="button" aria-label="Viac šatní" className="rz-stepper__plus" disabled={rooms >= lockerRooms} onClick={() => setRooms(rooms + 1)}>
                   +
                 </button>
               </div>
             </div>
-            <div className="rez__total">
-              <small>Spolu s DPH</small>
-              <strong className="num">{valid ? eur(total) : '—'}</strong>
+          </section>
+        ) : null}
+      </div>
+
+      <aside className="rz-sum">
+        <h2 className="rz-sum__title">Tvoja rezervácia</h2>
+        <dl className="rz-rows">
+          <div>
+            <dt>Plocha</dt>
+            <dd>Celá ľadová plocha</dd>
+          </div>
+          <div>
+            <dt>Termín</dt>
+            <dd>{valid ? `${day?.label} · ${pad(start!)} – ${pad(start! + hours)}` : 'Vyber čas'}</dd>
+          </div>
+          <div>
+            <dt>Ľad{valid ? `, ${hours} ${hoursWord(hours)}` : ''}</dt>
+            <dd>{valid ? eur(ice) : '—'}</dd>
+          </div>
+          {lockerRooms > 0 ? (
+            <div>
+              <dt>Šatne{rooms ? `, ${rooms} × ${eur(lockerPrice)}` : ''}</dt>
+              <dd>{rooms ? eur(lockers) : 'bez šatne'}</dd>
             </div>
-            {next ? (
-              <Link href={next} className="btn btn--icon btn--full">
-                Pokračovať
-                <span className="btn__ic">
-                  <ArrowRight />
-                </span>
-              </Link>
-            ) : (
-              <span className="btn btn--full adm-disabled" aria-disabled="true">
-                Vyber čas
-              </span>
-            )}
-            <p className="muted rez__fine">Šatňa a úprava ľadu sú v cene. Platíš na recepcii alebo prevodom.</p>
+          ) : null}
+        </dl>
+        <div className="rz-len">
+          <span>Dĺžka</span>
+          <div className="rz-stepper rz-stepper--dark">
+            <button type="button" aria-label="Kratšie" disabled={!valid || hours <= 1} onClick={() => setCount(Math.max(1, hours - 1))}>
+              −
+            </button>
+            <strong>
+              {hours} {hoursWord(hours)}
+            </strong>
+            <button type="button" aria-label="Dlhšie" disabled={!valid || hours >= possible} onClick={() => setCount(Math.min(possible, hours + 1))}>
+              +
+            </button>
           </div>
         </div>
+        <div className="rz-total">
+          <span>Spolu s DPH</span>
+          <strong>{valid ? eur(ice + lockers) : '—'}</strong>
+        </div>
+        {next ? (
+          <Link href={next} className="rz-cta">
+            Pokračovať na údaje
+            <span aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 14 14">
+                <path d="M2 7h10M8 3l4 4-4 4" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+              </svg>
+            </span>
+          </Link>
+        ) : (
+          <span className="rz-cta rz-cta--off" aria-disabled="true">
+            Najprv vyber čas
+          </span>
+        )}
+        <p className="rz-fine">Úprava ľadu je v cene. Platíš na recepcii alebo prevodom.</p>
       </aside>
     </div>
   );

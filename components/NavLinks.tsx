@@ -5,23 +5,26 @@ import { usePathname } from 'next/navigation';
 import { ArrowUpRight, IconMenu } from './Icons';
 
 export const NAV = [
-  { href: '/', label: 'Domov' },
-  { href: '/hala', label: 'Hokejová hala' },
-  { href: '/cennik', label: 'Cenník' },
-  { href: '/pre-kluby', label: 'Pre kluby' },
+  { href: '/', label: 'Komplex' },
+  { href: '/ladova-plocha', label: 'Ľadová plocha', also: ['/cennik', '/pre-kluby', '/rezervacia'] },
+  { href: '/ihrisko', label: 'Ihrisko' },
+  { href: '/fitness-wellness', label: 'Fitness a wellness' },
+  { href: '/bufet-skyboxy', label: 'Bufet a skyboxy' },
   { href: '/kontakt', label: 'Kontakt' },
 ];
 
-function isActive(pathname: string, href: string) {
-  return href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
+function isActive(pathname: string, item: (typeof NAV)[number]) {
+  if (item.href === '/') return pathname === '/';
+  const paths = [item.href, ...('also' in item && item.also ? item.also : [])];
+  return paths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 export function NavLinks() {
   const pathname = usePathname() ?? '/';
   return (
-    <nav aria-label="Hlavné menu" className="nav">
+    <nav aria-label="Hlavné menu" className="hd__nav">
       {NAV.map((item) => (
-        <Link key={item.href} href={item.href} aria-current={isActive(pathname, item.href) ? 'page' : undefined}>
+        <Link key={item.href} href={item.href} aria-current={isActive(pathname, item) ? 'page' : undefined}>
           {item.label}
         </Link>
       ))}
@@ -37,9 +40,9 @@ export function MobileNav({ loggedIn = false }: { loggedIn?: boolean }) {
       <summary aria-label="Otvoriť menu">
         <IconMenu />
       </summary>
-      <div className="mnav__panel glass">
+      <div className="mnav__panel">
         {NAV.map((item) => (
-          <Link key={item.href} href={item.href} aria-current={isActive(pathname, item.href) ? 'page' : undefined}>
+          <Link key={item.href} href={item.href} aria-current={isActive(pathname, item) ? 'page' : undefined}>
             {item.label}
           </Link>
         ))}

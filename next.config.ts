@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [{ source: '/.well-known/security.txt', destination: '/api/security-txt' }];
   },
+  async redirects() {
+    return [{ source: '/hala', destination: '/ladova-plocha', permanent: true }];
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

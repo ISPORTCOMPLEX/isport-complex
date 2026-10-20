@@ -19,7 +19,7 @@ export default async function ObchodnePodmienkyPage() {
         a chrániť svoje prihlasovacie údaje.
       </p>
       <p>
-        Rezervuje sa celá ľadová plocha alebo jej polovica po celých hodinách. Rezervácia je záväzná okamihom potvrdenia na webe; potvrdenie a QR kód dostane zákazník
+        Rezervuje sa celá ľadová plocha po celých hodinách, šatne si zákazník môže pridať za príplatok podľa cenníka. Rezervácia je záväzná okamihom potvrdenia na webe; potvrdenie a QR kód dostane zákazník
         aj e-mailom. Online je možné rezervovať najviac {s.maxDaysAhead} dní dopredu a najneskôr {s.leadMinutes} minút pred začiatkom.
       </p>
       <h2>3. Cena a platba</h2>
