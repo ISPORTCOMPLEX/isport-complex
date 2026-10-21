@@ -6,11 +6,12 @@ import { usePathname } from 'next/navigation';
 import { ArrowUpRight, IconMenu } from './Icons';
 
 export const NAV = [
-  { href: '/', label: 'Komplex' },
+  { href: '/aktuality', label: 'Novinky' },
   { href: '/ladova-plocha', label: 'Ľadová plocha', also: ['/cennik', '/pre-kluby', '/rezervacia'] },
   { href: '/ihrisko', label: 'Ihrisko' },
   { href: '/fitness-wellness', label: 'Fitness a wellness' },
   { href: '/bufet-skyboxy', label: 'Bufet a skyboxy' },
+  { href: '/fotky', label: 'Fotky' },
   { href: '/kontakt', label: 'Kontakt' },
 ];
 
@@ -67,9 +68,6 @@ export function MobileNav({ loggedIn = false }: { loggedIn?: boolean }) {
             {item.label}
           </Link>
         ))}
-        <Link href="/fotky" aria-current={pathname === '/fotky' || pathname.startsWith('/fotky/') ? 'page' : undefined}>
-          Fotky
-        </Link>
         {loggedIn ? <Link href="/ucet">Môj účet</Link> : <Link href="/prihlasenie">Prihlásiť sa</Link>}
         <Link href="/rezervacia" className="btn btn--icon">
           Rezervovať ľad

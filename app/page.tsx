@@ -9,6 +9,8 @@ import { dayAvailability } from '@/lib/booking/availability';
 import { slotPhotos, type SlotKey } from '@/lib/media';
 import { CloudImage } from '@/components/CloudImage';
 import { LocationSection } from '@/components/location/LocationSection';
+import { LiveStrip, NewsSection } from '@/components/home/NewsSection';
+import { homeArticles } from '@/lib/articles/queries';
 
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
 
@@ -20,8 +22,17 @@ const PARTS = [
   { slot: 'wellness' as SlotKey, href: '/fitness-wellness', name: 'Wellness', text: 'Regenerácia po tréningu pod jednou strechou s ľadom.', photo: 'Vizualizácia', soon: true },
 ];
 
+const HK_LINKS = [
+  { href: '/ladova-plocha', name: 'Ľadová plocha' },
+  { href: '/bufet-skyboxy', name: 'Skyboxy' },
+  { href: '/bufet-skyboxy', name: 'Bufet' },
+  { href: '/ihrisko', name: 'Ihrisko' },
+  { href: '/fitness-wellness', name: 'Posilňovňa', soon: true },
+  { href: '/fitness-wellness', name: 'Wellness', soon: true },
+];
+
 export default async function HomePage() {
-  const [site, settings] = await Promise.all([getSite(), getBookingSettings()]);
+  const [site, settings, news] = await Promise.all([getSite(), getBookingSettings(), homeArticles()]);
   const days = nextDays(5);
   const avail = await Promise.all(days.map((d) => dayAvailability(settings, d.iso)));
   const qbDays = days.map((d, i) => ({ ...d, slots: avail[i].map((s) => ({ hour: s.hour, ok: s.free && s.bookable, price: s.price })) }));
@@ -40,24 +51,33 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* ÚVOD – rez komplexom */}
-      <section className="hx">
-        <div className="wrap hx__top">
-          <h1 className="cond hx__title">
-            I-Sport
-            <br />
-            Complex
-          </h1>
-          <div className="hx__side">
-            <p>Športový komplex v Košiciach na Juhu. Tréningový ľad, skyboxy, bufet a ihrisko vonku. Posilňovňa a wellness pribudnú.</p>
-            <Link href="/rezervacia" className="hx__live">
-              <i aria-hidden="true" />
-              {live}
-            </Link>
-          </div>
+      {news.length ? (
+        // NOVINKY navrchu (ako spravodajský web), pod nimi rýchla rezervácia a rez komplexom
+        <div className="hn-top">
+          <h1 className="sr-only">I-SPORT COMPLEX – športový komplex v Košiciach</h1>
+          <LiveStrip text={live} />
+          <NewsSection items={news} />
         </div>
-        <ComplexSection />
-      </section>
+      ) : (
+        // Kým nie sú žiadne články, úvod ostáva ako doteraz – rez komplexom
+        <section className="hx">
+          <div className="wrap hx__top">
+            <h1 className="cond hx__title">
+              I-Sport
+              <br />
+              Complex
+            </h1>
+            <div className="hx__side">
+              <p>Športový komplex v Košiciach na Juhu. Tréningový ľad, skyboxy, bufet a ihrisko vonku. Posilňovňa a wellness pribudnú.</p>
+              <Link href="/rezervacia" className="hx__live">
+                <i aria-hidden="true" />
+                {live}
+              </Link>
+            </div>
+          </div>
+          <ComplexSection />
+        </section>
+      )}
 
       {/* ĽAD – svetlá sekcia */}
       <section className="ice ix">
@@ -100,6 +120,27 @@ export default async function HomePage() {
           <QuickBook days={qbDays} showersEnabled={settings.showersEnabled} showerPrice={settings.showerPrice} />
         </div>
       </section>
+
+      {news.length ? (
+        // KOMPLEX – animovaný rez budovou (pri novinkách navrchu sa presunie sem)
+        <section className="hk" aria-labelledby="hk-t">
+          <div className="wrap hk__head">
+            <h2 id="hk-t" className="cond hk__title">
+              Komplex
+            </h2>
+            <p>Ľad je srdcom komplexu. Prejdi myšou po budove – hráči sa rozkorčuľujú, v posilňovni dvíhajú činky, v bufete sa je.</p>
+          </div>
+          <ComplexSection />
+          <nav className="wrap hk__links" aria-label="Časti komplexu">
+            {HK_LINKS.map((l) => (
+              <Link key={l.name} href={l.href}>
+                {l.name}
+                {l.soon ? <em>pripravujeme</em> : <span aria-hidden="true">→</span>}
+              </Link>
+            ))}
+          </nav>
+        </section>
+      ) : null}
 
       {/* CELÝ KOMPLEX – tabuľa */}
       <section className="bx">

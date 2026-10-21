@@ -19,11 +19,13 @@ export type Permission =
   | 'bookings.manage'
   | 'payments.manage'
   | 'settings.manage'
-  | 'inquiries.manage';
+  | 'inquiries.manage'
+  | 'articles.write' // písať a upravovať články (koncepty)
+  | 'articles.publish'; // zverejniť, naplánovať, stiahnuť, zmazať
 
 const PERMS: Record<string, Permission[]> = {
-  ADMIN: ['dashboard', 'analytics.view', 'media.manage', 'users.view', 'users.manage', 'security.view', 'audit.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'settings.manage', 'inquiries.manage'],
-  RECEPTION: ['dashboard', 'media.manage', 'users.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'inquiries.manage'],
+  ADMIN: ['dashboard', 'analytics.view', 'media.manage', 'users.view', 'users.manage', 'security.view', 'audit.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'settings.manage', 'inquiries.manage', 'articles.write', 'articles.publish'],
+  RECEPTION: ['dashboard', 'media.manage', 'users.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'inquiries.manage', 'articles.write'],
   ACCOUNTANT: ['dashboard', 'analytics.view', 'users.view', 'bookings.view', 'payments.manage'],
 };
 

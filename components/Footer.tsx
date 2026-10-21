@@ -21,6 +21,7 @@ export async function Footer() {
           </div>
           <nav className="ft__col" aria-label="Komplex">
             <h2>Komplex</h2>
+            <Link href="/aktuality">Aktuality</Link>
             <Link href="/ladova-plocha">Ľadová plocha</Link>
             <Link href="/bufet-skyboxy">Bufet a skyboxy</Link>
             <Link href="/ihrisko">Futbalové ihrisko</Link>
@@ -50,8 +51,13 @@ export async function Footer() {
             ) : null}
           </div>
         </div>
-        <div className="cond ft__word" aria-hidden="true">
-          I-Sport Complex
+        {/* nápis sa vždy roztiahne presne na šírku päty – nikdy sa neoreže */}
+        <div className="ft__word" aria-hidden="true">
+          <svg viewBox="0 0 1000 136" focusable="false">
+            <text x="2" y="128" textLength="996" lengthAdjust="spacingAndGlyphs">
+              I-SPORT COMPLEX
+            </text>
+          </svg>
         </div>
         <div className="ft__bottom">
           <span>

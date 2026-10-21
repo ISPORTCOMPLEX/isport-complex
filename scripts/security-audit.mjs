@@ -33,7 +33,8 @@ const DANGER = [
 ];
 for (const f of code) {
   if (rel(f).startsWith('scripts/')) continue; // vývojárske skripty bežia len lokálne
-  const s = read(f);
+  // povolené vzory: HTML vždy prejde cez sanitizeInline (články) a JSON-LD cez JSON.stringify s escapovaním '<'
+  const s = read(f).replace(/dangerouslySetInnerHTML=\{\{ __html: (sanitizeInline\(|JSON\.stringify\([^)]*\)\.replace\(\/<\/g)/g, 'SAFE_HTML');
   for (const [re, msg] of DANGER) if (re.test(s)) add('VYSOKÉ', rel(f), msg);
 }
 
@@ -61,7 +62,7 @@ for (const f of code.filter((f) => /^(app|components)\/.*\.tsx$/.test(rel(f)) &&
 }
 
 // 4) API: overenie alebo výslovne verejný endpoint
-const PUBLIC_API = new Set(['app/api/a/route.ts', 'app/api/security-txt/route.ts', 'app/api/robots/route.ts', 'app/api/humans/route.ts']);
+const PUBLIC_API = new Set(['app/api/a/route.ts', 'app/api/security-txt/route.ts', 'app/api/robots/route.ts', 'app/api/humans/route.ts', 'app/api/rss/route.ts']);
 for (const f of code.filter((f) => /^app\/api\/.*route\.ts$/.test(rel(f)))) {
   const s = read(f);
   if (PUBLIC_API.has(rel(f))) continue;

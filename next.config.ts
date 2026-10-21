@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       { source: '/.well-known/security.txt', destination: '/api/security-txt' },
       { source: '/robots.txt', destination: '/api/robots' },
       { source: '/humans.txt', destination: '/api/humans' },
+      { source: '/aktuality/rss.xml', destination: '/api/rss' },
     ];
   },
   async redirects() {

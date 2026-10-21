@@ -75,6 +75,64 @@ model Photo {
   @@index([slot, sort])
 }
 
+// ───────────────────────── Články (redakčný systém) ─────────────────────────
+// Obsah článku sú bloky (text, nadpis, fotka, galéria, video, citát, tlačidlo, oddeľovač) v JSON – lib/articles/blocks.ts.
+// Fotky a videá sú v Cloudinary (priečinok isport/clanky); v databáze len odkazy.
+
+enum ArticleStatus {
+  DRAFT // koncept
+  SCHEDULED // naplánovaný – zverejní sa sám v čase publishAt
+  PUBLISHED
+  ARCHIVED // stiahnutý z webu
+}
+
+model Article {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  title          String
+  perex          String        @default("")
+  category       String        @default("novinky")
+  tags           String[]      @default([])
+  cover          Json? // { publicId, version, width, height, alt, caption }
+  body           Json // bloky
+  status         ArticleStatus @default(DRAFT)
+  publishAt      DateTime? // naplánované zverejnenie
+  publishedAt    DateTime?
+  pinned         Boolean       @default(false)
+  seoTitle       String?
+  seoDescription String?
+  readMinutes    Int           @default(1)
+  views          Int           @default(0)
+  authorId       String?
+  authorName     String        @default("Redakcia I-SPORT COMPLEX")
+  updatedById    String?
+  deletedAt      DateTime? // kôš
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  revisions ArticleRevision[]
+
+  @@index([status, publishedAt])
+  @@index([status, publishAt])
+  @@index([category, publishedAt])
+}
+
+// História verzií – uloží sa pri zverejnení, ručnom uložení a pri automatickom ukladaní najviac raz za 10 minút.
+model ArticleRevision {
+  id          String   @id @default(cuid())
+  articleId   String
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  title       String
+  perex       String
+  body        Json
+  cover       Json?
+  reason      String // autosave | save | publish | restore
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@index([articleId, createdAt])
+}
+
 // Prihlásené zariadenia. Cookie nesie podpísaný JWT s id relácie; odhlásenie reláciu zruší aj na serveri,
 // takže ukradnutá cookie po odhlásení už nefunguje.
 model Session {

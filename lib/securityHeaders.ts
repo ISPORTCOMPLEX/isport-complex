@@ -38,9 +38,9 @@ export function buildCsp(nonce: string, isDev: boolean, uploads = false): string
     // Stripe Checkout: po odoslaní rezervácie presmerujeme na platobnú stránku brány
     "form-action 'self' https://checkout.stripe.com",
     "frame-ancestors 'none'",
-    // jediné vložené okno: mapa Google, a to až po kliknutí návštevníka (components/LocationMap.tsx)
+    // vložené okná: mapa Google a video z YouTube (článok) – oboje až po kliknutí návštevníka
     // Google pre EÚ najprv presmeruje na consent.google.com – bez neho by mapa ostala prázdna
-    "frame-src https://maps.google.com https://www.google.com https://consent.google.com",
+    "frame-src https://maps.google.com https://www.google.com https://consent.google.com https://www.youtube-nocookie.com",
     "worker-src 'self' blob:",
     "manifest-src 'self'",
     "media-src 'self' blob:",

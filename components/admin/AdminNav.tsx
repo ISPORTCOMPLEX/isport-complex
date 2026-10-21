@@ -5,10 +5,11 @@ import { usePathname } from 'next/navigation';
 
 // hard: odkaz s plným načítaním stránky (Fotky potrebujú vlastnú CSP na nahrávanie, ktorú prechod v rámci appky neprinesie)
 export type AdminNavItem = { href: string; label: string; icon: IconName; group: string; soon?: boolean; badge?: number; hard?: boolean };
-type IconName = 'home' | 'scan' | 'cal' | 'list' | 'users' | 'chart' | 'mail' | 'card' | 'shield' | 'log' | 'gear' | 'image';
+type IconName = 'home' | 'scan' | 'cal' | 'list' | 'users' | 'chart' | 'mail' | 'card' | 'shield' | 'log' | 'gear' | 'image' | 'doc';
 
 const P: Record<IconName, string> = {
   image: 'M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4M15.5 9.5h.01',
+  doc: 'M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h7M9 8h3',
   home: 'M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
   scan: 'M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10',
   cal: 'M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM4 10h16M9 3v4M15 3v4',
