@@ -6,11 +6,12 @@ import { getSite } from '@/lib/siteSettings';
 import { orTbd } from '@/lib/site';
 import { getBookingSettings } from '@/lib/booking/settings';
 import { dayAvailability } from '@/lib/booking/availability';
-import { slotPhotos, type SlotKey } from '@/lib/media';
+import { photosBySlot, slotPhotos, toWebPhoto, type SlotKey } from '@/lib/media';
 import { CloudImage } from '@/components/CloudImage';
 import { LocationSection } from '@/components/location/LocationSection';
 import { LiveStrip, NewsSection } from '@/components/home/NewsSection';
 import { homeArticles } from '@/lib/articles/queries';
+import { iceToday } from '@/lib/booking/iceToday';
 
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
 
@@ -32,52 +33,27 @@ const HK_LINKS = [
 ];
 
 export default async function HomePage() {
-  const [site, settings, news] = await Promise.all([getSite(), getBookingSettings(), homeArticles()]);
+  const [site, settings, news, ice, photoMap] = await Promise.all([getSite(), getBookingSettings(), homeArticles(), iceToday(), photosBySlot().catch(() => ({}) as Awaited<ReturnType<typeof photosBySlot>>)]);
+  const pick = (slot: string, i = 0) => {
+    const p = photoMap[slot]?.[i] ?? photoMap[slot]?.[0];
+    return p ? toWebPhoto(p, '4:3') : null;
+  };
+  const fallbackPhotos = { lad: pick('ladova-plocha') ?? pick('komplex'), cennik: pick('ladova-plocha', 1), kluby: pick('ladova-plocha', 2), skyboxy: pick('skyboxy') };
   const days = nextDays(5);
   const avail = await Promise.all(days.map((d) => dayAvailability(settings, d.iso)));
   const qbDays = days.map((d, i) => ({ ...d, slots: avail[i].map((s) => ({ hour: s.hour, ok: s.free && s.bookable, price: s.price })) }));
 
-  // Stav ľadu naživo: najbližšie voľné hodiny dnes, inak zajtra.
-  const freeToday = qbDays[0].slots.filter((s) => s.ok).map((s) => `${s.hour}:00`);
-  const freeTomorrow = qbDays[1]?.slots.filter((s) => s.ok).map((s) => `${s.hour}:00`) ?? [];
-  const live =
-    freeToday.length > 0
-      ? `Ľad dnes: voľné ${freeToday.slice(0, 3).join(', ')}${freeToday.length > 3 ? ' a ďalšie' : ''}`
-      : freeTomorrow.length > 0
-        ? `Dnes plno. Zajtra voľné ${freeTomorrow.slice(0, 3).join(', ')}`
-        : 'Najbližšie voľné časy nájdeš v rezervácii';
   const p = settings.prices.full;
   const rowPhotos = await Promise.all(PARTS.map((r) => slotPhotos(r.slot, '2:1')));
 
   return (
     <>
-      {news.length ? (
-        // NOVINKY navrchu (ako spravodajský web), pod nimi rýchla rezervácia a rez komplexom
-        <div className="hn-top">
-          <h1 className="sr-only">I-SPORT COMPLEX – športový komplex v Košiciach</h1>
-          <LiveStrip text={live} />
-          <NewsSection items={news} />
-        </div>
-      ) : (
-        // Kým nie sú žiadne články, úvod ostáva ako doteraz – rez komplexom
-        <section className="hx">
-          <div className="wrap hx__top">
-            <h1 className="cond hx__title">
-              I-Sport
-              <br />
-              Complex
-            </h1>
-            <div className="hx__side">
-              <p>Športový komplex v Košiciach na Juhu. Tréningový ľad, skyboxy, bufet a ihrisko vonku. Posilňovňa a wellness pribudnú.</p>
-              <Link href="/rezervacia" className="hx__live">
-                <i aria-hidden="true" />
-                {live}
-              </Link>
-            </div>
-          </div>
-          <ComplexSection />
-        </section>
-      )}
+      {/* NOVINKY vždy navrchu (ako spravodajský web), pod nimi rýchla rezervácia a rez komplexom */}
+      <div className="hn-top">
+        <h1 className="sr-only">I-SPORT COMPLEX – športový komplex v Košiciach</h1>
+        <LiveStrip ice={ice} />
+        <NewsSection items={news} fallback={{ ice, photos: fallbackPhotos }} />
+      </div>
 
       {/* ĽAD – svetlá sekcia */}
       <section className="ice ix">
@@ -121,26 +97,24 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {news.length ? (
-        // KOMPLEX – animovaný rez budovou (pri novinkách navrchu sa presunie sem)
-        <section className="hk" aria-labelledby="hk-t">
-          <div className="wrap hk__head">
-            <h2 id="hk-t" className="cond hk__title">
-              Komplex
-            </h2>
-            <p>Ľad je srdcom komplexu. Prejdi myšou po budove – hráči sa rozkorčuľujú, v posilňovni dvíhajú činky, v bufete sa je.</p>
-          </div>
-          <ComplexSection />
-          <nav className="wrap hk__links" aria-label="Časti komplexu">
-            {HK_LINKS.map((l) => (
-              <Link key={l.name} href={l.href}>
-                {l.name}
-                {l.soon ? <em>pripravujeme</em> : <span aria-hidden="true">→</span>}
-              </Link>
-            ))}
-          </nav>
-        </section>
-      ) : null}
+      {/* KOMPLEX – animovaný rez budovou */}
+      <section className="hk" aria-labelledby="hk-t">
+        <div className="wrap hk__head">
+          <h2 id="hk-t" className="cond hk__title">
+            Komplex
+          </h2>
+          <p>Ľad je srdcom komplexu. Prejdi myšou po budove – hráči sa rozkorčuľujú, v posilňovni dvíhajú činky, v bufete sa je.</p>
+        </div>
+        <ComplexSection />
+        <nav className="wrap hk__links" aria-label="Časti komplexu">
+          {HK_LINKS.map((l) => (
+            <Link key={l.name} href={l.href}>
+              {l.name}
+              {l.soon ? <em>pripravujeme</em> : <span aria-hidden="true">→</span>}
+            </Link>
+          ))}
+        </nav>
+      </section>
 
       {/* CELÝ KOMPLEX – tabuľa */}
       <section className="bx">
