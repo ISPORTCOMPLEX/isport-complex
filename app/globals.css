@@ -2666,3 +2666,6 @@ a.ac__cat:hover { color: #8e0b11; }
   .hn__sm-link { grid-template-columns: 112px minmax(0, 1fr); gap: 14px; }
   .hn__sm-img { height: 84px; }
 }
+.hn__grid.hn__grid--solo { grid-template-columns: minmax(0, 1fr); }
+.hn--empty { padding-bottom: 48px; }
+.hn--empty .hn__head { margin-bottom: 0; }

@@ -6,7 +6,7 @@ import { getSite } from '@/lib/siteSettings';
 import { orTbd } from '@/lib/site';
 import { getBookingSettings } from '@/lib/booking/settings';
 import { dayAvailability } from '@/lib/booking/availability';
-import { photosBySlot, slotPhotos, toWebPhoto, type SlotKey } from '@/lib/media';
+import { slotPhotos, type SlotKey } from '@/lib/media';
 import { CloudImage } from '@/components/CloudImage';
 import { LocationSection } from '@/components/location/LocationSection';
 import { LiveStrip, NewsSection } from '@/components/home/NewsSection';
@@ -33,12 +33,7 @@ const HK_LINKS = [
 ];
 
 export default async function HomePage() {
-  const [site, settings, news, ice, photoMap] = await Promise.all([getSite(), getBookingSettings(), homeArticles(), iceToday(), photosBySlot().catch(() => ({}) as Awaited<ReturnType<typeof photosBySlot>>)]);
-  const pick = (slot: string, i = 0) => {
-    const p = photoMap[slot]?.[i] ?? photoMap[slot]?.[0];
-    return p ? toWebPhoto(p, '4:3') : null;
-  };
-  const fallbackPhotos = { lad: pick('ladova-plocha') ?? pick('komplex'), cennik: pick('ladova-plocha', 1), kluby: pick('ladova-plocha', 2), skyboxy: pick('skyboxy') };
+  const [site, settings, news, ice] = await Promise.all([getSite(), getBookingSettings(), homeArticles(), iceToday()]);
   const days = nextDays(5);
   const avail = await Promise.all(days.map((d) => dayAvailability(settings, d.iso)));
   const qbDays = days.map((d, i) => ({ ...d, slots: avail[i].map((s) => ({ hour: s.hour, ok: s.free && s.bookable, price: s.price })) }));
@@ -52,7 +47,7 @@ export default async function HomePage() {
       <div className="hn-top">
         <h1 className="sr-only">I-SPORT COMPLEX – športový komplex v Košiciach</h1>
         <LiveStrip ice={ice} />
-        <NewsSection items={news} fallback={{ ice, photos: fallbackPhotos }} />
+        <NewsSection items={news} />
       </div>
 
       {/* ĽAD – svetlá sekcia */}

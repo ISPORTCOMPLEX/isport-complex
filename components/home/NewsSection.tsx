@@ -1,17 +1,7 @@
 import Link from 'next/link';
-import { CloudImage } from '@/components/CloudImage';
 import { CoverImg } from '@/components/articles/ArticleCard';
 import { fmtArticleDate, fmtDuration, fmtShortDate, type ArticleCard } from '@/lib/articles/queries';
-import type { WebPhoto } from '@/lib/media';
 import type { IceToday } from '@/lib/booking/iceToday';
-
-export type NewsFallback = { ice: IceToday; photos: { lad: WebPhoto | null; cennik: WebPhoto | null; kluby: WebPhoto | null; skyboxy: WebPhoto | null } };
-
-const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
-
-function Img({ p, sizes, className, priority }: { p: WebPhoto | null; sizes: string; className?: string; priority?: boolean }) {
-  return p ? <CloudImage photo={{ ...p, alt: '' }} sizes={sizes} className={className} priority={priority} /> : <span className={`mm__noimg ${className ?? ''}`} aria-hidden="true" />;
-}
 
 function Side({ href, img, cat, title, small, video }: { href: string; img: React.ReactNode; cat: string; title: string; small: React.ReactNode; video?: number | null }) {
   return (
@@ -40,23 +30,21 @@ function Side({ href, img, cat, title, small, video }: { href: string; img: Reac
   );
 }
 
-// Úvod webu: NOVINKY vždy navrchu. S článkami: hlavný veľký + ďalšie tri.
-// Kým nie je zverejnený žiadny článok, ukáže sa to najdôležitejšie z haly (skutočné údaje, nič vymyslené).
-export function NewsSection({ items, fallback }: { items: ArticleCard[]; fallback: NewsFallback }) {
+// Úvod webu: NOVINKY vždy navrchu – len skutočné články: hlavný veľký + ďalšie tri.
+export function NewsSection({ items }: { items: ArticleCard[] }) {
   const has = items.length > 0;
   const [big, ...rest] = items;
   const side = rest.slice(0, 3);
-  const { ice, photos } = fallback;
 
   return (
-    <section className="hn" aria-labelledby="hn-t">
+    <section className={`hn${has ? '' : ' hn--empty'}`} aria-labelledby="hn-t">
       <div className="wrap">
         <div className="hn__head">
           <h2 id="hn-t" className="cond hn__title">
             Novinky
           </h2>
           <p className="hn__intro">
-            {has ? 'Turnaje, nábor, kempy a všetko, čo sa deje v hale.' : 'Prvé články pribudnú čoskoro. Dovtedy tu je to najdôležitejšie z haly.'}
+            {has ? 'Turnaje, nábor, kempy a všetko, čo sa deje v hale.' : 'Prvé články pribudnú čoskoro.'}
             {has ? (
               <Link href="/aktuality">
                 Všetky aktuality <span aria-hidden="true">→</span>
@@ -64,8 +52,8 @@ export function NewsSection({ items, fallback }: { items: ArticleCard[]; fallbac
             ) : null}
           </p>
         </div>
-        <div className="hn__grid">
           {has ? (
+          <div className={`hn__grid${side.length ? '' : ' hn__grid--solo'}`}>
             <article className="hn__big">
               <Link href={`/aktuality/${big.slug}`} className="hn__big-link">
                 <CoverImg a={big} ratio="16:10" sizes="(max-width: 1000px) 100vw, 800px" priority className="hn__big-img" />
@@ -83,27 +71,9 @@ export function NewsSection({ items, fallback }: { items: ArticleCard[]; fallbac
                 </span>
               </Link>
             </article>
-          ) : (
-            <article className="hn__big">
-              <Link href="/rezervacia" className="hn__big-link">
-                <Img p={photos.lad} sizes="(max-width: 1000px) 100vw, 800px" priority className="hn__big-img" />
-                <span className="hn__ov" aria-hidden="true" />
-                <span className="hn__tx">
-                  <span className="hn__tag">{ice.day === 'zajtra' ? 'Ľad zajtra' : 'Ľad dnes'}</span>
-                  <span className="hn__meta">{ice.hours.length ? `Voľné ${ice.hours.slice(0, 4).join(' · ')}${ice.hours.length > 4 ? ' a ďalšie' : ''}` : 'Voľné časy nájdeš v rezervácii'}</span>
-                  <h3 className="cond hn__big-t">Ľad na prenájom v Košiciach</h3>
-                  <span className="hn__perex">Celá tréningová plocha pre kluby, školy, firmy aj partie. Voľné hodiny vidíš hneď, potvrdenie s QR kódom máš v telefóne.</span>
-                  <span className="hn__read">
-                    Rezervovať ľad <span aria-hidden="true">→</span>
-                  </span>
-                </span>
-              </Link>
-            </article>
-          )}
-
-          <div className="hn__side">
-            {has
-              ? side.map((a) => (
+            {side.length ? (
+              <div className="hn__side">
+                {side.map((a) => (
                   <Side
                     key={a.id}
                     href={`/aktuality/${a.slug}`}
@@ -117,20 +87,14 @@ export function NewsSection({ items, fallback }: { items: ArticleCard[]; fallbac
                       </>
                     }
                   />
-                ))
-              : null}
-            {!has ? (
-              <>
-                <Side href="/cennik" img={<Img p={photos.cennik} sizes="170px" />} cat="Cenník" title={`Mimo špičky ${eur(ice.offPeak)}, špička a víkend ${eur(ice.peak)} za hodinu`} small={<>Ceny a pravidlá →</>} />
-                <Side href="/pre-kluby" img={<Img p={photos.kluby} sizes="170px" />} cat="Pre kluby" title="Sezónny prenájom s pevnými časmi a faktúrou" small={<>Poslať dopyt →</>} />
-                <Side href="/bufet-skyboxy" img={<Img p={photos.skyboxy} sizes="170px" />} cat="Skyboxy a bufet" title="Sledujte tréning v teple nad ľadovou plochou" small={<>Viac o komplexe →</>} />
-              </>
+                ))}
+                <Link href="/aktuality" className="hn__all">
+                  Všetky aktuality <span aria-hidden="true">→</span>
+                </Link>
+              </div>
             ) : null}
-            <Link href={has ? '/aktuality' : '/fotky'} className="hn__all">
-              {has ? 'Všetky aktuality' : 'Pozrieť fotky haly'} <span aria-hidden="true">→</span>
-            </Link>
           </div>
-        </div>
+          ) : null}
       </div>
     </section>
   );
