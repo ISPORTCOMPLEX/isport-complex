@@ -2,8 +2,8 @@ import Link from 'next/link';
 import { LogoLockup } from './Logo';
 import { MobileNav } from './NavLinks';
 import { MegaNav, type MegaPhotos } from './nav/MegaNav';
-import { ArrowUpRight } from './Icons';
 import { getSessionUser } from '@/lib/session';
+import { getSite } from '@/lib/siteSettings';
 import { iceToday } from '@/lib/booking/iceToday';
 import { photosBySlot, toWebPhoto } from '@/lib/media';
 
@@ -23,41 +23,68 @@ async function megaPhotos(): Promise<MegaPhotos> {
   }
 }
 
-// Hlavička: logo, menu (Ľad a Komplex sa rozbalia), účet a jediné červené tlačidlo. Drží sa hore pri posúvaní.
+// Dnešné otváracie hodiny (Po–Pi / So / Ne podľa nastavení webu). Prázdne = riadok sa nezobrazí.
+function todayHours(hours: { days: string; time: string }[]): string {
+  const wd = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Bratislava', weekday: 'short' }).format(new Date());
+  const i = wd === 'Sat' ? 1 : wd === 'Sun' ? 2 : 0;
+  return hours[i]?.time?.trim() ?? '';
+}
+
+// Horná lišta + hlavička. Na úvode leží hlavička priamo na hero (priehľadná), inde je tmavá a drží sa hore.
 export async function Header() {
-  const [user, ice, photos] = await Promise.all([getSessionUser(), iceToday(), megaPhotos()]);
+  const [user, ice, photos, site] = await Promise.all([getSessionUser(), iceToday(), megaPhotos(), getSite()]);
+  const open = todayHours(site.hours);
+  const short = `${site.hall.street}, ${site.hall.city.replace(/^\d{3}\s?\d{2}\s*/, '')}`;
   return (
-    <header className="hd">
-      <div className="wrap hd__in">
-        <Link href="/" className="hd__logo" aria-label="I-SPORT COMPLEX, domov">
-          <LogoLockup height={38} title="I-SPORT COMPLEX" />
-        </Link>
-        <MegaNav ice={ice} photos={photos} />
-        <div className="hd__actions">
-          {user ? (
-            <Link href="/ucet" className="hd__acc hd__acc--in" aria-label="Môj účet" title="Môj účet">
-              {`${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase()}
-            </Link>
-          ) : (
-            <Link href="/prihlasenie" className="hd__acc" aria-label="Prihlásiť sa" title="Prihlásiť sa">
-              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8" fill="none" />
-                <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+    <>
+      <div className="tb">
+        <div className="wrap tb__in">
+          <span className="tb__l">
+            <span className="tb__it">
+              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 22s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" fill="none" stroke="#E30613" strokeWidth="2.4" />
               </svg>
-            </Link>
-          )}
-          <Link href="/rezervacia" className="hd__cta">
-            Rezervovať ľad
-            <span aria-hidden="true">
-              <ArrowUpRight size={14} />
+              {short}
             </span>
-          </Link>
-          <Link href="/rezervacia" className="hd__mcta">
-            Rezervovať
-          </Link>
-          <MobileNav loggedIn={Boolean(user)} />
+            {site.phone ? (
+              <a className="tb__it" href={`tel:${site.phone.replace(/\s/g, '')}`}>
+                Recepcia: {site.phone}
+              </a>
+            ) : null}
+          </span>
+          <span className="tb__r">
+            {open ? (
+              <span className="tb__open">
+                <i aria-hidden="true" />
+                Dnes otvorené {open}
+              </span>
+            ) : null}
+            <Link href={user ? '/ucet' : '/prihlasenie'} className="tb__acc">
+              {user ? 'Môj účet' : 'Prihlásiť sa'}
+            </Link>
+          </span>
         </div>
       </div>
-    </header>
+      <header className="hd">
+        <div className="wrap hd__in">
+          <Link href="/" className="hd__logo" aria-label="I-SPORT COMPLEX, domov">
+            <LogoLockup height={40} title="I-SPORT COMPLEX" />
+          </Link>
+          <MegaNav ice={ice} photos={photos} />
+          <div className="hd__actions">
+            <Link href="/rezervacia" className="sbtn hd__book">
+              Rezervovať ľad
+            </Link>
+            <Link href={user ? '/ucet' : '/prihlasenie'} className="hd__macc" aria-label={user ? 'Môj účet' : 'Prihlásiť sa'}>
+              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" strokeWidth="2" />
+                <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" fill="none" stroke="currentColor" strokeWidth="2" />
+              </svg>
+            </Link>
+            <MobileNav loggedIn={Boolean(user)} address={`${site.hall.street} · ${site.hall.city.replace(/^\d{3}\s?\d{2}\s*/, '')}`} />
+          </div>
+        </div>
+      </header>
+    </>
   );
 }

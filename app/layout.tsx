@@ -5,6 +5,7 @@ import { headers } from 'next/headers';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { SiteChrome } from '@/components/SiteChrome';
+import { BookingHeader } from '@/components/booking/BookingHeader';
 import { Analytics } from '@/components/Analytics';
 import { PhotoGuard } from '@/components/PhotoGuard';
 import { appUrl } from '@/lib/requestInfo';
@@ -65,7 +66,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a href="#obsah" className="sr-only skip">
           Preskočiť na obsah
         </a>
-        <SiteChrome header={<Header />} footer={<Footer />}>
+        <SiteChrome header={<Header />} bookingHeader={<BookingHeader />} footer={<Footer />}>
           {children}
         </SiteChrome>
         <Analytics />

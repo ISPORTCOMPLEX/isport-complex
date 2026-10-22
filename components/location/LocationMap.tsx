@@ -24,38 +24,35 @@ export function LocationMap({ embed, address }: { embed: string; address: string
     }
   };
   return (
-    <div className="loc__mapcol">
-      <div className="loc__map">
-        {on ? (
-          <iframe className="loc__iframe" src={embed} title={`Mapa: ${address}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
-        ) : (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="loc__bg" src="/brand/mapa-nahlad.svg" alt="" aria-hidden="true" draggable={false} />
-            <div className="loc__pin" aria-hidden="true">
-              <span className="loc__chip">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/brand/icon-192.png" alt="" width={26} height={26} />
-                I-SPORT COMPLEX
-              </span>
-              <span className="loc__tip" />
-              <span className="loc__dot" />
-            </div>
-            <div className="loc__veil" aria-hidden="true" />
-            <div className="loc__gate">
-              <small>Interaktívna mapa od Google</small>
-              <button type="button" className="loc__load" onClick={load}>
-                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
-                  <circle cx="12" cy="10" r="2.6" fill="currentColor" />
-                </svg>
-                Načítať mapu
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-      {on ? null : <p className="loc__note">Mapa sa načíta až po kliknutí – dovtedy Google neukladá žiadne cookies.</p>}
+    <div className="loc2__map">
+      {on ? (
+        <iframe className="loc2__iframe" src={embed} title={`Mapa: ${address}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
+      ) : (
+        <>
+          <svg className="loc2__art" viewBox="0 0 800 520" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <rect width="800" height="520" fill="#0F1013" />
+            <path d="M-20 410 C 160 360, 300 380, 420 300 S 700 160, 840 120" fill="none" stroke="#1E2026" strokeWidth="34" />
+            <path d="M-20 410 C 160 360, 300 380, 420 300 S 700 160, 840 120" fill="none" stroke="#2A2D35" strokeWidth="2" strokeDasharray="14 12" />
+            <path d="M120 -20 L 260 540" stroke="#1A1C21" strokeWidth="18" />
+            <path d="M560 -20 L 470 540" stroke="#1A1C21" strokeWidth="22" />
+            <path d="M-20 140 L 840 230" stroke="#17191D" strokeWidth="12" />
+            <path d="M-20 520 L 840 470" stroke="#17191D" strokeWidth="10" />
+            <rect x="300" y="160" width="120" height="70" fill="#15161A" transform="rotate(-8 360 195)" />
+            <rect x="600" y="300" width="140" height="90" fill="#15161A" transform="rotate(6 670 345)" />
+            <rect x="80" y="220" width="110" height="80" fill="#15161A" />
+            <rect x="340" y="250" width="150" height="96" rx="6" fill="#1D1013" stroke="#E30613" strokeWidth="2.5" transform="rotate(-10 415 298)" />
+            <circle cx="415" cy="298" r="60" fill="rgba(227,6,19,0.12)" />
+            <circle cx="415" cy="298" r="9" fill="#E30613" />
+            <circle cx="415" cy="298" r="20" fill="none" stroke="#E30613" strokeWidth="2" opacity="0.6" />
+          </svg>
+          <span className="wide-display loc2__label" aria-hidden="true">
+            I-SPORT COMPLEX
+          </span>
+          <button type="button" className="loc2__load" onClick={load} title="Mapa od Google sa načíta až po kliknutí – dovtedy Google neukladá žiadne cookies.">
+            Načítať Google mapu
+          </button>
+        </>
+      )}
     </div>
   );
 }

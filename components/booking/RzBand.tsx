@@ -1,25 +1,35 @@
 import Link from 'next/link';
 
-// Tmavý pás s veľkým nadpisom nad svetlou „ľadovou“ časťou rezervácie.
-export function RzBand({ crumbs, title, lead, step }: { crumbs: { href?: string; label: string }[]; title: React.ReactNode; lead?: React.ReactNode; step?: string }) {
+// Hero pás podstránok: textúra ľadu pod tmavým gradientom, omrvinky, veľký nadpis ISport Display
+// a voliteľne výhody s fajkami (rezervácia) alebo krátky úvod.
+export function RzBand({ crumbs, title, lead, step, checks }: { crumbs: { href?: string; label: string }[]; title: React.ReactNode; lead?: React.ReactNode; step?: string; checks?: string[] }) {
   return (
-    <section className="rz-band">
-      <div className="wrap rz-band__in">
-        <div className="rz-band__top">
-          <nav aria-label="Omrvinky" className="crumbs">
-            {crumbs.map((c, i) => (
-              <span className="u-contents" key={c.label}>
-                {i > 0 ? <span aria-hidden="true">/</span> : null}
-                {c.href ? <Link href={c.href}>{c.label}</Link> : <span aria-current={i === crumbs.length - 1 ? 'page' : undefined}>{c.label}</span>}
-              </span>
+    <section className="band2">
+      <span className="band2__shade" aria-hidden="true" />
+      <div className="wrap band2__in">
+        <nav aria-label="Navigačná cesta" className="band2__crumbs">
+          {crumbs.map((c, i) => (
+            <span className="u-contents" key={c.label}>
+              {i > 0 ? <span aria-hidden="true">/</span> : null}
+              {c.href ? <Link href={c.href}>{c.label}</Link> : <span aria-current={i === crumbs.length - 1 ? 'page' : undefined}>{c.label}</span>}
+            </span>
+          ))}
+        </nav>
+        {step ? <span className="eb eb--muted">{step}</span> : null}
+        <h1 className="disp band2__title">{title}</h1>
+        {checks?.length ? (
+          <ul className="band2__checks">
+            {checks.map((c) => (
+              <li key={c}>
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12l5 5 9-10" fill="none" stroke="#E30613" strokeWidth="2.6" />
+                </svg>
+                {c}
+              </li>
             ))}
-          </nav>
-          {step ? <span className="rz-band__step">{step}</span> : null}
-        </div>
-        <div className="rz-band__row">
-          <h1 className="cond rz-band__title">{title}</h1>
-          {lead ? <div className="rz-band__lead">{lead}</div> : null}
-        </div>
+          </ul>
+        ) : null}
+        {lead ? <div className="band2__lead">{lead}</div> : null}
       </div>
     </section>
   );

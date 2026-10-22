@@ -71,7 +71,6 @@ export default async function UdajePage({ searchParams }: Props) {
     <>
       <RzBand
         crumbs={[{ href: '/', label: 'Domov' }, { href: `/rezervacia?datum=${iso}&cas=${startHour}&sprchy=${sp1}`, label: 'Rezervácia' }, { label: 'Údaje' }]}
-        step="Krok 2 z 2 · údaje"
         title={old ? `Presun ${old.code}` : 'Dokončenie'}
       />
       <section className="ice rz-ice">

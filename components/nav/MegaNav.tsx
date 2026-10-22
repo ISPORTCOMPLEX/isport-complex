@@ -10,7 +10,7 @@ import type { IceToday } from '@/lib/booking/iceToday';
 type Panel = 'lad' | 'komplex';
 export type MegaPhotos = { lad: WebPhoto | null; skyboxy: WebPhoto | null; bufet: WebPhoto | null; ihrisko: WebPhoto | null; fitness: WebPhoto | null };
 
-const ICE_PATHS = ['/ladova-plocha', '/cennik', '/pre-kluby', '/rezervacia'];
+const ICE_PATHS = ['/ladova-plocha', '/cennik', '/rezervacia'];
 const KOMPLEX_PATHS = ['/bufet-skyboxy', '/ihrisko', '/fitness-wellness'];
 const under = (path: string, list: string[]) => list.some((p) => path === p || path.startsWith(`${p}/`));
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
@@ -27,7 +27,7 @@ function Photo({ p, sizes }: { p: WebPhoto | null; sizes: string }) {
   return p ? <CloudImage photo={{ ...p, alt: '' }} sizes={sizes} /> : <span className="mm__noimg" aria-hidden="true" />;
 }
 
-// Hlavné menu na počítači: Novinky · Ľad ▾ · Komplex ▾ · Fotky · Kontakt.
+// Hlavné menu na počítači: Novinky · Ľadová plocha ▾ · Komplex ▾ · Pre kluby · Fotky · Kontakt.
 // Ľad a Komplex rozbalia panel na celú šírku (myšou aj klávesnicou, Esc zavrie).
 export function MegaNav({ ice, photos }: { ice: IceToday; photos: MegaPhotos }) {
   const pathname = usePathname() ?? '/';
@@ -95,8 +95,9 @@ export function MegaNav({ ice, photos }: { ice: IceToday; photos: MegaPhotos }) 
     <div className="mm" ref={root}>
       <nav aria-label="Hlavné menu" className="mm__nav">
         {link('/aktuality', 'Novinky')}
-        {trigger('lad', 'Ľad', under(pathname, ICE_PATHS))}
+        {trigger('lad', 'Ľadová plocha', under(pathname, ICE_PATHS))}
         {trigger('komplex', 'Komplex', under(pathname, KOMPLEX_PATHS))}
+        {link('/pre-kluby', 'Pre kluby')}
         {link('/fotky', 'Fotky')}
         {link('/kontakt', 'Kontakt')}
       </nav>

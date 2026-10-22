@@ -27,3 +27,17 @@ export function nextDays(count: number, now = new Date()): DayOption[] {
     };
   });
 }
+
+// „štvrtok 22. 10.“ (s rokom: „štvrtok 22. 10. 2026“) – pre súhrny a tabuľu „Ľad dnes“.
+export function longDayLabel(iso: string, withYear = false): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  const wd = new Intl.DateTimeFormat('sk-SK', { timeZone: 'UTC', weekday: 'long' }).format(date);
+  return `${wd} ${d}. ${m}.${withYear ? ` ${y}` : ''}`;
+}
+
+export function monthLabel(iso: string): string {
+  const [y, m] = iso.split('-').map(Number);
+  const name = new Intl.DateTimeFormat('sk-SK', { timeZone: 'UTC', month: 'long' }).format(new Date(Date.UTC(y, m - 1, 1)));
+  return `${name.charAt(0).toUpperCase()}${name.slice(1)} ${y}`;
+}
