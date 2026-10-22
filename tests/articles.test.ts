@@ -105,3 +105,18 @@ test('adresa videa /videa/… – len naše súbory', () => {
   assert.equal(parseVideoPath(['17', 'isport', 'abc.mp4']), null);
   assert.equal(parseVideoPath(['v17', 'isport', 'abc.exe']), null);
 });
+
+// ───── dočasné e-maily ─────
+import { isDisposableDomain, disposableCount, domainAndParents } from '../lib/disposable/check.ts';
+
+test('dočasné e-maily: zoznam je veľký a chytí známe služby aj subdomény', () => {
+  assert.ok(disposableCount() > 50000, `zoznam má len ${disposableCount()} domén`);
+  for (const d of ['mailinator.com', 'yopmail.com', '10minutemail.com', 'guerrillamail.com', 'temp-mail.org', 'sharklasers.com', 'abc.mailinator.com', 'MAILINATOR.COM'])
+    assert.equal(isDisposableDomain(d), true, d);
+});
+
+test('dočasné e-maily: bežní poskytovatelia prejdú', () => {
+  for (const d of ['gmail.com', 'outlook.com', 'azet.sk', 'centrum.sk', 'zoznam.sk', 'seznam.cz', 'icloud.com', 'proton.me', 'isport-complex.sk', 'stuba.sk'])
+    assert.equal(isDisposableDomain(d), false, d);
+  assert.deepEqual(domainAndParents('a.b.mailinator.com'), ['a.b.mailinator.com', 'b.mailinator.com', 'mailinator.com']);
+});

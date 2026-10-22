@@ -82,7 +82,7 @@ const SECRET = [
 ];
 for (const f of files) {
   const r = rel(f);
-  if (/\.(png|jpg|ico|woff2?|ttf|otf|pdf|zip)$/.test(r) || r === 'scripts/security-audit.mjs') continue;
+  if (/\.(png|jpg|webp|ico|woff2?|ttf|otf|pdf|zip)$/.test(r) || r === 'scripts/security-audit.mjs' || r === 'lib/disposable/data.ts') continue; // data.ts = skomprimovaný zoznam domén (base64)
   if (/^\.env($|\.)/.test(path.basename(r)) && r !== '.env.example') continue; // lokálny .env sa do gitu nedáva (kontroluje bod 6)
   let s;
   try { s = read(f); } catch { continue; }

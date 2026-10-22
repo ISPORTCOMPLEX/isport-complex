@@ -73,3 +73,16 @@ $b = New-Object byte[] 48; [Security.Cryptography.RandomNumberGenerator]::Create
 | Chýba security.txt | `/.well-known/security.txt` sa zobrazí vždy. Bez e-mailu v nastaveniach odkazuje na /kontakt. |
 | HSTS preload, MTA-STS, DNSSEC | Dajú sa nastaviť až na vlastnej doméne, na vercel.app nie. |
 | Odhalené technológie | `X-Powered-By` je vypnutá. Hlavičky `server: Vercel` a `x-vercel-*` pridáva hosting a nedajú sa odstrániť. |
+
+## Dočasné e-maily pri registrácii
+
+Registrácia odmietne dočasné schránky (mailinator, yopmail, 10minutemail, temp-mail…):
+
+1. **Vstavaný zoznam ~100 000 domén** (`lib/disposable/data.ts`) – spojenie 4 komunitných zoznamov, funguje aj bez internetu.
+   Kontroluje sa aj každá subdoména (`abc.mailinator.com`). Bežní poskytovatelia (gmail, azet, centrum, seznam…) sú v `lib/disposable/allow.mjs` a nikdy sa neblokujú.
+2. **Živý zoznam** – každých 12 hodín sa doplní najnovší verejný zoznam.
+3. **Poštový server (MX)** – ak doména posiela poštu na server dočasnej služby, zablokuje sa aj úplne nová doména.
+4. **Doména musí prijímať poštu** – vymyslené a preklepnuté adresy neprejdú.
+
+Aktualizácia vstavaného zoznamu (raz za pár mesiacov): `npm run disposable:update`, potom `git add`, `commit`, `push`.
+Vlastné domény na zablokovanie: premenná `DISPOSABLE_EXTRA="domena1.sk,domena2.com"` vo Verceli.

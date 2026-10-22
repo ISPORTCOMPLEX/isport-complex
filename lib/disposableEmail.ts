@@ -1,66 +1,47 @@
 import 'server-only';
 import { promises as dns } from 'node:dns';
+import { isDisposableDomain, addDisposable, domainAndParents } from './disposable/check';
 
-// Blokovanie dočasných e-mailov v troch vrstvách:
-// 1. doména aj jej nadradené domény sa porovnajú so zoznamom dočasných služieb
-//    (verejný komunitný zoznam obnovovaný každých 12 hodín + vstavaná záloha + vlastný zoznam),
-// 2. poštový server domény (MX) sa porovná so známymi servermi dočasných služieb,
-// 3. doména musí naozaj prijímať poštu (inak ide o preklep alebo vymyslenú adresu).
+// Blokovanie dočasných e-mailov pri registrácii – štyri vrstvy:
+// 1. vstavaný zoznam ~100 000 domén dočasných služieb (4 komunitné zoznamy, súčasť webu – funguje aj bez internetu),
+//    doplnený o najnovší verejný zoznam obnovovaný každých 12 hodín a vlastný zoznam DISPOSABLE_EXTRA,
+// 2. kontroluje sa doména aj všetky nadradené domény (abc.mailinator.com),
+// 3. poštový server domény (MX) sa porovná so zoznamom a so známymi servermi dočasných služieb
+//    (zachytí aj úplne nové domény, ktoré ešte nie sú v žiadnom zozname),
+// 4. doména musí naozaj prijímať poštu (inak ide o preklep alebo vymyslenú adresu).
 
 const LIST_URL = 'https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/main/disposable_email_blocklist.conf';
 const REFRESH_MS = 12 * 60 * 60 * 1000;
 
-const BUILTIN = [
-  'mailinator.com', '10minutemail.com', 'guerrillamail.com', 'guerrillamail.net', 'sharklasers.com', 'yopmail.com',
-  'temp-mail.org', 'tempmail.com', 'trashmail.com', 'getnada.com', 'dispostable.com', 'maildrop.cc', 'throwawaymail.com',
-  'fakeinbox.com', 'mohmal.com', 'emailondeck.com', 'mail.tm', 'mail.gw', 'tempmail.plus', 'mintemail.com', 'spamgourmet.com',
-  'mailnesia.com', 'mytemp.email', 'tempr.email', 'discard.email', 'burnermail.io', 'inboxkitten.com', 'emailfake.com',
-];
-
-// Vlastný zoznam (neskôr z administrácie). Dá sa doplniť aj premennou DISPOSABLE_EXTRA="a.sk,b.com".
+// Vlastný zoznam: premenná DISPOSABLE_EXTRA="a.sk,b.com" vo Verceli.
 const EXTRA = (process.env.DISPOSABLE_EXTRA ?? '').split(',').map((d) => d.trim().toLowerCase()).filter(Boolean);
 
 // Poštové servery, ktoré používajú dočasné služby aj pre nové domény.
-const DISPOSABLE_MX = ['mail.tm', 'mail.gw', 'mailinator.com', 'yopmail.com', 'guerrillamail.com', 'tempmail', 'temp-mail', 'emailfake', 'mailnesia', 'dropmail'];
+const DISPOSABLE_MX = ['mail.tm', 'mail.gw', 'mailinator.com', 'yopmail.com', 'guerrillamail.com', 'tempmail', 'temp-mail', 'emailfake', 'mailnesia', 'dropmail', 'mailpoof', 'tempmailo', 'mohmal', 'maildrop', 'harakirimail', 'inboxkitten'];
 
-let cache: { set: Set<string>; at: number } | null = null;
+let refreshedAt = 0;
 
-async function loadList(): Promise<Set<string>> {
-  if (cache && Date.now() - cache.at < REFRESH_MS) return cache.set;
-  const set = new Set<string>([...BUILTIN, ...EXTRA]);
+async function refresh(): Promise<void> {
+  if (Date.now() - refreshedAt < REFRESH_MS) return;
+  refreshedAt = Date.now();
+  addDisposable(EXTRA);
   try {
     const res = await fetch(LIST_URL, { signal: AbortSignal.timeout(4000), cache: 'no-store' });
-    if (res.ok) {
-      const text = await res.text();
-      for (const line of text.split('\n')) {
-        const d = line.trim().toLowerCase();
-        if (d && !d.startsWith('#')) set.add(d);
-      }
-    }
+    if (res.ok) addDisposable((await res.text()).split('\n'));
   } catch {
-    // zoznam sa nepodarilo stiahnuť – ostáva vstavaná záloha
+    // zoznam sa nepodarilo stiahnuť – stačí vstavaný zoznam
   }
-  cache = { set, at: Date.now() };
-  return set;
-}
-
-function domainAndParents(domain: string): string[] {
-  const parts = domain.split('.');
-  const out: string[] = [];
-  for (let i = 0; i < parts.length - 1; i++) out.push(parts.slice(i).join('.'));
-  return out;
 }
 
 export type EmailCheck = { ok: true } | { ok: false; message: string; reason: string };
+const BLOCKED = 'Dočasné e-mailové schránky nie sú povolené. Použi svoj bežný e-mail.';
 
 export async function checkEmailDomain(email: string): Promise<EmailCheck> {
   const domain = email.split('@')[1]?.toLowerCase();
   if (!domain) return { ok: false, message: 'Zadaj platný e-mail.', reason: 'no-domain' };
 
-  const list = await loadList();
-  if (domainAndParents(domain).some((d) => list.has(d))) {
-    return { ok: false, message: 'Dočasné e-mailové schránky nie sú povolené. Použi svoj bežný e-mail.', reason: 'disposable-list' };
-  }
+  await refresh();
+  if (isDisposableDomain(domain)) return { ok: false, message: BLOCKED, reason: 'disposable-list' };
 
   let mx: { exchange: string }[] = [];
   try {
@@ -71,9 +52,9 @@ export async function checkEmailDomain(email: string): Promise<EmailCheck> {
   if (mx.length === 0) {
     return { ok: false, message: 'Na tento e-mail sa nedá doručovať. Skontroluj, či je napísaný správne.', reason: 'no-mx' };
   }
-  const hosts = mx.map((m) => m.exchange.toLowerCase());
-  if (hosts.some((h) => DISPOSABLE_MX.some((bad) => h.includes(bad)) || domainAndParents(h).some((d) => list.has(d)))) {
-    return { ok: false, message: 'Dočasné e-mailové schránky nie sú povolené. Použi svoj bežný e-mail.', reason: 'disposable-mx' };
+  const hosts = mx.map((m) => m.exchange.toLowerCase().replace(/\.$/, ''));
+  if (hosts.some((h) => DISPOSABLE_MX.some((bad) => h.includes(bad)) || domainAndParents(h).some((d) => isDisposableDomain(d)))) {
+    return { ok: false, message: BLOCKED, reason: 'disposable-mx' };
   }
   return { ok: true };
 }
