@@ -6,6 +6,7 @@ import { getSessionUser } from '@/lib/session';
 import { getSite } from '@/lib/siteSettings';
 import { iceToday } from '@/lib/booking/iceToday';
 import { photosBySlot, toWebPhoto } from '@/lib/media';
+import { isStaff } from '@/lib/staff';
 
 async function megaPhotos(): Promise<MegaPhotos> {
   try {
@@ -34,6 +35,7 @@ function todayHours(hours: { days: string; time: string }[]): string {
 export async function Header() {
   const [user, ice, photos, site] = await Promise.all([getSessionUser(), iceToday(), megaPhotos(), getSite()]);
   const open = todayHours(site.hours);
+  const staff = user ? isStaff(user.role) : false;
   const short = `${site.hall.street}, ${site.hall.city.replace(/^\d{3}\s?\d{2}\s*/, '')}`;
   return (
     <>
@@ -59,6 +61,14 @@ export async function Header() {
                 Dnes otvorené {open}
               </span>
             ) : null}
+            {staff ? (
+              <Link href="/admin" className="tb__admin">
+                <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="currentColor" />
+                </svg>
+                Administrácia
+              </Link>
+            ) : null}
             <Link href={user ? '/ucet' : '/prihlasenie'} className="tb__acc">
               {user ? 'Môj účet' : 'Prihlásiť sa'}
             </Link>
@@ -81,7 +91,7 @@ export async function Header() {
                 <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" fill="none" stroke="currentColor" strokeWidth="2" />
               </svg>
             </Link>
-            <MobileNav loggedIn={Boolean(user)} address={`${site.hall.street} · ${site.hall.city.replace(/^\d{3}\s?\d{2}\s*/, '')}`} />
+            <MobileNav loggedIn={Boolean(user)} staff={staff} address={`${site.hall.street} · ${site.hall.city.replace(/^\d{3}\s?\d{2}\s*/, '')}`} />
           </div>
         </div>
       </header>

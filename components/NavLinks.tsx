@@ -62,7 +62,7 @@ const inSection = (path: string, list: string[]) => list.some((p) => path === p 
 
 // Mobilné menu na <details> – funguje aj bez JavaScriptu. Po zmene stránky sa zavrie (key).
 // Escape menu zavrie a vráti fokus na tlačidlo (WCAG 2.1.2, 2.4.3).
-export function MobileNav({ loggedIn = false, address = '' }: { loggedIn?: boolean; address?: string }) {
+export function MobileNav({ loggedIn = false, staff = false, address = '' }: { loggedIn?: boolean; staff?: boolean; address?: string }) {
   const pathname = usePathname() ?? '/';
   const ref = useRef<HTMLDetailsElement | null>(null);
   useEffect(() => {
@@ -120,6 +120,11 @@ export function MobileNav({ loggedIn = false, address = '' }: { loggedIn?: boole
           <Link href="/rezervacia" className="sbtn sbtn--block">
             Rezervovať ľad
           </Link>
+          {staff ? (
+            <Link href="/admin" className="sbtn sbtn--ghost sbtn--block sbtn--sm mnav__admin">
+              Administrácia
+            </Link>
+          ) : null}
           <Link href={loggedIn ? '/ucet' : '/prihlasenie'} className="sbtn sbtn--ghost sbtn--block sbtn--sm">
             {loggedIn ? 'Môj účet' : 'Prihlásiť sa'}
           </Link>
