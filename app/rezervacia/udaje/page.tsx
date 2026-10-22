@@ -44,7 +44,7 @@ export default async function UdajePage({ searchParams }: Props) {
     return (
       <>
         <RzBand crumbs={[{ href: '/', label: 'Domov' }, { href: '/rezervacia', label: 'Rezervácia' }]} title="Termín nie je dostupný" />
-        <section className="ice rz-ice">
+        <section className="dk2 rz-dk">
           <div className="wrap rz-narrow">
             <p className="rz-lead">{problem}</p>
             <Link href={isIsoDate(iso) ? `/rezervacia?datum=${iso}&sprchy=${sp1}` : '/rezervacia'} className="btn u-start">
@@ -73,66 +73,76 @@ export default async function UdajePage({ searchParams }: Props) {
         crumbs={[{ href: '/', label: 'Domov' }, { href: `/rezervacia?datum=${iso}&cas=${startHour}&sprchy=${sp1}`, label: 'Rezervácia' }, { label: 'Údaje' }]}
         title={old ? `Presun ${old.code}` : 'Dokončenie'}
       />
-      <section className="ice rz-ice">
-        <div className="wrap rz-grid">
-          <div className="rz-main">
-            <div className="rz-card">
-              <BookingForm
-                hidden={{ datum: iso, od: String(startHour), hodiny: String(hours), sprchy: String(sp1), ...(old ? { presun: old.code } : {}) }}
-                moving={old ? old.code : null}
-                defaults={{
-                  contactName: last?.contactName ?? `${user.firstName} ${user.lastName}`,
-                  contactPhone: last?.contactPhone ?? user.phone ?? '',
-                  teamName: last?.teamName ?? '',
-                }}
-                cancelFreeHours={settings.cancelFreeHours}
-                cardEnabled={card !== null}
-                cardTest={card?.test ?? false}
-              />
-            </div>
+      <div className="wrap rz2">
+        <div className="rz2__grid">
+          <div className="rz2__main dk2">
+            <section className="rz2__step" aria-label="Údaje">
+              <h2 className="rz2__h">
+                <span className="wide-display rz2__n" aria-hidden="true">
+                  04
+                </span>
+                <span className="disp">Údaje a platba</span>
+              </h2>
+              <div className="rz2__card">
+                <BookingForm
+                  hidden={{ datum: iso, od: String(startHour), hodiny: String(hours), sprchy: String(sp1), ...(old ? { presun: old.code } : {}) }}
+                  moving={old ? old.code : null}
+                  defaults={{
+                    contactName: last?.contactName ?? `${user.firstName} ${user.lastName}`,
+                    contactPhone: last?.contactPhone ?? user.phone ?? '',
+                    teamName: last?.teamName ?? '',
+                  }}
+                  cancelFreeHours={settings.cancelFreeHours}
+                  cardEnabled={card !== null}
+                  cardTest={card?.test ?? false}
+                />
+              </div>
+            </section>
           </div>
-          <aside className="rz-sum">
-            <h2 className="rz-sum__title">Súhrn</h2>
-            <dl className="rz-rows">
-              <div>
-                <dt>Plocha</dt>
-                <dd>Celá ľadová plocha</dd>
+          <aside className="rz2__aside rz2__aside--keep" aria-label="Súhrn rezervácie">
+            <div className="rz2__sum">
+              <div className="rz2__bar">
+                <span className="wide-display">Tvoja rezervácia</span>
+                <span>KROK 2 / 3</span>
               </div>
-              <div>
-                <dt>Deň</dt>
-                <dd>{fmtDayLong(start)}</dd>
-              </div>
-              <div>
-                <dt>Čas</dt>
-                <dd>
-                  {pad2(startHour)} – {pad2(startHour + hours)}
-                </dd>
-              </div>
-              <div>
-                <dt>Ľad</dt>
-                <dd>{euros(ice)}</dd>
-              </div>
-              <div>
-                <dt>Šatňa</dt>
-                <dd>v cene</dd>
-              </div>
-              {settings.showersEnabled ? (
-                <div>
-                  <dt>Sprchy</dt>
-                  <dd>{showers ? euros(extra) : 'bez spŕch'}</dd>
+              <div className="rz2__body">
+                <span className="rz2__when">
+                  <span>{fmtDayLong(start)}</span>
+                  <span className="disp rz2__range">
+                    {pad2(startHour)} – {pad2(startHour + hours)}
+                  </span>
+                </span>
+                <div className="rz2__rows">
+                  <span>
+                    <span>Celá ľadová plocha · {hours} h</span>
+                    <b>{euros(ice)}</b>
+                  </span>
+                  <span>
+                    <span>Šatňa a úprava ľadu</span>
+                    <b className="is-green">v cene</b>
+                  </span>
+                  {settings.showersEnabled ? (
+                    <span>
+                      <span>Sprchy</span>
+                      <b>{showers ? euros(extra) : 'bez spŕch'}</b>
+                    </span>
+                  ) : null}
                 </div>
-              ) : null}
-            </dl>
-            <div className="rz-total">
-              <span>Spolu s DPH</span>
-              <strong>{euros(ice + extra)}</strong>
+                <div className="rz2__total">
+                  <span>
+                    <b>Spolu</b>
+                    <small>vrátane DPH</small>
+                  </span>
+                  <span className="disp">{euros(ice + extra)}</span>
+                </div>
+                <Link href={`/rezervacia?datum=${iso}&cas=${startHour}&sprchy=${sp1}${presun ? `&presun=${presun}` : ''}`} className="rz2__change">
+                  Zmeniť termín alebo sprchy
+                </Link>
+              </div>
             </div>
-            <Link href={`/rezervacia?datum=${iso}&cas=${startHour}&sprchy=${sp1}${presun ? `&presun=${presun}` : ''}`} className="rz-back">
-              Zmeniť termín alebo sprchy
-            </Link>
           </aside>
         </div>
-      </section>
+      </div>
     </>
   );
 }

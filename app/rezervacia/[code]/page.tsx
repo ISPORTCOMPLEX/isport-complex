@@ -55,7 +55,7 @@ export default async function BookingDetail({ params, searchParams }: Props) {
       step={pending ? 'Čaká na platbu kartou' : booking.status === 'CONFIRMED' ? (active ? 'Potvrdená rezervácia' : 'Odohraná rezervácia') : STATUS_LABEL[booking.status]}
       title={booking.code}
     />
-    <section className="ice rz-ice bk">
+    <section className="dk2 rz-dk bk">
       <div className="wrap bk__in">
         {sp.nova ? <FormAlert success={emailEnabled() ? 'Hotovo! Rezervácia je potvrdená. Potvrdenie sme poslali aj e-mailom.' : 'Hotovo! Rezervácia je potvrdená. QR kód nájdeš tu aj v Moje rezervácie.'} /> : null}
         {sp.zrusena ? <FormAlert success="Rezervácia je zrušená a čas je opäť voľný." /> : null}

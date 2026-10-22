@@ -16,19 +16,23 @@ type Props = {
   placeholder?: string;
   autoFocus?: boolean;
   optional?: boolean;
+  aside?: React.ReactNode; // odkaz vpravo na riadku popisu (napr. „Zabudnuté heslo?“)
 };
 
-export function Field({ label, name, type = 'text', defaultValue, error, hint, optional, ...rest }: Props) {
+export function Field({ label, name, type = 'text', defaultValue, error, hint, optional, aside, ...rest }: Props) {
   const id = useId();
   const [show, setShow] = useState(false);
   const isPassword = type === 'password';
   const describedBy = [hint ? `${id}-hint` : '', error ? `${id}-err` : ''].filter(Boolean).join(' ') || undefined;
   return (
     <div className={`field${error ? ' field--error' : ''}`}>
-      <label htmlFor={id}>
-        {label}
-        {optional ? <span className="field__opt"> (nepovinné)</span> : null}
-      </label>
+      <div className="field__top">
+        <label htmlFor={id}>
+          {label}
+          {optional ? <span className="field__opt"> (nepovinné)</span> : null}
+        </label>
+        {aside}
+      </div>
       <div className="field__box">
         <input
           id={id}

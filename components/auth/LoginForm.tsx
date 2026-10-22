@@ -17,25 +17,36 @@ export function LoginForm({ stamp, next, notice, captcha = null }: { stamp: stri
   return (
     <div className="form-stack">
       <form action={action} className="form" noValidate>
-        <h2 className="h-card">Prihlásenie</h2>
+        <div className="au2__head">
+          <h2 className="h-card">Prihlásenie</h2>
+          <p className="au2__sub">
+            Nemáš účet?{' '}
+            <Link href="/registracia" className="link-red">
+              Zaregistruj sa zadarmo
+            </Link>
+          </p>
+        </div>
         <FormAlert error={state.error} success={state.error ? undefined : notice} />
         <GuardFields stamp={stamp} />
         <input type="hidden" name="next" value={next} />
         <Field label="E-mail" name="email" type="email" autoComplete="email" inputMode="email" defaultValue={v.email} required maxLength={254} />
-        <Field label="Heslo" name="password" type="password" autoComplete="current-password" required />
+        <Field
+          label="Heslo"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          required
+          aside={
+            <Link href="/zabudnute-heslo" className="link-red field__aside">
+              Zabudnuté heslo?
+            </Link>
+          }
+        />
         {cap ? <CaptchaField captcha={cap} error={state.errors?.captcha} /> : null}
-        <div className="form__between">
-          <span />
-          <Link href="/zabudnute-heslo" className="link-red">
-            Zabudnuté heslo?
-          </Link>
-        </div>
         <SubmitButton>Prihlásiť sa</SubmitButton>
-        <p className="auth__foot">
-          Nemáš účet?{' '}
-          <Link href="/registracia" className="link-red">
-            Zaregistruj sa
-          </Link>
+        <p className="au2__legal">
+          Prihlásením súhlasíš s <Link href="/obchodne-podmienky">obchodnými podmienkami</Link>. Údaje spracúvame podľa{' '}
+          <Link href="/ochrana-osobnych-udajov">zásad ochrany osobných údajov</Link>.
         </p>
       </form>
       {state.unverifiedEmail ? <ResendVerification email={state.unverifiedEmail} /> : null}

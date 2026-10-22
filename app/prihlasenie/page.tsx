@@ -30,9 +30,9 @@ export default async function PrihlaseniePage({ searchParams }: Props) {
       kicker="Môj účet"
       title={
         <>
-          Vitaj
+          Vitaj späť
           <br />
-          <span className="red">späť</span>
+          <span className="red">na ľade.</span>
         </>
       }
     >

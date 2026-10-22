@@ -22,19 +22,25 @@ export default async function KontaktPage() {
           </p>
         }
       />
-      <section className="ice rz-ice">
+      <section className="dk2 rz-dk">
         <div className="wrap v3-split">
           <div className="v3-col">
-            <div className="vx__two">
-              <div className="vx__item">
-                <span>Telefón</span>
-                {site.phone ? <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a> : <strong className="tbd">Doplníme</strong>}
+            {site.phone || site.email ? (
+              <div className="vx__two">
+                {site.phone ? (
+                  <div className="vx__item">
+                    <span>Telefón</span>
+                    <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a>
+                  </div>
+                ) : null}
+                {site.email ? (
+                  <div className="vx__item">
+                    <span>E-mail</span>
+                    <a href={`mailto:${site.email}`}>{site.email}</a>
+                  </div>
+                ) : null}
               </div>
-              <div className="vx__item">
-                <span>E-mail</span>
-                {site.email ? <a href={`mailto:${site.email}`}>{site.email}</a> : <strong className="tbd">Doplníme</strong>}
-              </div>
-            </div>
+            ) : null}
             <div className="vx__item">
               <span>Adresa</span>
               <strong>
@@ -44,17 +50,21 @@ export default async function KontaktPage() {
                 Ukázať na mape
               </a>
             </div>
-            <div>
-              <h2 className="v3-label">Otváracie hodiny</h2>
-              <dl className="vx__hours">
-                {site.hours.map((h) => (
-                  <div key={h.days}>
-                    <dt>{h.days}</dt>
-                    <dd>{orTbd(h.time)}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
+            {site.hours.some((h) => h.time.trim()) ? (
+              <div>
+                <h2 className="v3-label">Otváracie hodiny</h2>
+                <dl className="vx__hours">
+                  {site.hours
+                    .filter((h) => h.time.trim())
+                    .map((h) => (
+                      <div key={h.days}>
+                        <dt>{h.days}</dt>
+                        <dd>{h.time}</dd>
+                      </div>
+                    ))}
+                </dl>
+              </div>
+            ) : null}
             <div>
               <h2 className="v3-label">Prevádzkovateľ</h2>
               <dl className="vx__hours">
@@ -64,18 +74,24 @@ export default async function KontaktPage() {
                     {c.street}, {c.city}
                   </dd>
                 </div>
-                <div>
-                  <dt>IČO</dt>
-                  <dd>{orTbd(c.ico)}</dd>
-                </div>
-                <div>
-                  <dt>DIČ</dt>
-                  <dd>{orTbd(c.dic)}</dd>
-                </div>
-                <div>
-                  <dt>IČ DPH</dt>
-                  <dd>{orTbd(c.icDph)}</dd>
-                </div>
+                {c.ico ? (
+                  <div>
+                    <dt>IČO</dt>
+                    <dd>{c.ico}</dd>
+                  </div>
+                ) : null}
+                {c.dic ? (
+                  <div>
+                    <dt>DIČ</dt>
+                    <dd>{c.dic}</dd>
+                  </div>
+                ) : null}
+                {c.icDph ? (
+                  <div>
+                    <dt>IČ DPH</dt>
+                    <dd>{c.icDph}</dd>
+                  </div>
+                ) : null}
               </dl>
               {c.register ? <p className="v3-small">{c.register}</p> : null}
             </div>

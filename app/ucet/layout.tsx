@@ -37,7 +37,7 @@ export default async function UcetLayout({ children }: { children: React.ReactNo
           <AccountNav staff={isStaff(user.role)} />
         </div>
       </section>
-      <section className="ice acct">
+      <section className="acct dk2">
         <div className="wrap acct__main">{children}</div>
       </section>
     </>

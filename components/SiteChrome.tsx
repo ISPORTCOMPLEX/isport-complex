@@ -7,12 +7,14 @@ import { usePathname } from 'next/navigation';
 export function SiteChrome({ header, bookingHeader, footer, children }: { header: React.ReactNode; bookingHeader: React.ReactNode; footer: React.ReactNode; children: React.ReactNode }) {
   const pathname = usePathname() ?? '/';
   const bare = pathname === '/admin' || pathname.startsWith('/admin/') || /^\/fotky\/[^/]+$/.test(pathname) || /^\/aktuality\/[^/]+\/fotky\/\d+$/.test(pathname);
+  // prihlásenie a registrácia: celá obrazovka podľa predlohy (logo je v ľavom paneli)
+  const auth = ['/prihlasenie', '/prihlasenie/2fa', '/registracia', '/zabudnute-heslo', '/obnova-hesla', '/overenie-emailu'].includes(pathname);
   const booking = pathname === '/rezervacia' || pathname.startsWith('/rezervacia/');
   return (
     <>
-      {bare ? null : booking ? bookingHeader : header}
+      {bare || auth ? null : booking ? bookingHeader : header}
       <main id="obsah">{children}</main>
-      {bare ? null : footer}
+      {bare || auth ? null : footer}
     </>
   );
 }
