@@ -262,6 +262,25 @@ export function ComplexArt() {
           <rect x="330" y="296" width="80" height="44" rx="5" fill="#0A0E14" stroke="#3A4656" strokeWidth="2" />
           <text x="370" y="326" textAnchor="middle" className="cxv-score cxv-score-a">2 : 1</text>
           <text x="370" y="326" textAnchor="middle" className="cxv-score cxv-score-b">GÓL!</text>
+          {/* zavesený dres pod strechou – meno a číslo */}
+          <path d="M520 195V206M548 197V206" stroke="#7C8794" strokeWidth="1.2" />
+          <g transform="translate(534 206)">
+            <g className="cxv-jersey">
+              <path d="M-20 0H20" stroke="#7C8794" strokeWidth="2.2" strokeLinecap="round" />
+              <path d="M-13 1L-29 7L-37 27L-27 31L-21 22V59H21V22L27 31L37 27L29 7L13 1Q0 6 -13 1Z" fill="#AF1E2D" stroke="#7E1420" strokeWidth="1" />
+              <path d="M-33.6 19.5L-23 23.6M33.6 19.5L23 23.6" stroke="#FFFFFF" strokeWidth="1.4" />
+              <path d="M-32.2 22.6L-22.6 26.4M32.2 22.6L22.6 26.4" stroke="#1D3A8A" strokeWidth="3" />
+              <path d="M-31 25.8L-22.2 29.2M31 25.8L22.2 29.2" stroke="#FFFFFF" strokeWidth="1.4" />
+              <rect x="-21" y="31" width="42" height="1.6" fill="#FFFFFF" />
+              <rect x="-21" y="32.6" width="42" height="7" fill="#1D3A8A" />
+              <rect x="-21" y="39.6" width="42" height="1.6" fill="#FFFFFF" />
+              <rect x="-21" y="51" width="42" height="1.4" fill="#FFFFFF" />
+              <rect x="-21" y="52.4" width="42" height="4" fill="#1D3A8A" />
+              <rect x="-21" y="56.4" width="42" height="1.4" fill="#FFFFFF" />
+              <text x="0" y="14.5" textAnchor="middle" className="cxv-jersey-name">SLAFKOVSKY</text>
+              <text x="0" y="45" textAnchor="middle" className="cxv-jersey-num">20</text>
+            </g>
+          </g>
           <rect x="90" y="430" width="560" height="58" fill="url(#cxv-glass)" />
           <path d="M90 430V488M146 430V488M202 430V488M258 430V488M314 430V488M370 430V488M426 430V488M482 430V488M538 430V488M594 430V488M650 430V488" stroke="#BFE3FF" strokeWidth="1.2" opacity=".28" />
           <path d="M90 430H650" stroke="#BFE3FF" strokeWidth="1.5" opacity=".35" />

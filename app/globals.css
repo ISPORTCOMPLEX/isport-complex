@@ -3761,6 +3761,11 @@ p, .hx2__lead, .ab__p, .who__p, .pp__p, .nw2__meta, .ac__perex { text-wrap: pret
 .cxv-menu { font-family: var(--font-archivo), system-ui, sans-serif; font-weight: 900; font-size: 9px; letter-spacing: 0.16em; fill: var(--warn); }
 .cxv-bubble-t { font-family: var(--font-archivo), system-ui, sans-serif; font-weight: 900; font-style: italic; font-size: 13px; fill: var(--black); }
 .cxv-bubble, .cxv-arms-up { opacity: 0; }
+.cxv-jersey-name { font-family: var(--font-archivo), system-ui, sans-serif; font-weight: 800; font-stretch: 75%; font-size: 6.6px; letter-spacing: 0.06em; fill: var(--white); }
+.cxv-jersey-num { font-family: var(--font-archivo), system-ui, sans-serif; font-weight: 900; font-stretch: 75%; font-size: 23px; fill: var(--white); stroke: #1D3A8A; stroke-width: 1.2px; paint-order: stroke; }
+.cxv-jersey { transform-box: fill-box; transform-origin: 50% 0; animation: cxv-sway 5s ease-in-out infinite alternate; }
+.cxe__art.is-ice .cxv-jersey { animation-duration: 1.6s; }
+@keyframes cxv-sway { from { transform: rotate(-2.5deg); } to { transform: rotate(2.5deg); } }
 .cxv-lamp { opacity: 0.25; }
 
 /* zvýraznenie: ostatné časti stíchnu, aktívna dostane rámik */
