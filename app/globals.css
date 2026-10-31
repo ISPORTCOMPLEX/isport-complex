@@ -3770,7 +3770,7 @@ p, .hx2__lead, .ab__p, .who__p, .pp__p, .nw2__meta, .ac__perex { text-wrap: pret
 
 /* zvýraznenie: ostatné časti stíchnu, aktívna dostane rámik */
 .cxv-z { transition: opacity 0.45s ease; }
-.cxe__art[class*=' is-'] .cxv-z { opacity: 0.38; }
+.cxe__art:is(.is-ice, .is-sky, .is-food, .is-pitch, .is-gym, .is-well) .cxv-z { opacity: 0.38; }
 .cxe__art.is-ice .cxv-z-ice, .cxe__art.is-sky .cxv-z-sky, .cxe__art.is-food .cxv-z-food,
 .cxe__art.is-pitch .cxv-z-pitch, .cxe__art.is-gym .cxv-z-gym, .cxe__art.is-well .cxv-z-well { opacity: 1; }
 .cxv-ring { fill: var(--red); fill-opacity: 0; stroke: var(--red); stroke-width: 2; vector-effect: non-scaling-stroke; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
@@ -3870,6 +3870,40 @@ p, .hx2__lead, .ab__p, .who__p, .pp__p, .nw2__meta, .ac__perex { text-wrap: pret
 @keyframes cxv-squat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(9px); } }
 @keyframes cxv-curl { from { transform: rotate(0); } to { transform: rotate(-70deg); } }
 
+/* obloha a počasie */
+.cxv-floodbeam { opacity: 0; transition: opacity 1.2s ease; }
+.cxe__art.lights-on .cxv-floodbeam { opacity: 1; }
+.cxv-cloud { animation: cxv-drift 70s ease-in-out infinite alternate; }
+.cxv-cl1 { animation-duration: 90s; animation-delay: -20s; }
+.cxv-cl2 { animation-duration: 60s; animation-delay: -40s; }
+.cxv-cl3 { animation-duration: 110s; animation-delay: -10s; }
+.cxv-cl4 { animation-duration: 80s; animation-delay: -55s; }
+.cxv-rain { animation: cxv-fall 0.8s linear infinite; }
+.cxv-rain-2 { animation-duration: 0.62s; }
+.cxv-rain-3 { animation-duration: 0.46s; }
+.cxv-snow-far { animation: cxv-fall 16s linear infinite; }
+.cxv-snow-near { animation: cxv-fall 10s linear infinite; }
+.cxv-snow-3.cxv-snow-far { animation-duration: 11s; }
+.cxv-snow-3.cxv-snow-near { animation-duration: 7s; }
+.cxv-sway-a { animation: cxv-sway-x 5s ease-in-out infinite alternate; }
+.cxv-sway-b { animation: cxv-sway-x 3.6s ease-in-out infinite alternate-reverse; }
+.cxv-splash { transform-box: fill-box; transform-origin: 50% 50%; opacity: 0; animation: cxv-splash 0.9s ease-out infinite; }
+.cxv-flash, .cxv-bolt { opacity: 0; }
+.cxv-flash { animation: cxv-flash 7s linear infinite; }
+.cxv-bolt { animation: cxv-bolt 7s linear infinite; }
+.cxv-fog { animation: cxv-fog 14s ease-in-out infinite alternate; }
+.cxv-fog2 { animation: cxv-fog 9s ease-in-out infinite alternate-reverse; }
+@keyframes cxv-drift { from { transform: translateX(-50px); } to { transform: translateX(60px); } }
+@keyframes cxv-fall { from { transform: translateY(0); } to { transform: translateY(700px); } }
+@keyframes cxv-sway-x { from { transform: translateX(-10px); } to { transform: translateX(10px); } }
+@keyframes cxv-splash { 0% { opacity: 0.8; transform: scale(0.3); } 100% { opacity: 0; transform: scale(1.6); } }
+@keyframes cxv-flash { 0%, 61%, 63.5%, 66%, 100% { opacity: 0; } 62% { opacity: 0.55; } 65% { opacity: 0.35; } }
+@keyframes cxv-bolt { 0%, 61%, 64%, 66%, 100% { opacity: 0; } 61.5%, 63%, 65% { opacity: 1; } }
+@keyframes cxv-fog { from { transform: translateX(-40px); } to { transform: translateX(40px); } }
+.cxe__wx { position: absolute; right: 28px; top: 20px; margin: 0; display: flex; align-items: center; gap: 12px; padding: 8px 14px; background: rgba(7, 7, 8, 0.55); border: 1px solid var(--edge-mid); clip-path: var(--cut-xs); color: var(--muted); font-size: 12px; font-weight: 600; transition: opacity 0.3s; }
+.cxe__wx-t { font-stretch: 62%; font-style: italic; font-weight: 900; font-size: 22px; line-height: 1; color: var(--white); }
+.is-zoomed .cxe__wx { opacity: 0; }
+
 /* body na mape */
 .cxe__pins { position: absolute; inset: 0; pointer-events: none; transition: opacity 0.35s ease; }
 .is-zoomed .cxe__pins, .is-zoomed .cxe__hint { opacity: 0; }
@@ -3933,6 +3967,8 @@ p, .hx2__lead, .ab__p, .who__p, .pp__p, .nw2__meta, .ac__perex { text-wrap: pret
   .cxe__stage { clip-path: none; }
   .cx__art.cxe__art { margin-inline: calc(var(--gutter) * -1); }
   .cxe__tip, .cxe__hint-m { display: none; }
+  .cxe__wx { right: var(--gutter); top: 8px; padding: 4px 9px; gap: 7px; font-size: 10px; }
+  .cxe__wx-t { font-size: 15px; }
   .cxe__hint-t { display: inline; }
   .cxe__hint { left: var(--gutter); bottom: 6px; font-size: 11px; gap: 7px; }
   .cxe__hint::before { width: 7px; height: 7px; }

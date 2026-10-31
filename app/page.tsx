@@ -10,6 +10,7 @@ import { dayAvailability } from '@/lib/booking/availability';
 import { iceToday } from '@/lib/booking/iceToday';
 import { photosBySlot, toWebPhoto, type WebPhoto } from '@/lib/media';
 import { homeArticles } from '@/lib/articles/queries';
+import { kosiceWeather } from '@/lib/weather';
 
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
 const pad = (h: number) => `${String(h).padStart(2, '0')}:00`;
@@ -24,13 +25,15 @@ function Arrow({ size = 20, color = 'currentColor' }: { size?: number; color?: s
 }
 
 export default async function HomePage() {
-  const [site, settings, news, ice, photoMap] = await Promise.all([
+  const [site, settings, news, ice, photoMap, weather] = await Promise.all([
     getSite(),
     getBookingSettings(),
     homeArticles(),
     iceToday(),
     photosBySlot().catch(() => ({}) as Awaited<ReturnType<typeof photosBySlot>>),
+    kosiceWeather(),
   ]);
+  const renderedAt = Date.now();
   const days = nextDays(5);
   const avail = await Promise.all(days.map((d) => dayAvailability(settings, d.iso)));
   const qbDays = days.map((d, i) => ({
@@ -200,7 +203,7 @@ export default async function HomePage() {
           </div>
           <p className="sec-head__p">V hale 1 ľad, skyboxy a bufet, medzi halami ihrisko, v hale 2 posilňovňa a wellness. Klikni na miesto a pozri sa dnu.</p>
         </div>
-        <ComplexExplorer zones={zones} />
+        <ComplexExplorer zones={zones} now={renderedAt} weather={weather} />
       </section>
 
       {/* PRE KOHO */}

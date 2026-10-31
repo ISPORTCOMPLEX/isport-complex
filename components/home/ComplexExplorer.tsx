@@ -1,15 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CloudImage } from '@/components/CloudImage';
 import type { WebPhoto } from '@/lib/media';
 import { ComplexArt } from '@/components/home/ComplexArt';
+import { ComplexSky } from '@/components/home/ComplexSky';
+import { ComplexWeather } from '@/components/home/ComplexWeather';
+import { CLEAR, moonPhaseName, scene, weatherLabel, type Weather } from '@/lib/sky';
 
 // Interaktívny areál: hala 1 (ľad, skyboxy, bufet), ihrisko medzi halami, hala 2 (posilňovňa, wellness).
 // Ilustrácia stále jemne žije; prejdenie myšou časť zvýrazní a rozpohybuje. Klik (ťuknutie) plynulo priblíži kameru
 // na to miesto a vysunie panel s fotkami interiéru. Esc alebo „Celý areál“ vráti celý pohľad.
 // Pri „obmedziť pohyb“ sa nič neanimuje – zmena pohľadu je okamžitá.
+// Obloha žije podľa skutočného času v Košiciach (slnko, mesiac a jeho fáza, hviezdy) a podľa aktuálneho počasia (oblaky, dážď, sneh, búrka, hmla).
 export type Zone = 'ice' | 'sky' | 'food' | 'pitch' | 'gym' | 'well';
 export type ZoneInfo = { zone: Zone; name: string; hall: string; text: string; href: string; cta: string; soon?: boolean; photos: WebPhoto[] };
 
@@ -48,7 +52,15 @@ function target(z: Zone, wide: boolean): VB {
   return { x, y, w, h };
 }
 
-export function ComplexExplorer({ zones }: { zones: ZoneInfo[] }) {
+export function ComplexExplorer({ zones, now: initialNow, weather = CLEAR }: { zones: ZoneInfo[]; now: number; weather?: Weather }) {
+  // čas zo servera pri prvom vykreslení (rovnaký výsledok pri hydratácii), potom každú minútu podľa hodín návštevníka
+  const [now, setNow] = useState(initialNow);
+  useEffect(() => {
+    setNow(Date.now());
+    const id = window.setInterval(() => setNow(Date.now()), 60000);
+    return () => window.clearInterval(id);
+  }, []);
+  const sky = useMemo(() => scene(now, weather), [now, weather]);
   const [hover, setHover] = useState<Zone | null>(null);
   const [open, setOpen] = useState<Zone | null>(null);
   const [vb, setVb] = useState<VB>(FULL);
@@ -116,14 +128,14 @@ export function ComplexExplorer({ zones }: { zones: ZoneInfo[] }) {
   return (
     <div className={`cxe${open ? ' is-zoomed' : ''}`}>
       <div className="cxe__stage">
-        <div className={`cx__art cxe__art${active ? ` is-${active}` : ''}`}>
+        <div className={`cx__art cxe__art ph-${sky.phase}${sky.lights ? ' lights-on' : ''}${active ? ` is-${active}` : ''}`}>
           <svg
             viewBox={`${vb.x.toFixed(1)} ${vb.y.toFixed(1)} ${vb.w.toFixed(1)} ${vb.h.toFixed(1)}`}
             role="img"
             aria-label="Areál I-SPORT COMPLEX: hala 1 s ľadovou plochou, skyboxmi a bufetom, medzi halami futbalové ihrisko, hala 2 s posilňovňou a wellness"
             preserveAspectRatio="xMidYMid slice"
           >
-            <ComplexArt />
+            <ComplexArt sky={<ComplexSky s={sky} w={weather} />} front={<ComplexWeather s={sky} w={weather} />} />
             {zones.map((z) => (
               <rect key={`r-${z.zone}`} className={`cxv-ring cxv-ring-${z.zone}`} x={BOX[z.zone].x} y={BOX[z.zone].y} width={BOX[z.zone].w} height={BOX[z.zone].h} rx="10" aria-hidden="true" />
             ))}
@@ -165,6 +177,15 @@ export function ComplexExplorer({ zones }: { zones: ZoneInfo[] }) {
               </button>
             ))}
           </div>
+          {weather.temp !== null ? (
+            <p className="cxe__wx">
+              <span className="cxe__wx-t">{Math.round(weather.temp)} °C</span>
+              <span>
+                Teraz v Košiciach · {weatherLabel(weather)}
+                {sky.phase !== 'day' && sky.moon.visible ? ` · ${moonPhaseName(sky.moon.phase)}` : ''}
+              </span>
+            </p>
+          ) : null}
           <p className="cxe__hint" aria-hidden="true">
             <span className="cxe__hint-m">Klikni na miesto v areáli – priblížime ho a ukážeme fotky</span>
             <span className="cxe__hint-t">Ťukni na miesto v areáli</span>

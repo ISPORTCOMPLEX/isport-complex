@@ -1,5 +1,7 @@
 // Ilustrácia areálu I-SPORT COMPLEX (viewBox 0 0 1600 700): hala 1 (ľad, skyboxy, bufet), ihrisko medzi halami, hala 2 (posilňovňa, wellness).
 // Čisté SVG bez inline štýlov (CSP) – pohyb riadia triedy cxv-* v globals.css. Postavičky sú kreslené od chodidiel (0,0).
+import type { ReactNode } from 'react';
+
 const SKIN = '#F2C9A8';
 const INK = '#1B2230';
 
@@ -203,12 +205,10 @@ function Tree({ x, s = 1 }: { x: number; s?: number }) {
   );
 }
 
-export function ComplexArt() {
+export function ComplexArt({ sky, front }: { sky: ReactNode; front: ReactNode }) {
   return (
     <>
         <defs>
-          <linearGradient id="cxv-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0D1626" /><stop offset=".7" stopColor="#0A0E16" /><stop offset="1" stopColor="#08090D" /></linearGradient>
-          <radialGradient id="cxv-halo" cx=".5" cy=".9" r=".7"><stop offset="0" stopColor="#2E6BE6" stopOpacity=".16" /><stop offset="1" stopColor="#2E6BE6" stopOpacity="0" /></radialGradient>
           <linearGradient id="cxv-hall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#141C29" /><stop offset="1" stopColor="#0C1018" /></linearGradient>
           <linearGradient id="cxv-roof" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#3A4657" /><stop offset=".5" stopColor="#5A6B80" /><stop offset="1" stopColor="#3A4657" /></linearGradient>
           <linearGradient id="cxv-beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#DCEBFA" stopOpacity=".22" /><stop offset="1" stopColor="#DCEBFA" stopOpacity="0" /></linearGradient>
@@ -227,17 +227,7 @@ export function ComplexArt() {
           <pattern id="cxv-net" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 0L8 8M8 0L0 8" stroke="#C9D4DE" strokeWidth=".6" opacity=".35" /></pattern>
         </defs>
 
-        {/* obloha, hviezdy, mesto */}
-        <rect x="-200" y="-100" width="2000" height="900" fill="url(#cxv-sky)" />
-        <rect x="0" y="200" width="1600" height="400" fill="url(#cxv-halo)" />
-        <circle cx="120" cy="70" r="1.4" fill="#D8E2EC" className="cxv-star cxv-d0" /><circle cx="310" cy="42" r="1.1" fill="#D8E2EC" className="cxv-star cxv-d1" /><circle cx="560" cy="64" r="1.3" fill="#D8E2EC" className="cxv-star cxv-d2" /><circle cx="760" cy="34" r="1.2" fill="#D8E2EC" className="cxv-star cxv-d0" /><circle cx="980" cy="58" r="1.5" fill="#D8E2EC" className="cxv-star cxv-d1" /><circle cx="1130" cy="110" r="1.1" fill="#D8E2EC" className="cxv-star cxv-d2" /><circle cx="1290" cy="40" r="1.3" fill="#D8E2EC" className="cxv-star cxv-d0" /><circle cx="1420" cy="150" r="1.1" fill="#D8E2EC" className="cxv-star cxv-d1" /><circle cx="1540" cy="72" r="1.4" fill="#D8E2EC" className="cxv-star cxv-d2" /><circle cx="890" cy="180" r="1" fill="#D8E2EC" className="cxv-star cxv-d0" /><circle cx="60" cy="190" r="1.1" fill="#D8E2EC" className="cxv-star cxv-d1" />
-        <circle cx="1478" cy="96" r="60" fill="url(#cxv-glow)" />
-        <circle cx="1478" cy="96" r="15" fill="#E4ECF4" opacity=".92" />
-        <circle cx="1472" cy="92" r="3" fill="#C9D4DE" opacity=".6" />
-        <path d="M0 560V480H50V560M56 560V500H90V560M100 560V465H134V560M144 560V430H178V560M178 560V500H212V560M218 560V500H276V560M276 560V430H310V560M316 560V430H350V560M350 560V490H392V560M402 560V500H472V560M482 560V450H552V560M552 560V500H594V560M604 560V465H646V560M652 560V430H694V560M694 560V465H764V560M774 560V500H816V560M826 560V490H896V560M896 560V500H946V560M956 560V430H990V560M990 560V480H1060V560M1066 560V450H1136V560M1142 560V430H1200V560M1206 560V465H1256V560M1256 560V490H1298V560M1298 560V430H1332V560M1338 560V450H1408V560M1414 560V465H1472V560M1482 560V500H1516V560M1526 560V480H1584V560M1590 560V450H1632V560" fill="#121B28" />
-        <path d="M1022 560V420H1044V560ZM1026 420L1033 336L1040 420Z" fill="#111A26" />
-        <path d="M1033 336V326M1029 330H1037" stroke="#2A3646" strokeWidth="1.5" />
-        <rect x="1001" y="530" width="3" height="4" fill="#FFB020" opacity=".55" /><rect x="946" y="502" width="3" height="4" fill="#FFB020" opacity=".55" /><rect x="1122" y="535" width="3" height="4" fill="#FFB020" opacity=".55" /><rect x="913" y="532" width="3" height="4" fill="#FFB020" opacity=".25" /><rect x="1120" y="488" width="3" height="4" fill="#FFB020" opacity=".55" /><rect x="999" y="479" width="3" height="4" fill="#FFB020" opacity=".55" /><rect x="1120" y="524" width="3" height="4" fill="#FFB020" opacity=".55" /><rect x="1123" y="505" width="3" height="4" fill="#FFB020" opacity=".55" /><rect x="957" y="484" width="3" height="4" fill="#FFB020" opacity=".55" /><rect x="957" y="521" width="3" height="4" fill="#FFB020" opacity=".4" /><rect x="887" y="540" width="3" height="4" fill="#FFB020" opacity=".25" /><rect x="961" y="530" width="3" height="4" fill="#FFB020" opacity=".25" /><rect x="1034" y="458" width="3" height="4" fill="#FFB020" opacity=".4" /><rect x="1122" y="531" width="3" height="4" fill="#FFB020" opacity=".55" /><rect x="1078" y="509" width="3" height="4" fill="#FFB020" opacity=".4" /><rect x="1175" y="511" width="3" height="4" fill="#FFB020" opacity=".25" /><rect x="1067" y="467" width="3" height="4" fill="#FFB020" opacity=".25" /><rect x="949" y="518" width="3" height="4" fill="#FFB020" opacity=".25" /><rect x="1012" y="510" width="3" height="4" fill="#FFB020" opacity=".55" /><rect x="1034" y="508" width="3" height="4" fill="#FFB020" opacity=".55" /><rect x="1077" y="528" width="3" height="4" fill="#FFB020" opacity=".4" /><rect x="1153" y="529" width="3" height="4" fill="#FFB020" opacity=".4" /><rect x="1179" y="484" width="3" height="4" fill="#FFB020" opacity=".4" /><rect x="894" y="490" width="3" height="4" fill="#FFB020" opacity=".55" /><rect x="963" y="496" width="3" height="4" fill="#FFB020" opacity=".55" /><rect x="1172" y="527" width="3" height="4" fill="#FFB020" opacity=".25" />
+        {sky}
 
         {/* ===== HALA 1 ===== */}
         <path d="M40 560V300C200 120 700 120 860 300V560Z" fill="url(#cxv-hall)" />
@@ -354,8 +344,8 @@ export function ComplexArt() {
 
         {/* ===== IHRISKO (medzi halami) ===== */}
         <g className="cxv-z cxv-z-pitch">
-          <path d="M892 334L944 515H1060Z" fill="url(#cxv-flood)" />
-          <path d="M1188 334L1136 515H1020Z" fill="url(#cxv-flood)" />
+          <path d="M892 334L944 515H1060Z" fill="url(#cxv-flood)" className="cxv-floodbeam" />
+          <path d="M1188 334L1136 515H1020Z" fill="url(#cxv-flood)" className="cxv-floodbeam" />
           <rect x="912" y="462" width="256" height="53" fill="url(#cxv-net)" />
           <path d="M912 462V515M944 462V515M976 462V515M1008 462V515M1040 462V515M1072 462V515M1104 462V515M1136 462V515M1168 462V515M912 462H1168" stroke="#4A5868" strokeWidth="1.6" />
           <path d="M912 515L1168 515L1196 560L884 560Z" fill="url(#cxv-turf)" />
@@ -379,7 +369,7 @@ export function ComplexArt() {
         {/* stožiare svetiel */}
         <path d="M892 560V330M1188 560V330" stroke="#3A4656" strokeWidth="4" />
         <rect x="878" y="320" width="28" height="12" rx="2" fill="#E4ECF4" /><rect x="1174" y="320" width="28" height="12" rx="2" fill="#E4ECF4" />
-        <circle cx="892" cy="328" r="34" fill="url(#cxv-glow)" /><circle cx="1188" cy="328" r="34" fill="url(#cxv-glow)" />
+        <g className="cxv-floodbeam"><circle cx="892" cy="328" r="34" fill="url(#cxv-glow)" /><circle cx="1188" cy="328" r="34" fill="url(#cxv-glow)" /></g>
 
         {/* ===== HALA 2 ===== */}
         <rect x="1220" y="300" width="340" height="260" fill="url(#cxv-h2)" />
@@ -446,6 +436,7 @@ export function ComplexArt() {
         <Tree x={1203} s={0.8} />
         <Tree x={1588} s={1} />
 
+        {front}
     </>
   );
 }
