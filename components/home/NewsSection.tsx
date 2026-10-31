@@ -20,7 +20,6 @@ export function NewsSection({ items }: { items: ArticleCard[] }) {
     <section className="wrap nw2" aria-labelledby="nw2-t">
       <div className="sec-head">
         <div className="sec-head__l">
-          <span className="eb eb--muted">Z haly</span>
           <h2 id="nw2-t" className="disp sec-title">
             Novinky
           </h2>
@@ -50,9 +49,6 @@ export function NewsSection({ items }: { items: ArticleCard[] }) {
               {side.map((a, i) => (
                 <li key={a.id}>
                   <Link href={`/aktuality/${a.slug}`} className="nw2__row">
-                    <span className="wide-display nw2__n" aria-hidden="true">
-                      {String(i + 2).padStart(2, '0')}
-                    </span>
                     <span className="nw2__rtx">
                       <span className={`nw2__k${i === 0 ? ' is-red' : ''}`}>
                         {a.videoSeconds !== null ? 'Video' : a.categoryLabel} · <time dateTime={a.date.toISOString()}>{fmtShortDate(a.date)}</time>

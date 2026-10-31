@@ -1,4 +1,3 @@
-import { orTbd } from '@/lib/site';
 import { getSite } from '@/lib/siteSettings';
 import { RzBand } from '@/components/booking/RzBand';
 
@@ -9,12 +8,13 @@ export async function LegalPage({ title, updated, children }: { title: string; u
   return (
     <>
       <RzBand crumbs={[{ href: '/', label: 'Komplex' }, { label: title }]} title={title} lead={<p>Účinné od {updated}.</p>} />
-      <section className="ice rz-ice">
+      <section className="dk2 rz-dk">
         <div className="wrap">
           <div className="legal__in">
             <p className="legal__op">
-              Prevádzkovateľ: {c.name}, {c.street}, {c.city}, IČO {orTbd(c.ico)}
-              {c.register ? `, ${c.register}` : ''}. Kontakt: {orTbd(site.email)}, {orTbd(site.phone)}.
+              Prevádzkovateľ: {c.name}, {c.street}, {c.city}
+              {c.ico ? `, IČO ${c.ico}` : ''}
+              {c.register ? `, ${c.register}` : ''}.{site.email || site.phone ? ` Kontakt: ${[site.email, site.phone].filter(Boolean).join(', ')}.` : ''}
             </p>
             <div className="legal__body">{children}</div>
           </div>

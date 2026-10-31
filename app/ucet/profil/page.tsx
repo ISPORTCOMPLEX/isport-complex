@@ -13,7 +13,6 @@ export default async function ProfilPage() {
   return (
     <div className="acct__stack">
       <header className="acct__head">
-        <span className="kicker">Môj účet</span>
         <h1 className="display acct__title">Osobné údaje</h1>
       </header>
       <div className="card acct__panel">

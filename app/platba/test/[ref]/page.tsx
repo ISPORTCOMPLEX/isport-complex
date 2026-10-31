@@ -23,7 +23,7 @@ export default async function MockCheckout({ params }: Props) {
   return (
     <>
       <RzBand crumbs={[{ href: '/', label: 'Domov' }, { href: `/rezervacia/${p.booking.code}`, label: p.booking.code }]} step="Testovací režim · žiadne skutočné peniaze" title="Platba kartou" />
-      <section className="ice rz-ice">
+      <section className="dk2 rz-dk">
         <div className="wrap rz-narrow">
           <div className="rz-card">
             <p className="alert alert--error" role="note">

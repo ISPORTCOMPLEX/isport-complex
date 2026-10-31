@@ -15,8 +15,8 @@ export function RzBand({ crumbs, title, lead, step, checks }: { crumbs: { href?:
             </span>
           ))}
         </nav>
-        {step ? <span className="eb eb--muted">{step}</span> : null}
         <h1 className="disp band2__title">{title}</h1>
+        {step ? <span className="band2__step">{step}</span> : null}
         {checks?.length ? (
           <ul className="band2__checks">
             {checks.map((c) => (

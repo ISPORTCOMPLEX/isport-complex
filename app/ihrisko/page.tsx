@@ -35,7 +35,7 @@ export default async function IhriskoPage() {
               ) : null}
             </p>
           </div>
-          <div className="pp__form ice">
+          <div className="pp__form dk2">
             <InquiryForm type="CONTACT" stamp={createFormStamp()} />
           </div>
         </div>

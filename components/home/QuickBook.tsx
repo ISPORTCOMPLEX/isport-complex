@@ -28,7 +28,6 @@ export function QuickBook({ days, showersEnabled, showerPrice }: { days: Day[]; 
   return (
     <div className="qb2">
       <div className="qb2__l">
-        <span className="eb">Rýchla rezervácia</span>
         <h2 className="disp qb2__title">
           Vyber deň.
           <br />
@@ -89,7 +88,7 @@ export function QuickBook({ days, showersEnabled, showerPrice }: { days: Day[]; 
           </div>
         </div>
         <Link href={`/rezervacia?datum=${day?.iso ?? ''}`} className="sbtn sbtn--block qb2__mgo">
-          Zobraziť voľné hodiny <span aria-hidden="true">→</span>
+          Zobraziť voľné hodiny
         </Link>
       </div>
 

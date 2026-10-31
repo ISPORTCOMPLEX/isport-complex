@@ -34,7 +34,7 @@ export default function FitnessWellnessPage() {
               </div>
             </div>
           </div>
-          <div className="pp__form ice">
+          <div className="pp__form dk2">
             <InquiryForm type="CONTACT" stamp={createFormStamp()} />
           </div>
         </div>

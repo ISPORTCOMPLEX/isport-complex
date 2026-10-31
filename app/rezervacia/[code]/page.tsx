@@ -91,7 +91,6 @@ export default async function BookingDetail({ params, searchParams }: Props) {
 
         <div className="bk__ticket">
           <div className="bk__info">
-            <span className="kicker">{pending ? 'Čaká na platbu' : booking.status === 'CONFIRMED' ? (active ? 'Potvrdená rezervácia' : 'Odohraná rezervácia') : STATUS_LABEL[booking.status]}</span>
             <h2 className="display bk__title">{fmtDayLong(booking.startsAt)}</h2>
             <p className="bk__time num">{fmtRange(booking.startsAt, booking.endsAt)}</p>
             <dl className="rez__dl bk__dl">

@@ -17,7 +17,7 @@ export default async function FotkyPage({ searchParams }: Props) {
   return (
     <>
       <RzBand crumbs={[{ href: '/', label: 'Komplex' }, { label: 'Fotky' }]} title="Fotky" />
-      <section className="ice rz-ice">
+      <section className="dk2 rz-dk">
         <div className="wrap">
           <nav className="pg-chips" aria-label="Sekcie fotiek">
             <Link href="/fotky" className="pg-chip" aria-current={!slot ? 'page' : undefined}>

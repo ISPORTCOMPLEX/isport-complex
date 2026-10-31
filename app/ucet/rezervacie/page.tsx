@@ -22,7 +22,6 @@ export default async function MojeRezervacie() {
   return (
     <div className="acct__stack">
       <header className="acct__head">
-        <span className="kicker">Môj účet</span>
         <h1 className="display acct__title">Moje rezervácie</h1>
       </header>
 

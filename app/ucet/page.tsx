@@ -19,7 +19,6 @@ export default async function UcetPage() {
   return (
     <div className="acct__stack">
       <header className="acct__head">
-        <span className="kicker">Môj účet</span>
         <h1 className="display acct__title">
           Ahoj, <span className="red">{user.firstName}</span>
         </h1>

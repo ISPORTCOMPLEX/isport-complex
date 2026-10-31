@@ -16,7 +16,6 @@ export function LocationSection({ site, id = 'mapa', title = 'Príď na Juh' }: 
     <section id={id} className="wrap loc2" aria-labelledby={`${id}-t`}>
       <div className="loc2__box">
         <div className="loc2__info">
-          <span className="eb eb--muted">Kde nás nájdeš</span>
           <h2 id={`${id}-t`} className="disp loc2__title">
             {title}
           </h2>

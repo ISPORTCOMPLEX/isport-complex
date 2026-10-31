@@ -23,7 +23,7 @@ export default async function CennikPage() {
           </>
         }
       />
-      <section className="ice rz-ice">
+      <section className="dk2 rz-dk">
         <div className="wrap u-col40">
           <div className="pt" role="table" aria-label="Ceny ľadovej plochy za hodinu">
             <div className="pt__row pt__row--head" role="row">

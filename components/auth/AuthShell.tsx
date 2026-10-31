@@ -38,11 +38,8 @@ export async function AuthShell({
             <div className="au2__aside">{aside}</div>
           ) : (
             <ol className="au2__points">
-              {POINTS.map(([t, d], i) => (
+              {POINTS.map(([t, d]) => (
                 <li key={t}>
-                  <span className="wide-display au2__n" aria-hidden="true">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
                   <span>
                     <b>{t}</b>
                     <span>{d}</span>

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { QuickBook } from '@/components/home/QuickBook';
 import { NewsSection } from '@/components/home/NewsSection';
-import { CloudImage } from '@/components/CloudImage';
+import { ComplexExplorer, type ZoneInfo } from '@/components/home/ComplexExplorer';
 import { LocationSection } from '@/components/location/LocationSection';
 import { longDayLabel, nextDays } from '@/lib/dates';
 import { getSite } from '@/lib/siteSettings';
@@ -23,30 +23,6 @@ function Arrow({ size = 20, color = 'currentColor' }: { size?: number; color?: s
   );
 }
 
-// Foto dlaždica komplexu – fotka zo slotu, inak tmavá šrafa (bez „Foto: …“ nápisov).
-function Tile({ href, photo, n, name, text, big = false, sizes }: { href: string; photo: WebPhoto | null; n: string; name: string; text: string; big?: boolean; sizes: string }) {
-  return (
-    <Link href={href} className={`cx2__tile${big ? ' cx2__tile--big' : ''}`}>
-      {photo ? <CloudImage photo={{ ...photo, alt: '' }} sizes={sizes} className="cx2__img" /> : null}
-      <span className="cx2__ov" aria-hidden="true" />
-      <span className="wide-display cx2__n" aria-hidden="true">
-        {n}
-      </span>
-      <span className="cx2__tx">
-        <span className="disp cx2__name">{name}</span>
-        {big ? (
-          <span className="cx2__go">
-            {text}
-            <Arrow color="#E30613" />
-          </span>
-        ) : (
-          <span className="cx2__sub">{text}</span>
-        )}
-      </span>
-    </Link>
-  );
-}
-
 export default async function HomePage() {
   const [site, settings, news, ice, photoMap] = await Promise.all([
     getSite(),
@@ -62,10 +38,16 @@ export default async function HomePage() {
     long: longDayLabel(d.iso),
     slots: avail[i].map((s) => ({ hour: s.hour, ok: s.free && s.bookable, past: !s.bookable, price: s.price })),
   }));
-  const photo = (slot: string) => {
-    const p = photoMap[slot]?.[0];
-    return p ? toWebPhoto(p, '4:3') : null;
-  };
+  // fotky interiéru pre interaktívny rez komplexom
+  const photos = (slot: string): WebPhoto[] => (photoMap[slot] ?? []).map((p) => toWebPhoto(p, '4:3')).filter((p): p is WebPhoto => p !== null);
+  const zones: ZoneInfo[] = [
+    { zone: 'ice', name: 'Ľadová plocha', hall: 'Hala 1', text: 'Celá plocha s mantinelmi, šatňa v cene a úprava ľadu pred každým blokom. Hodinu si rezervuješ online, kluby aj na celú sezónu.', href: '/rezervacia', cta: 'Rezervovať ľad', photos: photos('ladova-plocha') },
+    { zone: 'sky', name: 'Skyboxy', hall: 'Hala 1 · poschodie', text: 'Presklené boxy nad ľadom. Rodičia a hostia sledujú tréning v teple, s výhľadom na celú plochu.', href: '/bufet-skyboxy', cta: 'Skyboxy a bufet', photos: photos('skyboxy') },
+    { zone: 'food', name: 'Bufet', hall: 'Hala 1 · prízemie', text: 'Teplé nápoje a občerstvenie priamo v hale – pred tréningom, cez prestávku aj po zápase.', href: '/bufet-skyboxy', cta: 'Ponuka bufetu', photos: photos('bufet') },
+    { zone: 'pitch', name: 'Ihrisko', hall: 'Medzi halami', text: 'Vonkajšie futbalové ihrisko medzi halou 1 a halou 2 – na tréningy aj zápasy.', href: '/ihrisko', cta: 'Ihrisko', photos: photos('ihrisko') },
+    { zone: 'gym', name: 'Posilňovňa', hall: 'Hala 2 · poschodie', text: 'Samostatná hala 2 na druhej strane ihriska. Posilňovňu pre hráčov aj verejnosť pripravujeme – otvorenie oznámime v novinkách.', href: '/fitness-wellness', cta: 'Viac o hale 2', soon: true, photos: photos('posilnovna') },
+    { zone: 'well', name: 'Wellness', hall: 'Hala 2 · prízemie', text: 'Regenerácia po tréningu v hale 2. Wellness pripravujeme spolu s posilňovňou.', href: '/fitness-wellness', cta: 'Viac o hale 2', soon: true, photos: photos('wellness') },
+  ];
 
   // Tabuľa „Ľad dnes“: najbližšia voľná hodina a ďalších 6 hodín dňa.
   const firstFree = ice.slots.find((s) => s.ok) ?? null;
@@ -102,13 +84,12 @@ export default async function HomePage() {
         </span>
         <div className="wrap hx2__in">
           <div className="hx2__copy">
-            <span className="eb">Tréningová hala · Košice – Juh</span>
             <h1 className="disp hx2__title">
               Tvoj ľad.
               <br />
               <span className="is-red">Tvoj čas.</span>
             </h1>
-            <p className="hx2__lead">Celá tréningová plocha pre kluby, školy, firmy aj partie. Vyber hodinu online, potvrdenie s QR kódom máš hneď v telefóne.</p>
+            <p className="hx2__lead">Tréningová hala v Košiciach na Juhu. Celá ľadová plocha pre kluby, školy, firmy aj partie – vyber hodinu online a potvrdenie s QR kódom máš hneď v telefóne.</p>
             <div className="hx2__btns">
               <Link href="/rezervacia" className="sbtn">
                 Rezervovať ľad
@@ -169,7 +150,6 @@ export default async function HomePage() {
         <div className="tk">
           <div className="wide-display tk__track">
             {tickerRow(false)}
-            {tickerRow(true)}
           </div>
         </div>
       </section>
@@ -208,35 +188,19 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* KOMPLEX – foto dlaždice */}
+      {/* KOMPLEX – interaktívny rez: klik priblíži časť a ukáže fotky */}
       <section className="wrap cx2" aria-labelledby="cx2-t">
         <div className="sec-head">
           <div className="sec-head__l">
-            <span className="eb eb--muted">Šport · zábava · komunita</span>
             <h2 id="cx2-t" className="disp sec-title">
               Jeden komplex.
               <br />
               <span className="is-outline">Všetko na mieste.</span>
             </h2>
           </div>
-          <p className="sec-head__p">Ľad je srdcom haly. Okolo neho skyboxy pre rodičov, bufet, vonkajšie ihrisko a čoskoro posilňovňa s wellness.</p>
+          <p className="sec-head__p">V hale 1 ľad, skyboxy a bufet, medzi halami ihrisko, v hale 2 posilňovňa a wellness. Klikni na miesto a pozri sa dnu.</p>
         </div>
-        <div className="cx2__grid">
-          <Tile href="/ladova-plocha" photo={photo('ladova-plocha') ?? photo('komplex')} n="01" name="Ľadová plocha" text="Prenájom celej plochy · online" big sizes="(max-width: 820px) 100vw, 650px" />
-          <Tile href="/bufet-skyboxy" photo={photo('skyboxy')} n="02" name="Skyboxy" text="Presklené boxy nad ľadom" sizes="(max-width: 820px) 50vw, 320px" />
-          <Tile href="/bufet-skyboxy" photo={photo('bufet')} n="03" name="Bufet" text="Občerstvenie priamo v hale" sizes="(max-width: 820px) 50vw, 320px" />
-          <Tile href="/ihrisko" photo={photo('ihrisko')} n="04" name="Ihrisko" text="Vonkajšie futbalové ihrisko" sizes="(max-width: 820px) 50vw, 320px" />
-          <Link href="/fitness-wellness" className="cx2__soon">
-            <span className="wide-display">Pripravujeme</span>
-            <span>
-              <span className="disp cx2__name">
-                Posilňovňa
-                <br />a wellness
-              </span>
-              <span className="cx2__sub">Otvorenie oznámime v novinkách</span>
-            </span>
-          </Link>
-        </div>
+        <ComplexExplorer zones={zones} />
       </section>
 
       {/* PRE KOHO */}

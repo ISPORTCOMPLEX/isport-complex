@@ -383,7 +383,7 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
         </div>
         {next ? (
           <Link href={next} className="sbtn sbtn--block">
-            Pokračovať na údaje <span aria-hidden="true">→</span>
+            Pokračovať na údaje
           </Link>
         ) : (
           <span className="sbtn sbtn--block is-off" aria-disabled="true">

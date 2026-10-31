@@ -31,10 +31,7 @@ export default async function LadovaPlochaPage() {
       }
       lead="Tréningová hokejová plocha na prenájom pre kluby, školy, firmy aj partie. Prenajíma sa celá plocha, šatňa je v cene, sprchy za príplatok."
     >
-      <section className="ice ix pp-ice">
-        <div className="ix__lines" aria-hidden="true">
-          <i className="ix__blue" />
-        </div>
+      <section className="pp-dark pp-ice2">
         <div className="wrap pp__grid">
           <div className="pp__copy">
             <h2 className="cond pp__h">Cenník</h2>
@@ -94,7 +91,7 @@ export default async function LadovaPlochaPage() {
           <ol className="pp__steps">
             {STEPS.map(([t, d], i) => (
               <li key={t}>
-                <span className="cond">{i + 1}</span>
+                <span className="wide-display">{String(i + 1).padStart(2, '0')}</span>
                 <strong>{t}</strong>
                 <p>{d}</p>
               </li>

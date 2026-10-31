@@ -101,9 +101,6 @@ export function MobileNav({ loggedIn = false, staff = false, address = '' }: { l
           {MOBILE.map((m, i) => (
             <div key={m.href} className={`mnav__grp${i === open && m.sub ? ' has-sub' : ''}`}>
               <Link href={m.href} className={`mnav__big${i === active ? ' is-active' : ''}`} aria-current={pathname === m.href ? 'page' : undefined}>
-                <span className="mnav__n" aria-hidden="true">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
                 {m.label}
               </Link>
               {i === open && m.sub
