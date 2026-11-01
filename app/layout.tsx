@@ -48,6 +48,8 @@ export const metadata: Metadata = {
   // autor webu – <meta name="author"> a <link rel="author" href="/humans.txt">
   authors: [{ name: 'Matúš Bereš', url: '/humans.txt' }],
   creator: 'Matúš Bereš',
+  // web pridaný na plochu iPhonu sa otvorí na celú obrazovku s vlastným názvom
+  appleWebApp: { capable: true, title: 'I-SPORT', statusBarStyle: 'black' },
 };
 
 export const viewport: Viewport = {

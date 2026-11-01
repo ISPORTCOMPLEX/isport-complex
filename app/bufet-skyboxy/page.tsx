@@ -7,6 +7,7 @@ export const metadata: Metadata = { title: 'Bufet a skyboxy', description: 'Bufe
 export default function BufetSkyboxyPage() {
   return (
     <PartPage
+      zone="sky"
       crumb="Bufet a skyboxy"
       title={
         <>

@@ -116,6 +116,13 @@ export function ComplexExplorer({ zones, now: initialNow, weather = CLEAR }: { z
     return () => document.removeEventListener('keydown', onKey);
   }, [open, zoomOut]);
   useEffect(() => () => cancelAnimationFrame(raf.current), []);
+  // odkaz „Ukázať v areáli“ z podstránky: /?areal=ice#komplex – po načítaní priblíži danú časť
+  useEffect(() => {
+    const z = new URLSearchParams(window.location.search).get('areal') as Zone | null;
+    if (!z || !(z in BOX)) return;
+    const t = window.setTimeout(() => zoomTo(z, null), 700);
+    return () => window.clearTimeout(t);
+  }, [zoomTo]);
 
   const active = open ?? hover;
   const enter = (z: Zone) => () => {

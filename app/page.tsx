@@ -192,7 +192,7 @@ export default async function HomePage() {
       </section>
 
       {/* KOMPLEX – interaktívny rez: klik priblíži časť a ukáže fotky */}
-      <section className="wrap cx2" aria-labelledby="cx2-t">
+      <section id="komplex" className="wrap cx2" aria-labelledby="cx2-t">
         <div className="sec-head">
           <div className="sec-head__l">
             <h2 id="cx2-t" className="disp sec-title">
@@ -235,16 +235,6 @@ export default async function HomePage() {
       {/* KONTAKT / MAPA */}
       <LocationSection site={site} />
 
-      {/* Mobil: prilepená lišta s cenou a rezerváciou */}
-      <div className="mbar">
-        <span className="mbar__p">
-          <small>Celá plocha</small>
-          <span className="disp">{priceHour}</span>
-        </span>
-        <Link href="/rezervacia" className="sbtn sbtn--md">
-          Rezervovať
-        </Link>
-      </div>
     </>
   );
 }

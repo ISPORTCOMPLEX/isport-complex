@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/session';
 import { AREA_LABEL, PAYMENT_LABEL, STATUS_LABEL } from '@/lib/booking/format';
 import { euros, fmtDayShort, fmtRange } from '@/lib/booking/time';
+import { CalendarArt, EmptyState } from '@/components/EmptyArt';
 
 export const metadata: Metadata = { title: 'Moje rezervácie' };
 
@@ -33,7 +34,11 @@ export default async function MojeRezervacie() {
           </Link>
         </div>
         {upcoming.length === 0 ? (
-          <p className="muted">Nemáš žiadne nadchádzajúce rezervácie.</p>
+          <EmptyState art={<CalendarArt />} title="Zatiaľ žiadne rezervácie" text="Prvú hodinu na ľade si vyberieš za minútu. Potvrdenie s QR kódom uvidíš tu.">
+            <Link href="/rezervacia" className="sbtn sbtn--md">
+              Rezervovať ľad
+            </Link>
+          </EmptyState>
         ) : (
           <ul className="bk-list">
             {upcoming.map((b) => (

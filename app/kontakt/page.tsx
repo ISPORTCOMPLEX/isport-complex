@@ -5,6 +5,7 @@ import { InquiryForm } from '@/components/InquiryForm';
 import { createFormStamp } from '@/lib/formGuard';
 import { RzBand } from '@/components/booking/RzBand';
 import { LocationSection } from '@/components/location/LocationSection';
+import { Icon } from '@/components/Icon';
 
 export const metadata: Metadata = { title: 'Kontakt', description: 'Kontakt, adresa a otváracie hodiny I-SPORT COMPLEX, Jarmočná 2627/10, Košice – Juh.' };
 
@@ -29,20 +30,29 @@ export default async function KontaktPage() {
               <div className="vx__two">
                 {site.phone ? (
                   <div className="vx__item">
-                    <span>Telefón</span>
+                    <span>
+                      <Icon name="telefon" size={18} />
+                      Telefón
+                    </span>
                     <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a>
                   </div>
                 ) : null}
                 {site.email ? (
                   <div className="vx__item">
-                    <span>E-mail</span>
+                    <span>
+                      <Icon name="email" size={18} />
+                      E-mail
+                    </span>
                     <a href={`mailto:${site.email}`}>{site.email}</a>
                   </div>
                 ) : null}
               </div>
             ) : null}
             <div className="vx__item">
-              <span>Adresa</span>
+              <span>
+                <Icon name="adresa" size={18} />
+                Adresa
+              </span>
               <strong>
                 {orTbd(site.hall.street)}, {site.hall.city}
               </strong>

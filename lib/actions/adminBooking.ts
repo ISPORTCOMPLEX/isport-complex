@@ -14,7 +14,7 @@ import { bookingRows } from '@/lib/booking/format';
 import { getBookingSettings, normalizeSettings, saveBookingSettings } from '@/lib/booking/settings';
 import { hallTime, isIsoDate } from '@/lib/booking/time';
 import { sendBookingCancelledEmail, sendBookingConfirmedEmail } from '@/lib/email';
-import { getSite, saveSite } from '@/lib/siteSettings';
+import { getSite, saveSite, storeUrl } from '@/lib/siteSettings';
 import { closeOpenCheckouts, refundBooking } from '@/lib/payments/service';
 import { parseEuroInput } from '@/lib/payments/math';
 
@@ -323,6 +323,12 @@ export async function adminSaveSiteAction(_prev: FormState, form: FormData): Pro
     if (!m || +m[1] < 47.5 || +m[1] > 49.8 || +m[2] < 16.7 || +m[2] > 22.7) errors.gps = 'Zadaj polohu v tvare 48.70123, 21.25456 (v Google Mapách pravý klik na budovu a klikni na čísla).';
     else [lat, lng] = [m[1], m[2]];
   }
+  const iosRaw = v('appIos', 500);
+  const androidRaw = v('appAndroid', 500);
+  const ios = storeUrl(iosRaw, 'apps.apple.com');
+  const android = storeUrl(androidRaw, 'play.google.com');
+  if (iosRaw && !ios) errors.appIos = 'Zadaj odkaz z App Store (https://apps.apple.com/…).';
+  if (androidRaw && !android) errors.appAndroid = 'Zadaj odkaz z Google Play (https://play.google.com/…).';
   if (Object.keys(errors).length) return { error: 'Skontroluj označené polia.', errors };
 
   const next = {
@@ -344,6 +350,7 @@ export async function adminSaveSiteAction(_prev: FormState, form: FormData): Pro
     hours: current.hours.map((h, i) => ({ days: h.days, time: v(`hours${i}`, 60) })),
     iban: iban.replace(/(.{4})/g, '$1 ').trim(),
     bankName: v('bankName', 100),
+    apps: { ios, android },
   };
   await saveSite(next, actor.id);
   await audit(actor.id, 'settings.site', 'site');

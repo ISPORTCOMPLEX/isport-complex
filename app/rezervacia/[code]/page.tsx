@@ -46,14 +46,24 @@ export default async function BookingDetail({ params, searchParams }: Props) {
   const site = await getSite();
   const active = booking.status === 'CONFIRMED' && booking.endsAt > new Date();
   const canCancel = booking.status === 'CONFIRMED' && (booking.paymentStatus === 'PENDING' || booking.startsAt.getTime() - Date.now() >= settings.cancelFreeHours * 3600000);
-  const qr = active && !pending ? await QRCode.toDataURL(`ISP:${booking.code}:${booking.qrToken}`, { margin: 1, width: 280, color: { dark: '#000000', light: '#ffffff' } }) : null;
+  const state = booking.status === 'CANCELLED' ? 'off' : pending ? 'wait' : active ? 'ok' : 'past';
+  const stateLabel = { off: 'Zrušená', wait: 'Čaká na platbu', ok: 'Potvrdená', past: 'Odohraná' }[state];
+  const qr = active && !pending ? await QRCode.toDataURL(`ISP:${booking.code}:${booking.qrToken}`, { margin: 1, width: 400, color: { dark: '#000000', light: '#ffffff' } }) : null;
 
   return (
     <>
     <RzBand
       crumbs={[{ href: '/', label: 'Komplex' }, { href: '/ucet/rezervacie', label: 'Moje rezervácie' }, { label: booking.code }]}
       step={pending ? 'Čaká na platbu kartou' : booking.status === 'CONFIRMED' ? (active ? 'Potvrdená rezervácia' : 'Odohraná rezervácia') : STATUS_LABEL[booking.status]}
-      title={booking.code}
+      title={sp.nova && state === 'ok' ? (
+        <>
+          Rezervácia
+          <br />
+          potvrdená
+        </>
+      ) : (
+        booking.code
+      )}
     />
     <section className="dk2 rz-dk bk">
       <div className="wrap bk__in">
@@ -89,82 +99,109 @@ export default async function BookingDetail({ params, searchParams }: Props) {
           </div>
         ) : null}
 
-        <div className="bk__ticket">
-          <div className="bk__info">
-            <h2 className="display bk__title">{fmtDayLong(booking.startsAt)}</h2>
-            <p className="bk__time num">{fmtRange(booking.startsAt, booking.endsAt)}</p>
-            <dl className="rez__dl bk__dl">
-              <div>
-                <dt>Kód</dt>
-                <dd className="bk__code">{booking.code}</dd>
+        <div className={`tk2${sp.nova ? ' tk2--new' : ''}`}>
+          <div className="tk2__card">
+            <div className="tk2__main">
+              <div className="tk2__top">
+                <span className="tk2__brand">
+                  I-SPORT <i>COMPLEX</i> · vstupenka na ľad
+                </span>
+                <span className={`tk2__state tk2__state--${state}`}>{stateLabel}</span>
               </div>
-              <div>
-                <dt>Plocha</dt>
-                <dd>{AREA_LABEL[booking.area]}</dd>
-              </div>
-              <div>
-                <dt>Sprchy</dt>
-                <dd>{booking.showers > 0 ? `áno · ${euros(booking.showerCents)}` : 'nie'}</dd>
-              </div>
-              <div>
-                <dt>Spolu</dt>
-                <dd>{euros(booking.priceCents)}</dd>
-              </div>
-              <div>
-                <dt>Platba</dt>
-                <dd>
-                  {METHOD_LABEL[booking.paymentMethod]} · {PAYMENT_LABEL[booking.paymentStatus]}
-                  {booking.refundedCents > 0 ? ` · vrátené ${euros(booking.refundedCents)}` : ''}
-                </dd>
-              </div>
-              {booking.teamName ? (
+              <h2 className="tk2__date">{fmtDayLong(booking.startsAt)}</h2>
+              <p className="tk2__time">{fmtRange(booking.startsAt, booking.endsAt)}</p>
+              <dl className="tk2__grid">
                 <div>
-                  <dt>Tím</dt>
-                  <dd>{booking.teamName}</dd>
+                  <dt>Plocha</dt>
+                  <dd>{AREA_LABEL[booking.area]}</dd>
                 </div>
+                <div>
+                  <dt>Šatňa</dt>
+                  <dd>v cene</dd>
+                </div>
+                <div>
+                  <dt>Sprchy</dt>
+                  <dd>{booking.showers > 0 ? `áno · ${euros(booking.showerCents)}` : 'nie'}</dd>
+                </div>
+                {booking.teamName ? (
+                  <div>
+                    <dt>Tím</dt>
+                    <dd>{booking.teamName}</dd>
+                  </div>
+                ) : null}
+                <div>
+                  <dt>Platba</dt>
+                  <dd>
+                    {METHOD_LABEL[booking.paymentMethod]} · {PAYMENT_LABEL[booking.paymentStatus]}
+                    {booking.refundedCents > 0 ? ` · vrátené ${euros(booking.refundedCents)}` : ''}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Spolu</dt>
+                  <dd>{euros(booking.priceCents)}</dd>
+                </div>
+                <div className="tk2__wide">
+                  <dt>Kontakt</dt>
+                  <dd>
+                    {booking.contactName}, {booking.contactPhone}
+                  </dd>
+                </div>
+              </dl>
+              {booking.paymentMethod === 'TRANSFER' && booking.paymentStatus === 'UNPAID' && booking.status === 'CONFIRMED' ? (
+                site.iban ? (
+                  <div className="bk__pay">
+                    <strong>Platba prevodom</strong>
+                    <dl className="rez__dl">
+                      <div>
+                        <dt>IBAN</dt>
+                        <dd className="bk__code">{site.iban}</dd>
+                      </div>
+                      <div>
+                        <dt>Suma</dt>
+                        <dd>{euros(booking.priceCents)}</dd>
+                      </div>
+                      <div>
+                        <dt>Variabilný symbol</dt>
+                        <dd className="bk__code">{booking.number}</dd>
+                      </div>
+                      <div>
+                        <dt>Správa pre príjemcu</dt>
+                        <dd className="bk__code">{booking.code}</dd>
+                      </div>
+                    </dl>
+                    <small className="muted">Prosíme o úhradu pred tréningom. Ak platba nepríde, zaplatíš na recepcii.</small>
+                  </div>
+                ) : (
+                  <p className="muted bk__note">Platobné údaje na prevod ti pošleme e-mailom.</p>
+                )
               ) : null}
-              <div>
-                <dt>Kontakt</dt>
-                <dd>
-                  {booking.contactName}, {booking.contactPhone}
-                </dd>
-              </div>
-            </dl>
-            {booking.paymentMethod === 'TRANSFER' && booking.paymentStatus === 'UNPAID' && booking.status === 'CONFIRMED' ? (
-              site.iban ? (
-                <div className="bk__pay">
-                  <strong>Platba prevodom</strong>
-                  <dl className="rez__dl">
-                    <div>
-                      <dt>IBAN</dt>
-                      <dd className="bk__code">{site.iban}</dd>
-                    </div>
-                    <div>
-                      <dt>Suma</dt>
-                      <dd>{euros(booking.priceCents)}</dd>
-                    </div>
-                    <div>
-                      <dt>Variabilný symbol</dt>
-                      <dd className="bk__code">{booking.number}</dd>
-                    </div>
-                    <div>
-                      <dt>Správa pre príjemcu</dt>
-                      <dd className="bk__code">{booking.code}</dd>
-                    </div>
-                  </dl>
-                  <small className="muted">Prosíme o úhradu pred tréningom. Ak platba nepríde, zaplatíš na recepcii.</small>
-                </div>
-              ) : (
-                <p className="muted bk__note">Platobné údaje na prevod ti pošleme e-mailom.</p>
-              )
-            ) : null}
-          </div>
-          {qr ? (
-            <div className="bk__qr">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={qr} width={220} height={220} alt={`QR kód rezervácie ${booking.code}`} />
-              <small>Ukáž na recepcii pri príchode</small>
             </div>
+            <div className="tk2__stub">
+              {qr ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={qr} width={200} height={200} alt={`QR kód rezervácie ${booking.code}`} />
+              ) : (
+                <span className="tk2__noqr">{pending ? 'QR kód sa zobrazí po zaplatení' : 'QR kód už nie je platný'}</span>
+              )}
+              <span className="tk2__code">{booking.code}</span>
+              {qr ? (
+                <span className="tk2__hint">
+                  Ukáž na recepcii.
+                  <br />
+                  Príď 30 minút vopred.
+                </span>
+              ) : null}
+            </div>
+          </div>
+          {sp.nova && state === 'ok' ? (
+            <span className="tk2__burst" aria-hidden="true">
+              <svg width="30" height="30" viewBox="0 0 24 24">
+                <path d="M5 12.5l4.5 4.5L19 7.5" />
+              </svg>
+              {Array.from({ length: 18 }, (_, i) => (
+                <i key={i} className="tk2__cf" />
+              ))}
+            </span>
           ) : null}
         </div>
 

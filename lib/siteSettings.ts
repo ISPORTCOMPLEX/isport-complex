@@ -5,12 +5,25 @@ import { site as defaults, type Site } from './site';
 
 // Údaje o firme a hale. Základ je v lib/site.ts, administrátor ich prepíše v Administrácia → Nastavenia.
 
-export type SiteExtra = { iban: string; bankName: string; notifyEmail: string };
+// apps: odkazy na mobilnú aplikáciu v App Store a Google Play – kým sú prázdne, blok v pätičke sa nezobrazí
+export type SiteExtra = { iban: string; bankName: string; notifyEmail: string; apps: { ios: string; android: string } };
 export type SiteFull = Site & SiteExtra;
 
 const KEY = 'site';
 
 const s = (v: unknown, fallback: string, max = 300) => (typeof v === 'string' ? v.slice(0, max).trim() : fallback);
+
+// odkaz do obchodu len z oficiálnej domény (https)
+export function storeUrl(v: unknown, host: string): string {
+  if (typeof v !== 'string') return '';
+  const t = v.trim().slice(0, 500);
+  try {
+    const u = new URL(t);
+    return u.protocol === 'https:' && u.hostname === host ? u.toString() : '';
+  } catch {
+    return '';
+  }
+}
 
 export function mergeSite(raw: unknown): SiteFull {
   const r = (raw ?? {}) as Record<string, any>;
@@ -36,6 +49,7 @@ export function mergeSite(raw: unknown): SiteFull {
     iban: s(r.iban, '', 40),
     bankName: s(r.bankName, '', 100),
     notifyEmail: s(r.notifyEmail, '', 200),
+    apps: { ios: storeUrl(r.apps?.ios, 'apps.apple.com'), android: storeUrl(r.apps?.android, 'play.google.com') },
   };
 }
 
@@ -60,6 +74,7 @@ export async function saveSite(value: SiteFull, userId: string): Promise<void> {
       iban: value.iban,
       bankName: value.bankName,
       notifyEmail: value.notifyEmail,
+      apps: value.apps,
     }),
   );
   await prisma.setting.upsert({ where: { key: KEY }, create: { key: KEY, value: v, updatedBy: userId }, update: { value: v, updatedBy: userId } });

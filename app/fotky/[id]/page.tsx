@@ -38,6 +38,9 @@ export default async function PhotoViewer({ params, searchParams }: Props) {
   const next = at(idx + 1);
   const close = scope === 'vsetky' ? '/fotky' : `${SLOT_PAGE[photo.slot]}#fotky-${photo.slot}`;
   const allHref = scope === 'vsetky' ? '/fotky' : `/fotky?sekcia=${photo.slot}`;
+  // pás náhľadov: až 9 fotiek okolo aktuálnej
+  const from = Math.max(0, Math.min(idx - 4, n - 9));
+  const thumbs = list.slice(from, from + 9).map((p, k) => ({ p, i: from + k }));
   const near = n > 1 ? [list[(idx + 1) % n], list[(idx - 1 + n) % n]].map((p) => ({ src: p.src, srcSet: p.srcSet })) : [];
 
   return (
@@ -94,6 +97,16 @@ export default async function PhotoViewer({ params, searchParams }: Props) {
             <Link href={SLOT_PAGE[photo.slot]}>{photo.label}</Link> · I-SPORT COMPLEX Košice
           </p>
         </div>
+        {n > 1 ? (
+          <nav className="pv__thumbs" aria-label="Ďalšie fotky">
+            {thumbs.map(({ p, i }) => (
+              <Link key={p.id} href={at(i)} replace scroll={false} className="pv__th" aria-current={i === idx ? 'true' : undefined} aria-label={`Fotka ${i + 1} z ${n}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.thumb} alt="" width={96} height={64} loading="lazy" decoding="async" draggable={false} />
+              </Link>
+            ))}
+          </nav>
+        ) : null}
         {n > 1 ? (
           <>
             <div className="pv__hints" aria-hidden="true">

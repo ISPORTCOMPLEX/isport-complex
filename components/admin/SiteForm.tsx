@@ -17,6 +17,7 @@ type SiteData = {
   hours: { days: string; time: string }[];
   iban: string;
   bankName: string;
+  apps: { ios: string; android: string };
 };
 
 export function SiteForm({ s }: { s: SiteData }) {
@@ -75,6 +76,15 @@ export function SiteForm({ s }: { s: SiteData }) {
         <div className="adm-settings-grid">
           <Field label="Facebook" name="facebook" defaultValue={s.social.facebook} error={e.facebook} optional maxLength={500} placeholder="https://facebook.com/…" />
           <Field label="Instagram" name="instagram" defaultValue={s.social.instagram} error={e.instagram} optional maxLength={500} placeholder="https://instagram.com/…" />
+        </div>
+      </section>
+      <section className="adm-panel">
+        <div className="adm-panel__head">
+          <h2>Mobilná aplikácia</h2>
+        </div>
+        <div className="adm-settings-grid">
+          <Field label="Odkaz do App Store" name="appIos" defaultValue={s.apps.ios} error={e.appIos} optional maxLength={500} placeholder="https://apps.apple.com/sk/app/…" hint="Keď vyplníš aspoň jeden odkaz, v pätičke webu sa zobrazí blok „I-SPORT v mobile“." />
+          <Field label="Odkaz do Google Play" name="appAndroid" defaultValue={s.apps.android} error={e.appAndroid} optional maxLength={500} placeholder="https://play.google.com/store/apps/details?id=…" />
         </div>
       </section>
       <div>

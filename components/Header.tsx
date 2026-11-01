@@ -1,4 +1,7 @@
 import Link from 'next/link';
+import { Icon } from '@/components/Icon';
+import { BottomNav } from '@/components/nav/BottomNav';
+import { InstallPrompt } from '@/components/nav/InstallPrompt';
 import { LogoLockup } from './Logo';
 import { MobileNav } from './NavLinks';
 import { MegaNav, type MegaPhotos } from './nav/MegaNav';
@@ -43,9 +46,7 @@ export async function Header() {
         <div className="wrap tb__in">
           <span className="tb__l">
             <span className="tb__it">
-              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 22s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" fill="none" stroke="#E30613" strokeWidth="2.4" />
-              </svg>
+              <Icon name="adresa" size={15} />
               {short}
             </span>
             {site.phone ? (
@@ -95,6 +96,8 @@ export async function Header() {
           </div>
         </div>
       </header>
+      <BottomNav loggedIn={Boolean(user)} />
+      <InstallPrompt />
     </>
   );
 }

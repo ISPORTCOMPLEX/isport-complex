@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { RzBand } from '@/components/booking/RzBand';
-import { Mosaic, rowsOf } from '@/components/photos/Mosaic';
 import { SLOTS, galleryPhotos, isSlot, photoCounts } from '@/lib/media';
 
 export const metadata: Metadata = { title: 'Fotky', description: 'Fotky I-SPORT COMPLEX Košice – ľadová plocha, skyboxy, bufet, ihrisko, posilňovňa a wellness.' };
@@ -32,17 +31,23 @@ export default async function FotkyPage({ searchParams }: Props) {
           {photos.length === 0 ? (
             <p className="pg-empty">Fotky pripravujeme.</p>
           ) : (
-            <div className="pg-grid">
-              <Mosaic
-                photos={photos}
-                rows={rowsOf(photos.length, 4)}
-                total={photos.length}
-                moreHref="/fotky"
-                viewHref={(p) => `/fotky/${p.id}?v=${view}`}
-                mobileLimit={false}
-                sizes="(max-width: 700px) 50vw, 25vw"
-              />
-            </div>
+            <ul className="gm2">
+              {photos.map((p, i) => (
+                <li key={p.id} className="gm2__it">
+                  <Link href={`/fotky/${p.id}?v=${view}`} className="gm2__a" aria-label={`Otvoriť fotku: ${p.alt}`}>
+                    <picture>
+                      <source type="image/avif" srcSet={p.avif} sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw" />
+                      <source type="image/webp" srcSet={p.webp} sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw" />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={p.src} srcSet={p.srcSet} sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw" alt={p.alt} width={p.width} height={p.height} loading={i < 6 ? 'eager' : 'lazy'} decoding="async" draggable={false} />
+                    </picture>
+                    <span className="gm2__cap" aria-hidden="true">
+                      <b>{p.label}</b>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       </section>

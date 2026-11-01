@@ -3,30 +3,46 @@ import { RzBand } from '@/components/booking/RzBand';
 import { CloudImage } from '@/components/CloudImage';
 import { Mosaic } from '@/components/photos/Mosaic';
 import { galleryPhotos, slotPhotos, type SlotKey } from '@/lib/media';
+import { ZoneHero } from '@/components/home/ZoneHero';
+import type { Zone } from '@/components/home/ComplexExplorer';
+import { kosiceWeather } from '@/lib/weather';
+import { weatherLabel } from '@/lib/sky';
 
 // Spoločné rozloženie stránok jednotlivých častí komplexu.
-export function PartPage({
+// `zone` pridá hore ilustráciu areálu priblíženú na túto časť (s aktuálnym časom a počasím v Košiciach).
+export async function PartPage({
   crumb,
   title,
   lead,
   soon = false,
+  zone,
   children,
 }: {
   crumb: string;
   title: React.ReactNode;
   lead: string;
   soon?: boolean;
+  zone?: Zone;
   children: React.ReactNode;
 }) {
+  const weather = zone ? await kosiceWeather() : null;
+  const renderedAt = Date.now();
   return (
     <>
       <RzBand
+        art={zone && weather ? <ZoneHero zone={zone} now={renderedAt} weather={weather} /> : undefined}
         crumbs={[{ href: '/', label: 'Komplex' }, { label: crumb }]}
         title={title}
         lead={
           <>
             {soon ? <p className="pp__soon">Pripravujeme</p> : null}
             <p>{lead}</p>
+            {weather && weather.temp !== null ? (
+              <p className="band2__live">
+                <b>{Math.round(weather.temp)} °C</b>
+                Teraz v areáli · {weatherLabel(weather)}
+              </p>
+            ) : null}
           </>
         }
       />

@@ -21,6 +21,7 @@ export default async function LadovaPlochaPage() {
   const peak = `${String(s.peakFromHour).padStart(2, '0')}:00`;
   return (
     <PartPage
+      zone="ice"
       crumb="Ľadová plocha"
       title={
         <>

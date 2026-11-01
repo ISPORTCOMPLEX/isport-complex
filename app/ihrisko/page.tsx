@@ -10,6 +10,7 @@ export default async function IhriskoPage() {
   const site = await getSite();
   return (
     <PartPage
+      zone="pitch"
       crumb="Ihrisko"
       title={
         <>

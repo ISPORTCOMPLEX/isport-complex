@@ -8,6 +8,7 @@ export const metadata: Metadata = { title: 'Fitness a wellness', description: 'P
 export default function FitnessWellnessPage() {
   return (
     <PartPage
+      zone="gym"
       crumb="Fitness a wellness"
       soon
       title={
