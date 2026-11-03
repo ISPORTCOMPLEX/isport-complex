@@ -14,7 +14,7 @@ import { bookingRows } from '@/lib/booking/format';
 import { getBookingSettings, normalizeSettings, saveBookingSettings } from '@/lib/booking/settings';
 import { hallTime, isIsoDate } from '@/lib/booking/time';
 import { sendBookingCancelledEmail, sendBookingConfirmedEmail } from '@/lib/email';
-import { getSite, saveSite, storeUrl } from '@/lib/siteSettings';
+import { getSite, saveSite, storeUrl, heroVideoPath } from '@/lib/siteSettings';
 import { closeOpenCheckouts, refundBooking } from '@/lib/payments/service';
 import { parseEuroInput } from '@/lib/payments/math';
 
@@ -329,6 +329,9 @@ export async function adminSaveSiteAction(_prev: FormState, form: FormData): Pro
   const android = storeUrl(androidRaw, 'play.google.com');
   if (iosRaw && !ios) errors.appIos = 'Zadaj odkaz z App Store (https://apps.apple.com/…).';
   if (androidRaw && !android) errors.appAndroid = 'Zadaj odkaz z Google Play (https://play.google.com/…).';
+  const videoRaw = v('heroVideo', 400);
+  const heroVideo = heroVideoPath(videoRaw);
+  if (videoRaw && !heroVideo) errors.heroVideo = 'Vyber video zo zoznamu alebo vlož adresu videa z článku (…/videa/….mp4).';
   if (Object.keys(errors).length) return { error: 'Skontroluj označené polia.', errors };
 
   const next = {
@@ -351,6 +354,7 @@ export async function adminSaveSiteAction(_prev: FormState, form: FormData): Pro
     iban: iban.replace(/(.{4})/g, '$1 ').trim(),
     bankName: v('bankName', 100),
     apps: { ios, android },
+    heroVideo,
   };
   await saveSite(next, actor.id);
   await audit(actor.id, 'settings.site', 'site');

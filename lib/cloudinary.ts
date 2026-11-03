@@ -98,6 +98,8 @@ export function imageUrl(cloud: string, publicId: string, version: number, w: nu
 // Prehliadač aj návštevník vidia len náš web; odkiaľ fotka pochádza, nezistí.
 export const IMG_WIDTHS = [480, 800, 1200, 1600, 2000] as const;
 export const IMG_RATIOS = ['4:3', '16:10', '2:1', '16:9'] as const;
+// 360° panoráma potrebuje väčšiu šírku (len bez orezania, len JPG)
+export const PANO_WIDTH = 4000;
 export function photoPath(publicId: string, version: number, w: number, ratio: string | undefined, fmt: ImgFormat): string {
   const r = ratio ? ratio.replace(':', 'x') : 'o';
   return `/obrazky/${w}/${r}/${fmt}/v${version}/${publicId.split('/').map(encodeURIComponent).join('/')}`;
@@ -108,7 +110,7 @@ export function parsePhotoPath(parts: string[]): { w: number; ratio?: string; fm
   if (parts.length < 6) return null;
   const [ws, rs, fs, vs, ...id] = parts;
   const w = Number(ws);
-  if (!(IMG_WIDTHS as readonly number[]).includes(w)) return null;
+  if (!(IMG_WIDTHS as readonly number[]).includes(w) && !(w === PANO_WIDTH && rs === 'o' && fs === 'jpg')) return null;
   const ratio = rs === 'o' ? undefined : rs.replace('x', ':');
   if (ratio !== undefined && !(IMG_RATIOS as readonly string[]).includes(ratio)) return null;
   if (!(IMG_FORMATS as readonly string[]).includes(fs)) return null;

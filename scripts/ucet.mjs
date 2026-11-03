@@ -6,6 +6,8 @@
 //   node --env-file=.env scripts/ucet.mjs rola EMAIL ROLA   CUSTOMER | CLUB_MANAGER | RECEPTION | ACCOUNTANT | ADMIN
 //   node --env-file=.env scripts/ucet.mjs heslo EMAIL       nastaví nové heslo (opýta sa naň), odomkne účet
 //   node --env-file=.env scripts/ucet.mjs zoznam            vypíše posledných 50 účtov
+//   node --env-file=.env scripts/ucet.mjs admini            vypíše všetky účty administrácie (admin, recepcia, účtovník)
+//   node --env-file=.env scripts/ucet.mjs vypnut2fa EMAIL   vypne dvojstupňové overenie (stratený telefón aj záložné kódy)
 
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
@@ -150,8 +152,26 @@ async function main() {
       })));
       break;
     }
+    case 'admini': {
+      const users = await prisma.user.findMany({ where: { role: { in: ['ADMIN', 'RECEPTION', 'ACCOUNTANT'] } }, orderBy: { createdAt: 'asc' } });
+      if (!users.length) console.log('Žiadny účet administrácie neexistuje. Vytvor ho: npm run ucet -- admin');
+      else
+        console.table(users.map((u) => ({
+          email: u.email, meno: `${u.firstName} ${u.lastName}`, rola: u.role, vytvorený: u.createdAt.toISOString().slice(0, 10),
+          '2FA': u.twoFactorEnabledAt ? 'áno' : 'nie', zamknutý: u.lockedUntil && u.lockedUntil > new Date() ? 'ÁNO' : '', zmazaný: u.deletedAt ? 'áno' : '',
+        })));
+      break;
+    }
+    case 'vypnut2fa': {
+      const u = await findUser(a);
+      const sure = await ask(`Naozaj vypnúť dvojstupňové overenie pre ${u.email}? Napíš ANO: `);
+      if (sure !== 'ANO') throw new Error('Zrušené.');
+      await prisma.user.update({ where: { id: u.id }, data: { twoFactorSecretEnc: null, twoFactorEnabledAt: null, twoFactorLastStep: null, twoFactorBackupHashes: [] } });
+      console.log(`Hotovo: ${u.email} sa prihlási len heslom. Po prihlásení si v Môj účet → Zabezpečenie zapni 2FA znova a ulož si záložné kódy.`);
+      break;
+    }
     default:
-      console.log('Príkazy: admin | heslo EMAIL | overit EMAIL | odomknut EMAIL | rola EMAIL ROLA | zoznam');
+      console.log('Príkazy: admin | admini | heslo EMAIL | vypnut2fa EMAIL | overit EMAIL | odomknut EMAIL | rola EMAIL ROLA | zoznam');
   }
 }
 

@@ -10,6 +10,26 @@ import { PAY_WINDOW_MIN, providerDiagnosis } from '@/lib/payments/config';
 import { euros } from '@/lib/booking/time';
 import { SettingsForm } from '@/components/admin/SettingsForm';
 import { SiteForm } from '@/components/admin/SiteForm';
+import { videoPath } from '@/lib/cloudinary';
+
+// nahraté videá z článkov – na výber do pozadia úvodu
+async function articleVideos(): Promise<{ path: string; label: string }[]> {
+  try {
+    const rows = await prisma.article.findMany({ where: { deletedAt: null }, select: { title: true, body: true }, orderBy: { updatedAt: 'desc' }, take: 60 });
+    const out: { path: string; label: string }[] = [];
+    for (const a of rows) {
+      const blocks = Array.isArray(a.body) ? (a.body as { type?: string; video?: { publicId?: string; version?: number }; caption?: string }[]) : [];
+      for (const b of blocks) {
+        if (b?.type !== 'video' || typeof b.video?.publicId !== 'string' || typeof b.video?.version !== 'number') continue;
+        const path = videoPath(b.video.publicId, b.video.version);
+        if (!out.some((o) => o.path === path)) out.push({ path, label: `${a.title}${b.caption ? ` – ${b.caption}` : ''}`.slice(0, 120) });
+      }
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
 
 export const metadata: Metadata = { title: 'Nastavenia' };
 
@@ -19,7 +39,7 @@ export default async function NastaveniaPage({ searchParams }: Props) {
   await requireStaff('settings.manage', '/admin/nastavenia');
   const t = (await searchParams).tab;
   const tab = t === 'firma' || t === 'platby' ? t : 'cennik';
-  const [s, site] = await Promise.all([getBookingSettings(), getSite()]);
+  const [s, site, videos] = await Promise.all([getBookingSettings(), getSite(), t === 'firma' ? articleVideos() : Promise.resolve([])]);
   return (
     <div className="adm__stack">
       <AdmHead
@@ -43,7 +63,7 @@ export default async function NastaveniaPage({ searchParams }: Props) {
           Platobná brána
         </Link>
       </nav>
-      {tab === 'cennik' ? <SettingsForm s={s} /> : tab === 'firma' ? <SiteForm s={site} /> : <PaymentsStatus />}
+      {tab === 'cennik' ? <SettingsForm s={s} /> : tab === 'firma' ? <SiteForm s={site} videos={videos} /> : <PaymentsStatus />}
     </div>
   );
 }

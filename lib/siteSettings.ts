@@ -2,11 +2,13 @@ import 'server-only';
 import { cache } from 'react';
 import { prisma } from './prisma';
 import { site as defaults, type Site } from './site';
+import { parseVideoPath, videoPath } from './cloudinary';
 
 // Údaje o firme a hale. Základ je v lib/site.ts, administrátor ich prepíše v Administrácia → Nastavenia.
 
 // apps: odkazy na mobilnú aplikáciu v App Store a Google Play – kým sú prázdne, blok v pätičke sa nezobrazí
-export type SiteExtra = { iban: string; bankName: string; notifyEmail: string; apps: { ios: string; android: string } };
+// heroVideo: video na pozadí úvodu (adresa /videa/… z nahratého videa v článku) – prázdne = fotka ľadu
+export type SiteExtra = { iban: string; bankName: string; notifyEmail: string; apps: { ios: string; android: string }; heroVideo: string };
 export type SiteFull = Site & SiteExtra;
 
 const KEY = 'site';
@@ -23,6 +25,21 @@ export function storeUrl(v: unknown, host: string): string {
   } catch {
     return '';
   }
+}
+
+// video len z našich nahratých videí (/videa/v<verzia>/isport/….mp4); prijme aj celú adresu skopírovanú z webu
+export function heroVideoPath(v: unknown): string {
+  if (typeof v !== 'string' || !v.trim()) return '';
+  let path = v.trim().slice(0, 400);
+  try {
+    if (/^https?:\/\//.test(path)) path = new URL(path).pathname;
+  } catch {
+    return '';
+  }
+  const m = /^\/videa\/(.+)$/.exec(path);
+  if (!m) return '';
+  const parsed = parseVideoPath(m[1].split('/').map((x) => { try { return decodeURIComponent(x); } catch { return ''; } }));
+  return parsed && parsed.ext === 'mp4' ? videoPath(parsed.publicId, parsed.version) : '';
 }
 
 export function mergeSite(raw: unknown): SiteFull {
@@ -50,6 +67,7 @@ export function mergeSite(raw: unknown): SiteFull {
     bankName: s(r.bankName, '', 100),
     notifyEmail: s(r.notifyEmail, '', 200),
     apps: { ios: storeUrl(r.apps?.ios, 'apps.apple.com'), android: storeUrl(r.apps?.android, 'play.google.com') },
+    heroVideo: heroVideoPath(r.heroVideo),
   };
 }
 
@@ -75,6 +93,7 @@ export async function saveSite(value: SiteFull, userId: string): Promise<void> {
       bankName: value.bankName,
       notifyEmail: value.notifyEmail,
       apps: value.apps,
+      heroVideo: value.heroVideo,
     }),
   );
   await prisma.setting.upsert({ where: { key: KEY }, create: { key: KEY, value: v, updatedBy: userId }, update: { value: v, updatedBy: userId } });

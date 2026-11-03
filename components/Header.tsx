@@ -83,7 +83,7 @@ export async function Header() {
           </Link>
           <MegaNav ice={ice} photos={photos} />
           <div className="hd__actions">
-            <Link href="/rezervacia" className="sbtn hd__book">
+            <Link href="/rezervacia" className="sbtn hd__book" data-magnet="">
               Rezervovať ľad
             </Link>
             <Link href={user ? '/ucet' : '/prihlasenie'} className="hd__macc" aria-label={user ? 'Môj účet' : 'Prihlásiť sa'}>

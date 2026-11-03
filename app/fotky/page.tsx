@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { RzBand } from '@/components/booking/RzBand';
-import { SLOTS, galleryPhotos, isSlot, photoCounts } from '@/lib/media';
+import { GALLERY_SLOTS, galleryPhotos, isSlot, photoCounts } from '@/lib/media';
 
 export const metadata: Metadata = { title: 'Fotky', description: 'Fotky I-SPORT COMPLEX Košice – ľadová plocha, skyboxy, bufet, ihrisko, posilňovňa a wellness.' };
 
@@ -9,9 +9,9 @@ type Props = { searchParams: Promise<{ sekcia?: string }> };
 
 export default async function FotkyPage({ searchParams }: Props) {
   const raw = (await searchParams).sekcia ?? '';
-  const slot = isSlot(raw) ? raw : undefined;
+  const slot = isSlot(raw) && raw !== 'prehliadka' ? raw : undefined;
   const [photos, counts] = await Promise.all([galleryPhotos(slot), photoCounts()]);
-  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  const total = GALLERY_SLOTS.reduce((a, s) => a + counts[s.key], 0);
   const view = slot ?? 'vsetky';
   return (
     <>
@@ -22,7 +22,7 @@ export default async function FotkyPage({ searchParams }: Props) {
             <Link href="/fotky" className="pg-chip" aria-current={!slot ? 'page' : undefined}>
               Všetky <small>{total}</small>
             </Link>
-            {SLOTS.filter((s) => counts[s.key] > 0).map((s) => (
+            {GALLERY_SLOTS.filter((s) => counts[s.key] > 0).map((s) => (
               <Link key={s.key} href={`/fotky?sekcia=${s.key}`} className="pg-chip" aria-current={slot === s.key ? 'page' : undefined}>
                 {s.label} <small>{counts[s.key]}</small>
               </Link>

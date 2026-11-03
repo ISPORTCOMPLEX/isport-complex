@@ -18,9 +18,10 @@ type SiteData = {
   iban: string;
   bankName: string;
   apps: { ios: string; android: string };
+  heroVideo: string;
 };
 
-export function SiteForm({ s }: { s: SiteData }) {
+export function SiteForm({ s, videos = [] }: { s: SiteData; videos?: { path: string; label: string }[] }) {
   const [state, action] = useActionState(adminSaveSiteAction, EMPTY);
   const e = state.errors ?? {};
   return (
@@ -85,6 +86,37 @@ export function SiteForm({ s }: { s: SiteData }) {
         <div className="adm-settings-grid">
           <Field label="Odkaz do App Store" name="appIos" defaultValue={s.apps.ios} error={e.appIos} optional maxLength={500} placeholder="https://apps.apple.com/sk/app/…" hint="Keď vyplníš aspoň jeden odkaz, v pätičke webu sa zobrazí blok „I-SPORT v mobile“." />
           <Field label="Odkaz do Google Play" name="appAndroid" defaultValue={s.apps.android} error={e.appAndroid} optional maxLength={500} placeholder="https://play.google.com/store/apps/details?id=…" />
+        </div>
+      </section>
+      <section className="adm-panel">
+        <div className="adm-panel__head">
+          <h2>Video v úvode webu</h2>
+        </div>
+        <div className="adm-settings-grid">
+          <div className={`field${e.heroVideo ? ' field--error' : ''}`}>
+            <div className="field__top">
+              <label htmlFor="heroVideo">
+                Video na pozadí <span className="field__opt">(nepovinné)</span>
+              </label>
+            </div>
+            <div className="field__box">
+              <select id="heroVideo" name="heroVideo" defaultValue={s.heroVideo} className="adm-select" aria-describedby="heroVideo-hint">
+                <option value="">Bez videa – fotka ľadu</option>
+                {s.heroVideo && !videos.some((x) => x.path === s.heroVideo) ? <option value={s.heroVideo}>Aktuálne video</option> : null}
+                {videos.map((x) => (
+                  <option key={x.path} value={x.path}>
+                    {x.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <small id="heroVideo-hint" className="field__hint">
+              {videos.length
+                ? 'Krátke video bez zvuku (10–30 s, napr. tréning na ľade) sa v úvode prehráva dookola. Vyberá sa z videí nahratých do článkov.'
+                : 'Najprv nahraj video do článku (Články → blok Video). Potom sa tu objaví na výber.'}
+            </small>
+            {e.heroVideo ? <small className="field__err">{e.heroVideo}</small> : null}
+          </div>
         </div>
       </section>
       <div>

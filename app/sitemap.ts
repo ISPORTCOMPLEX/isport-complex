@@ -18,5 +18,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } catch {
     /* tabuľka ešte neexistuje */
   }
+  // 360° prehliadka len vtedy, keď sú nahraté panorámy
+  try {
+    if ((await prisma.photo.count({ where: { slot: 'prehliadka' } })) > 0) pages.push({ url: `${base}/prehliadka`, changeFrequency: 'monthly', priority: 0.6 });
+  } catch {
+    /* bez databázy */
+  }
   return [...pages, ...articles.map((a) => ({ url: `${base}/aktuality/${a.slug}`, lastModified: a.updatedAt, changeFrequency: 'monthly' as const, priority: 0.5 }))];
 }

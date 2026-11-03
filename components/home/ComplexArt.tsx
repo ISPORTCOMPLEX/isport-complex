@@ -240,6 +240,7 @@ export function ComplexArt({ sky, front }: { sky: ReactNode; front: ReactNode })
         <text x="62" y="350" className="cxe__tag">HALA 1</text>
 
         <g className="cxv-z cxv-z-ice">
+          <g data-st="2">
           <path d="M150 250.7V266M262 212.5V266M478 192.4V266M590 203.1V266M352 197.3V296M388 194.1V296" stroke="#2C394C" strokeWidth="1.5" />
           <path d="M130 274L170 274L214 520H86Z" fill="url(#cxv-beam)" />
   <path d="M242 274L282 274L326 520H198Z" fill="url(#cxv-beam)" />
@@ -271,6 +272,8 @@ export function ComplexArt({ sky, front }: { sky: ReactNode; front: ReactNode })
               <text x="0" y="45" textAnchor="middle" className="cxv-jersey-num">20</text>
             </g>
           </g>
+          </g>
+          <g data-st="1">
           <rect x="90" y="430" width="560" height="58" fill="url(#cxv-glass)" />
           <path d="M90 430V488M146 430V488M202 430V488M258 430V488M314 430V488M370 430V488M426 430V488M482 430V488M538 430V488M594 430V488M650 430V488" stroke="#BFE3FF" strokeWidth="1.2" opacity=".28" />
           <path d="M90 430H650" stroke="#BFE3FF" strokeWidth="1.5" opacity=".35" />
@@ -278,9 +281,13 @@ export function ComplexArt({ sky, front }: { sky: ReactNode; front: ReactNode })
           <rect x="88" y="487" width="564" height="34" rx="6" fill="#E7EEF4" />
           <rect x="96" y="493" width="60" height="16" rx="2" fill="#E30613" opacity=".95" /><rect x="104" y="499" width="34" height="3" rx="1.5" fill="#FFFFFF" opacity=".8" /><rect x="164" y="493" width="60" height="16" rx="2" fill="#2E6BE6" opacity=".95" /><rect x="172" y="499" width="24" height="3" rx="1.5" fill="#FFFFFF" opacity=".8" /><rect x="232" y="493" width="60" height="16" rx="2" fill="#F4F7FA" opacity=".55" /><rect x="240" y="499" width="34" height="3" rx="1.5" fill="#1B2230" opacity=".8" /><rect x="300" y="493" width="60" height="16" rx="2" fill="#E30613" opacity=".95" /><rect x="308" y="499" width="24" height="3" rx="1.5" fill="#FFFFFF" opacity=".8" /><rect x="368" y="493" width="60" height="16" rx="2" fill="#1B2230" opacity=".95" /><rect x="376" y="499" width="34" height="3" rx="1.5" fill="#FFFFFF" opacity=".8" /><rect x="436" y="493" width="60" height="16" rx="2" fill="#2E6BE6" opacity=".95" /><rect x="444" y="499" width="24" height="3" rx="1.5" fill="#FFFFFF" opacity=".8" /><rect x="504" y="493" width="60" height="16" rx="2" fill="#F4F7FA" opacity=".55" /><rect x="512" y="499" width="34" height="3" rx="1.5" fill="#1B2230" opacity=".8" /><rect x="572" y="493" width="60" height="16" rx="2" fill="#E30613" opacity=".95" /><rect x="580" y="499" width="24" height="3" rx="1.5" fill="#FFFFFF" opacity=".8" />
           <rect x="88" y="513" width="564" height="7" fill="#F2C230" opacity=".9" />
+          </g>
+          <g data-st="0">
           <rect x="70" y="520" width="600" height="14" rx="3" fill="url(#cxv-ice)" />
           <rect x="70" y="534" width="600" height="26" fill="#1A2230" />
           <rect x="300" y="520" width="4" height="14" fill="#2E6BE6" /><rect x="368" y="520" width="5" height="14" fill="#E30613" /><rect x="436" y="520" width="4" height="14" fill="#2E6BE6" />
+          </g>
+          <g data-st="1">
           <g>
             <rect x="104" y="498" width="24" height="22" fill="url(#cxv-net)" />
             <path d="M128 520V498H104V520" stroke="#E30613" strokeWidth="3" fill="none" strokeLinejoin="round" />
@@ -289,12 +296,15 @@ export function ComplexArt({ sky, front }: { sky: ReactNode; front: ReactNode })
             <rect x="612" y="498" width="24" height="22" fill="url(#cxv-net)" />
             <path d="M612 520V498H636V520" stroke="#E30613" strokeWidth="3" fill="none" strokeLinejoin="round" />
           </g>
+          </g>
+          <g data-st="3">
           <Skater x={214} c="#E30613" cls="cxv-ga" />
           <Skater x={318} c="#E30613" cls="cxv-gb" />
           <ellipse cx="356" cy="518" rx="5.5" ry="2.2" fill="#0A0E14" className="cxv-puck" />
           <Skater x={452} c="#2E6BE6" flip cls="cxv-gc" />
           <Skater x={530} c="#2E6BE6" flip cls="cxv-gd" />
           <Goalie x={596} />
+          </g>
         </g>
 
         {/* skybox (poschodie) */}

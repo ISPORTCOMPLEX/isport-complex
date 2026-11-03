@@ -1,7 +1,7 @@
 import 'server-only';
 import { cache } from 'react';
 import { prisma } from './prisma';
-import { cloudName, photoPath, IMG_WIDTHS } from './cloudinary';
+import { cloudName, photoPath, IMG_WIDTHS, PANO_WIDTH } from './cloudinary';
 
 // Miesta na webe, kam sa dajú nahrať fotky.
 export const SLOTS = [
@@ -12,9 +12,12 @@ export const SLOTS = [
   { key: 'ihrisko', label: 'Futbalové ihrisko', where: 'úvod a stránka Ihrisko' },
   { key: 'posilnovna', label: 'Posilňovňa', where: 'úvod a stránka Fitness a wellness' },
   { key: 'wellness', label: 'Wellness', where: 'úvod a stránka Fitness a wellness' },
+  { key: 'prehliadka', label: 'Prehliadka 360°', where: 'stránka Prehliadka 360° (panoramatické fotky v pomere 2:1 z 360° kamery alebo z telefónu – režim Panoráma/Photo Sphere). Kým tu nie je fotka, stránka sa nezobrazuje' },
 ] as const;
 export type SlotKey = (typeof SLOTS)[number]['key'];
 export const isSlot = (v: string): v is SlotKey => SLOTS.some((s) => s.key === v);
+// 360° panorámy majú vlastnú stránku – v galérii fotiek nie sú (roztiahnutá panoráma by tam pôsobila zle)
+export const GALLERY_SLOTS = SLOTS.filter((s) => s.key !== 'prehliadka');
 // Náhradný alternatívny text, kým personál nenapíše vlastný (WCAG 1.1.1 – fotka nesmie byť pre čítačku prázdna).
 export const slotAlt = (slot: string) => `${SLOTS.find((s) => s.key === slot)?.label ?? 'I-SPORT COMPLEX'} – fotka z I-SPORT COMPLEX Košice`;
 
@@ -63,6 +66,7 @@ export const SLOT_PAGE: Record<SlotKey, string> = {
   ihrisko: '/ihrisko',
   posilnovna: '/fitness-wellness',
   wellness: '/fitness-wellness',
+  prehliadka: '/prehliadka',
 };
 
 export type GalleryPhoto = WebPhoto & { slot: SlotKey; label: string; ratio: number };
@@ -70,7 +74,7 @@ export type GalleryPhoto = WebPhoto & { slot: SlotKey; label: string; ratio: num
 // Fotky v pôvodnom tvare (bez orezania) – jednej sekcie alebo všetky, v poradí sekcií a podľa poradia v administrácii.
 export async function galleryPhotos(slot?: SlotKey): Promise<GalleryPhoto[]> {
   const all = await photosBySlot();
-  const keys = slot ? [slot] : SLOTS.map((s) => s.key);
+  const keys = slot ? [slot] : GALLERY_SLOTS.map((s) => s.key);
   const out: GalleryPhoto[] = [];
   for (const key of keys) {
     const label = SLOTS.find((s) => s.key === key)?.label ?? '';
@@ -80,6 +84,19 @@ export async function galleryPhotos(slot?: SlotKey): Promise<GalleryPhoto[]> {
     }
   }
   return out;
+}
+
+// 360° panorámy: veľká fotka na guľu (4000 px) a náhľad 2:1 do výberu scén
+export type Pano = { id: string; title: string; src: string; thumb: string };
+export async function panoramas(): Promise<Pano[]> {
+  const all = await photosBySlot().catch(() => ({}) as Record<string, never[]>);
+  if (!cloudName()) return [];
+  return (all.prehliadka ?? []).map((p, i) => ({
+    id: p.id,
+    title: p.alt && !p.alt.endsWith('– fotka z I-SPORT COMPLEX Košice') ? p.alt : `Pohľad ${i + 1}`,
+    src: photoPath(p.publicId, p.version, PANO_WIDTH, undefined, 'jpg'),
+    thumb: photoPath(p.publicId, p.version, 480, '2:1', 'webp'),
+  }));
 }
 
 export async function photoCounts(): Promise<Record<SlotKey, number>> {

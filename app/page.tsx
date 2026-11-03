@@ -10,7 +10,10 @@ import { dayAvailability } from '@/lib/booking/availability';
 import { iceToday } from '@/lib/booking/iceToday';
 import { photosBySlot, toWebPhoto, type WebPhoto } from '@/lib/media';
 import { homeArticles } from '@/lib/articles/queries';
+import { LiveIce, WeekMap } from '@/components/home/LiveIce';
+import { ScrollStory } from '@/components/home/ScrollStory';
 import { kosiceWeather } from '@/lib/weather';
+import { HeroVideo } from '@/components/home/HeroVideo';
 
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
 const pad = (h: number) => `${String(h).padStart(2, '0')}:00`;
@@ -34,8 +37,18 @@ export default async function HomePage() {
     kosiceWeather(),
   ]);
   const renderedAt = Date.now();
-  const days = nextDays(5);
-  const avail = await Promise.all(days.map((d) => dayAvailability(settings, d.iso)));
+  // aktuálna hodina v Košiciach (pre „Práve teraz“)
+  const nowHour = Number(new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Europe/Bratislava' }).format(renderedAt)) % 24;
+  const week = nextDays(7);
+  const weekAvail = await Promise.all(week.map((d) => dayAvailability(settings, d.iso).catch(() => [])));
+  const days = week.slice(0, 5);
+  const avail = weekAvail.slice(0, 5);
+  const weekDays = week.map((d, i) => ({
+    iso: d.iso,
+    name: i === 0 ? 'Dnes' : longDayLabel(d.iso).split(' ')[0].replace(/^./, (c: string) => c.toUpperCase()),
+    date: d.label.replace(/^\S+\s/, ''),
+    slots: weekAvail[i].map((x) => ({ hour: x.hour, free: x.free, bookable: x.bookable, price: x.price })),
+  }));
   const qbDays = days.map((d, i) => ({
     ...d,
     long: longDayLabel(d.iso),
@@ -80,7 +93,8 @@ export default async function HomePage() {
   return (
     <>
       {/* HERO – textúra ľadu, „Tvoj ľad. Tvoj čas.“ a tabuľa „Ľad dnes“ */}
-      <section className="hx2">
+      <section className={`hx2${site.heroVideo ? ' hx2--video' : ''}`}>
+        {site.heroVideo ? <HeroVideo src={site.heroVideo} poster={site.heroVideo.replace(/\.mp4$/, '.jpg')} /> : null}
         <span className="hx2__shade" aria-hidden="true" />
         <span className="wide-display hx2__word" aria-hidden="true">
           Košice
@@ -94,7 +108,7 @@ export default async function HomePage() {
             </h1>
             <p className="hx2__lead">Tréningová hala v Košiciach na Juhu. Celá ľadová plocha pre kluby, školy, firmy aj partie – vyber hodinu online a potvrdenie s QR kódom máš hneď v telefóne.</p>
             <div className="hx2__btns">
-              <Link href="/rezervacia" className="sbtn">
+              <Link href="/rezervacia" className="sbtn" data-magnet="">
                 Rezervovať ľad
                 <Arrow />
               </Link>
@@ -157,6 +171,8 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <LiveIce slots={weekDays[0]?.slots ?? []} hour={nowHour} iso={week[0].iso} openHour={settings.openHour} closeHour={settings.closeHour} />
+
       {/* NOVINKY – vždy prvé */}
       <NewsSection items={news} />
 
@@ -166,6 +182,8 @@ export default async function HomePage() {
           <QuickBook days={qbDays} showersEnabled={settings.showersEnabled} showerPrice={settings.showerPrice} />
         </div>
       </section>
+
+      <WeekMap days={weekDays} />
 
       {/* PÁS ČÍSEL */}
       <section className="stats" aria-label="Ľad v číslach">
@@ -191,6 +209,8 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <ScrollStory now={renderedAt} weather={weather} />
+
       {/* KOMPLEX – interaktívny rez: klik priblíži časť a ukáže fotky */}
       <section id="komplex" className="wrap cx2" aria-labelledby="cx2-t">
         <div className="sec-head">
@@ -204,6 +224,12 @@ export default async function HomePage() {
           <p className="sec-head__p">V hale 1 ľad, skyboxy a bufet, medzi halami ihrisko, v hale 2 posilňovňa a wellness. Klikni na miesto a pozri sa dnu.</p>
         </div>
         <ComplexExplorer zones={zones} now={renderedAt} weather={weather} />
+        {(photoMap.prehliadka ?? []).length ? (
+          <Link href="/prehliadka" className="cx2__tour">
+            Prehliadka 360° – rozhliadni sa po hale
+            <Arrow size={16} />
+          </Link>
+        ) : null}
       </section>
 
       {/* PRE KOHO */}

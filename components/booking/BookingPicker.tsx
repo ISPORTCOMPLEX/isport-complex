@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useMemo, useRef, useState } from 'react';
 import { Dyn } from '@/components/Dyn';
 import { Icon } from '@/components/Icon';
@@ -169,6 +170,24 @@ function Timeline({ slots, ok, start, hours, peakFrom, maxHours, onPick, onRange
 // Výber termínu: celá ľadová plocha (šatňa v cene) + voliteľne sprchy. Dostupnosť aj cenu na konci znova overí server.
 export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, isToday, dayLong, dayLongYear, slots, initialHour, initialShowers, maxHours, showersEnabled, showerPrice, cancelFreeHours, presun = null }: Props) {
   const ok = (s: Slot | undefined) => Boolean(s && s.free && s.bookable);
+  const router = useRouter();
+  // jemná vibrácia pri výbere (Android; iPhone vibráciu z webu nepodporuje)
+  const buzz = () => {
+    try {
+      navigator.vibrate?.(12);
+    } catch {
+      /* nepodporované */
+    }
+  };
+  // potiahnutie prstom po dňoch: doľava ďalší deň, doprava predchádzajúci
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+  const goDay = (dir: 1 | -1) => {
+    const i = week.findIndex((d) => d.iso === iso);
+    const target = week[i + dir];
+    if (target) router.push(dayHref(target.iso), { scroll: false });
+    else if (dir === 1 && nextWeek) router.push(nextWeek, { scroll: false });
+    else if (dir === -1 && prevWeek) router.push(prevWeek, { scroll: false });
+  };
   const byHour = useMemo(() => new Map(slots.map((s) => [s.hour, s])), [slots]);
   const [start, setStart] = useState<number | null>(initialHour !== null && ok(byHour.get(initialHour)) ? initialHour : null);
   const [count, setCount] = useState(1);
@@ -282,7 +301,22 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
               </details>
             </div>
           </div>
-          <nav className="rz2__days" aria-label="Deň">
+          <nav
+            className="rz2__days"
+            aria-label="Deň"
+            onTouchStart={(e) => {
+              const t = e.touches[0];
+              swipe.current = t ? { x: t.clientX, y: t.clientY } : null;
+            }}
+            onTouchEnd={(e) => {
+              const t = e.changedTouches[0];
+              const s0 = swipe.current;
+              swipe.current = null;
+              if (!s0 || !t) return;
+              const dx = t.clientX - s0.x;
+              if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(t.clientY - s0.y) * 1.5) goDay(dx < 0 ? 1 : -1);
+            }}
+          >
             {week.map((d) => (
               <Link key={d.iso} href={dayHref(d.iso)} className="rz2__day" aria-current={d.iso === iso ? 'date' : undefined} aria-label={`${d.label}, ${d.free} ${freeWord(d.free)}`} scroll={false}>
                 <small>{d.short}</small>
@@ -294,6 +328,10 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
               </Link>
             ))}
           </nav>
+          <p className="rz2__swipe" aria-hidden="true">
+            <i />
+            Potiahni prstom pre ďalší deň
+          </p>
         </section>
 
         {/* 02 ČAS */}
@@ -335,6 +373,7 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
             peakFrom={peakFrom}
             maxHours={maxHours}
             onPick={(h) => {
+              buzz();
               setStart(h);
               setCount((c) => Math.min(c, Math.max(runFrom(h), 1)));
             }}
@@ -371,6 +410,7 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
                   aria-pressed={sel}
                   aria-label={`${pad(s.hour)}, ${eur(s.price)}`}
                   onClick={() => {
+                    buzz();
                     setStart(s.hour);
                     setCount((c) => Math.min(c, Math.max(runFrom(s.hour), 1)));
                   }}

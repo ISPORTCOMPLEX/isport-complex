@@ -7,6 +7,7 @@ import type { WebPhoto } from '@/lib/media';
 import { ComplexArt } from '@/components/home/ComplexArt';
 import { ComplexSky } from '@/components/home/ComplexSky';
 import { ComplexWeather } from '@/components/home/ComplexWeather';
+import { Areal3D, supports3D } from '@/components/home/Areal3D';
 import { CLEAR, moonPhaseName, scene, weatherLabel, type Weather } from '@/lib/sky';
 
 // Interaktívny areál: hala 1 (ľad, skyboxy, bufet), ihrisko medzi halami, hala 2 (posilňovňa, wellness).
@@ -70,9 +71,36 @@ export function ComplexExplorer({ zones, now: initialNow, weather = CLEAR }: { z
   const back = useRef<HTMLButtonElement | null>(null);
   const opener = useRef<HTMLElement | null>(null);
   const info = zones.find((z) => z.zone === open) ?? null;
+  // 3D režim: zapne sa len tam, kde to zariadenie zvládne; voľba sa pamätá v prehliadači
+  const [can3d, setCan3d] = useState(false);
+  const [mode, setMode] = useState<'2d' | '3d'>('2d');
+  const [live3d, setLive3d] = useState(false);
+  useEffect(() => {
+    if (!supports3D()) return;
+    setCan3d(true);
+    let saved: string | null = null;
+    try {
+      saved = window.localStorage.getItem('areal-mode');
+    } catch {}
+    setMode(saved === '2d' ? '2d' : '3d');
+  }, []);
+  const pickMode = (m: '2d' | '3d') => {
+    setMode(m);
+    try {
+      window.localStorage.setItem('areal-mode', m);
+    } catch {}
+  };
+  const is3d = can3d && mode === '3d';
 
+  const is3dRef = useRef(false);
+  is3dRef.current = is3d;
   const fly = useCallback((to: VB) => {
     cancelAnimationFrame(raf.current);
+    if (is3dRef.current) {
+      cur.current = to;
+      setVb(to);
+      return;
+    }
     const from = { ...cur.current };
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       cur.current = to;
@@ -133,9 +161,34 @@ export function ComplexExplorer({ zones, now: initialNow, weather = CLEAR }: { z
   };
 
   return (
-    <div className={`cxe${open ? ' is-zoomed' : ''}`}>
+    <div className={`cxe${open ? ' is-zoomed' : ''}${is3d ? ' is-3d' : ''}${is3d && live3d ? ' is-3d-live' : ''}`}>
+      {can3d ? (
+        <div className="cxe__mode" role="group" aria-label="Zobrazenie areálu">
+          <button type="button" aria-pressed={mode === '3d'} onClick={() => pickMode('3d')}>
+            3D
+          </button>
+          <button type="button" aria-pressed={mode === '2d'} onClick={() => pickMode('2d')}>
+            Ilustrácia
+          </button>
+        </div>
+      ) : null}
       <div className="cxe__stage">
         <div className={`cx__art cxe__art ph-${sky.phase}${sky.lights ? ' lights-on' : ''}${active ? ` is-${active}` : ''}`}>
+          {is3d ? (
+            <Areal3D
+              sky={sky}
+              weather={weather}
+              labels={zones.map((z) => ({ zone: z.zone, name: z.name }))}
+              open={open}
+              active={active}
+              onPick={(z) => (z ? zoomTo(z, null) : zoomOut())}
+              onHover={(z) => !touch.current && setHover(z)}
+              onReady={(ok) => {
+                setLive3d(ok);
+                if (!ok) setCan3d(false);
+              }}
+            />
+          ) : null}
           <svg
             viewBox={`${vb.x.toFixed(1)} ${vb.y.toFixed(1)} ${vb.w.toFixed(1)} ${vb.h.toFixed(1)}`}
             role="img"
@@ -194,7 +247,7 @@ export function ComplexExplorer({ zones, now: initialNow, weather = CLEAR }: { z
             </p>
           ) : null}
           <p className="cxe__hint" aria-hidden="true">
-            <span className="cxe__hint-m">Klikni na miesto v areáli – priblížime ho a ukážeme fotky</span>
+            <span className="cxe__hint-m">{is3d && live3d ? 'Ťahaním areál otočíš, klikni na miesto – priblížime ho a ukážeme fotky' : 'Klikni na miesto v areáli – priblížime ho a ukážeme fotky'}</span>
             <span className="cxe__hint-t">Ťukni na miesto v areáli</span>
           </p>
         </div>
