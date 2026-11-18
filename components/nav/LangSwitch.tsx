@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { LOCALES, LOCALE_NAMES, type Locale } from '@/lib/i18n/config';
+import { LOCALE_NAMES, type Locale } from '@/lib/i18n/config';
 import { useT } from '@/lib/i18n/client';
 
 // Odkaz na zmenu jazyka: ?lang=xx – proxy.ts uloží voľbu do cookie a vráti návštevníka na tú istú stránku.
@@ -18,7 +18,7 @@ function Globe() {
 }
 
 // Hlavička: tlačidlo „🌐 SK ▾“ a rozbaľovací zoznam jazykov.
-export function LangSwitch({ locale }: { locale: Locale }) {
+export function LangSwitch({ locale, locales }: { locale: Locale; locales: readonly Locale[] }) {
   const t = useT();
   const ref = useRef<HTMLDetailsElement | null>(null);
   useEffect(() => {
@@ -51,7 +51,7 @@ export function LangSwitch({ locale }: { locale: Locale }) {
       <div className="lsw__menu">
         <span className="lsw__head">{t('Jazyk webu')}</span>
         <ul>
-          {LOCALES.map((l) => (
+          {locales.map((l) => (
             <li key={l}>
               <a href={href(l)} hrefLang={l} lang={l} className="lsw__it" aria-current={l === locale ? 'true' : undefined} rel="nofollow">
                 <span className="lsw__code">{l.toUpperCase()}</span>
@@ -71,11 +71,11 @@ export function LangSwitch({ locale }: { locale: Locale }) {
 }
 
 // Mobilné menu a päta: mriežka jazykov (kódy), aktívny zvýraznený.
-export function LangGrid({ locale, className = '' }: { locale: Locale; className?: string }) {
+export function LangGrid({ locale, locales, className = '' }: { locale: Locale; locales: readonly Locale[]; className?: string }) {
   const t = useT();
   return (
     <nav className={`lsg ${className}`} aria-label={t('Jazyk webu')}>
-      {LOCALES.map((l) => (
+      {locales.map((l) => (
         <a key={l} href={href(l)} hrefLang={l} lang={l} className="lsg__it" aria-current={l === locale ? 'true' : undefined} title={LOCALE_NAMES[l]} rel="nofollow">
           <b>{l.toUpperCase()}</b>
           <span>{LOCALE_NAMES[l]}</span>

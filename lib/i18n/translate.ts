@@ -10,7 +10,7 @@ import { DEFAULT_LOCALE, INTL_LOCALE, type Locale } from './config';
 // Preklad množného čísla obsahuje tvary jazyka oddelené „|“ v poradí z PLURAL_ORDER.
 
 export type Dict = Record<string, string>;
-export type Vars = Record<string, string | number>;
+export type Vars = Record<string, string | number | null | undefined>;
 
 export type T = {
   (text: string, vars?: Vars): string;
@@ -30,7 +30,7 @@ export const PLURAL_ORDER: Record<Locale, string[]> = {
   hu: ['one', 'other'],
 };
 
-const fill = (s: string, vars?: Vars) => (vars ? s.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k]) : m)) : s);
+const fill = (s: string, vars?: Vars) => (vars ? s.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k] ?? '') : m)) : s);
 
 // Značka pre texty, ktoré sa prekladajú až neskôr (napr. zoznamy kategórií v konštantách).
 // Nič nemení – len ich nástroj na kontrolu prekladov nájde v kóde.

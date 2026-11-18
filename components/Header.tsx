@@ -10,7 +10,7 @@ import { getSite } from '@/lib/siteSettings';
 import { iceToday } from '@/lib/booking/iceToday';
 import { photosBySlot, toWebPhoto } from '@/lib/media';
 import { isStaff } from '@/lib/staff';
-import { getLocale } from '@/lib/i18n/server';
+import { ACTIVE_LOCALES, getLocale } from '@/lib/i18n/server';
 import { LangSwitch } from './nav/LangSwitch';
 import { getT } from '@/lib/i18n/server';
 
@@ -46,7 +46,7 @@ export async function Header() {
           </Link>
           <MegaNav ice={ice} photos={photos} />
           <div className="hd__actions">
-            <LangSwitch locale={locale} />
+            {ACTIVE_LOCALES.length > 1 ? <LangSwitch locale={locale} locales={ACTIVE_LOCALES} /> : null}
             {staff ? (
               <Link href="/admin" className="hd__link">
                 {t('Administrácia')}
@@ -64,7 +64,7 @@ export async function Header() {
                 <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" fill="none" stroke="currentColor" strokeWidth="2" />
               </svg>
             </Link>
-            <MobileNav locale={locale} loggedIn={Boolean(user)} staff={staff} address={`${site.hall.street} · ${site.hall.city.replace(/^\d{3}\s?\d{2}\s*/, '')}`} />
+            <MobileNav locale={locale} locales={ACTIVE_LOCALES} loggedIn={Boolean(user)} staff={staff} address={`${site.hall.street} · ${site.hall.city.replace(/^\d{3}\s?\d{2}\s*/, '')}`} />
           </div>
         </div>
       </header>

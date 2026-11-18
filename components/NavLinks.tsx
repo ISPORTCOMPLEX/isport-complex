@@ -67,7 +67,7 @@ const inSection = (path: string, list: string[]) => list.some((p) => path === p 
 
 // Mobilné menu na <details> – funguje aj bez JavaScriptu. Po zmene stránky sa zavrie (key).
 // Escape menu zavrie a vráti fokus na tlačidlo (WCAG 2.1.2, 2.4.3).
-export function MobileNav({ locale, loggedIn = false, staff = false, address = '' }: { locale: Locale; loggedIn?: boolean; staff?: boolean; address?: string }) {
+export function MobileNav({ locale, locales, loggedIn = false, staff = false, address = '' }: { locale: Locale; locales: readonly Locale[]; loggedIn?: boolean; staff?: boolean; address?: string }) {
   const t = useT();
   const pathname = usePathname() ?? '/';
   const ref = useRef<HTMLDetailsElement | null>(null);
@@ -131,8 +131,12 @@ export function MobileNav({ locale, loggedIn = false, staff = false, address = '
           <Link href={loggedIn ? '/ucet' : '/prihlasenie'} className="sbtn sbtn--ghost sbtn--block sbtn--sm">
             {loggedIn ? t('Môj účet') : t('Prihlásiť sa')}
           </Link>
-          <p className="mnav__lang-t">{t('Jazyk webu')}</p>
-          <LangGrid locale={locale} className="mnav__lang" />
+          {locales.length > 1 ? (
+            <>
+              <p className="mnav__lang-t">{t('Jazyk webu')}</p>
+              <LangGrid locale={locale} locales={locales} className="mnav__lang" />
+            </>
+          ) : null}
           {address ? <span className="mnav__addr">{address}</span> : null}
         </div>
       </div>

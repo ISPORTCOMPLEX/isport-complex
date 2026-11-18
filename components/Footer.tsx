@@ -5,8 +5,8 @@ import { appUrl } from '@/lib/requestInfo';
 import { StoreBadge } from '@/components/StoreBadge';
 import { OpenNow } from '@/components/OpenNow';
 import { mapLinks } from '@/lib/maps';
-import { getLocale } from '@/lib/i18n/server';
-import { LOCALES, LOCALE_NAMES } from '@/lib/i18n/config';
+import { ACTIVE_LOCALES, getLocale } from '@/lib/i18n/server';
+import { LOCALE_NAMES } from '@/lib/i18n/config';
 import { getT } from '@/lib/i18n/server';
 import { msg } from '@/lib/i18n/translate';
 
@@ -212,13 +212,15 @@ export async function Footer() {
             <Link href="/ochrana-osobnych-udajov">{tr('Ochrana osobných údajov')}</Link>
             <Link href="/vyhlasenie-o-pristupnosti">{tr('Prístupnosť')}</Link>
           </span>
+{ACTIVE_LOCALES.length > 1 ? (
           <nav className="ft2__lang" aria-label={tr('Jazyk webu')}>
-            {LOCALES.map((l) => (
+            {ACTIVE_LOCALES.map((l) => (
               <a key={l} href={`?lang=${l}`} hrefLang={l} lang={l} rel="nofollow" aria-current={l === locale ? 'true' : undefined}>
                 {LOCALE_NAMES[l]}
               </a>
             ))}
           </nav>
+          ) : null}
         </div>
       </div>
     </footer>

@@ -1,16 +1,21 @@
 import 'server-only';
 import { cache } from 'react';
 import { cookies, headers } from 'next/headers';
-import { DEFAULT_LOCALE, isLocale, LOCALE_COOKIE, localeFromAcceptLanguage, type Locale } from './config';
+import { DEFAULT_LOCALE, isLocale, LOCALE_COOKIE, LOCALES, localeFromAcceptLanguage, type Locale } from './config';
 import { DICTS } from './dicts';
 import { makeT, type T } from './translate';
 import { CLIENT_KEYS } from './clientKeys';
 
+// Jazyky, ktoré majú hotový preklad (slovenčina vždy). Kým preklad chýba, jazyk sa v prepínači neukáže.
+export const ACTIVE_LOCALES: Locale[] = LOCALES.filter((l) => l === DEFAULT_LOCALE || Object.keys(DICTS[l]).length > 0);
+const active = (l: Locale | null | undefined): l is Locale => !!l && ACTIVE_LOCALES.includes(l);
+
 // Jazyk návštevníka: zvolený v prepínači (cookie) → jazyk prehliadača → slovenčina.
 export const getLocale = cache(async (): Promise<Locale> => {
   const chosen = (await cookies()).get(LOCALE_COOKIE)?.value;
-  if (isLocale(chosen)) return chosen;
-  return localeFromAcceptLanguage((await headers()).get('accept-language'));
+  if (isLocale(chosen) && active(chosen)) return chosen;
+  const browser = localeFromAcceptLanguage((await headers()).get('accept-language'));
+  return active(browser) ? browser : DEFAULT_LOCALE;
 });
 
 export const getT = cache(async (): Promise<T> => {
