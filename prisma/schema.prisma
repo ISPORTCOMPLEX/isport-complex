@@ -491,6 +491,7 @@ model LeagueTeam {
   homeGames    LeagueGame[]   @relation("LeagueHome")
   awayGames    LeagueGame[]   @relation("LeagueAway")
   goals        LeagueGoal[]
+  reports      LeagueReport[]
 
   @@index([status])
 }
@@ -525,6 +526,9 @@ model LeagueGame {
   awayShots    Int?
   homeGoalieId String?
   awayGoalieId String?
+  homeLineup   Json? // id hráčov, ktorí nastúpili (zo zápisu tímu)
+  awayLineup   Json?
+  confirmedBy  String        @default("") // "teams" = oba tímy zapísali rovnaký výsledok, "admin" = zapísal správca
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   home         LeagueTeam    @relation("LeagueHome", fields: [homeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
@@ -532,6 +536,7 @@ model LeagueGame {
   homeGoalie   LeaguePlayer? @relation("LeagueHomeGoalie", fields: [homeGoalieId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   awayGoalie   LeaguePlayer? @relation("LeagueAwayGoalie", fields: [awayGoalieId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   goals        LeagueGoal[]
+  reports      LeagueReport[]
 
   @@index([startsAt])
 }
@@ -554,4 +559,26 @@ model LeagueGoal {
   assist2   LeaguePlayer? @relation("LeagueAssist2", fields: [assist2Id], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([gameId])
+}
+
+// Zápis výsledku od vedúceho tímu. Výsledok sa zapíše do zápasu, až keď oba tímy zapíšu rovnaké skóre.
+// Každý tím zapisuje celé skóre zápasu (domáci : hostia) a k tomu svojich strelcov, súpisku, brankára a strely.
+model LeagueReport {
+  id        String     @id @default(cuid())
+  gameId    String
+  teamId    String
+  userId    String
+  homeScore Int
+  awayScore Int
+  decision  String     @default("REG")
+  shots     Int?
+  goalieId  String?
+  lineup    Json // id hráčov, ktorí nastúpili
+  goals     Json // [{ scorerId, assist1Id, assist2Id, period, time, kind }] – len góly vlastného tímu
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  game      LeagueGame @relation(fields: [gameId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  team      LeagueTeam @relation(fields: [teamId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([gameId, teamId])
 }

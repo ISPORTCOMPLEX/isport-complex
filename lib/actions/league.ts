@@ -4,14 +4,16 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { hitLimit } from '@/lib/rateLimit';
-import { getRequestInfo } from '@/lib/requestInfo';
+import { getBaseUrl, getRequestInfo } from '@/lib/requestInfo';
 import { getSessionUser } from '@/lib/session';
 import { requireStaff } from '@/lib/staff';
 import { ensureLeagueTables } from '@/lib/league/db';
 import { safeColor } from '@/lib/league/calc';
 import { hallTime } from '@/lib/booking/time';
 import { isEmail, isPhone, normalizeEmail, normalizePhone, str, checked } from '@/lib/validate';
-import { getT } from '@/lib/i18n/server';
+import { getT, MAIL_SK_EN } from '@/lib/i18n/server';
+import { checkReport, compareReports, readGoals, readIds, type ReportInput } from '@/lib/league/report';
+import { sendLeagueResultEmail } from '@/lib/email';
 
 export type TeamFormState = { error?: string; errors?: Record<string, string>; done?: boolean };
 
@@ -232,6 +234,7 @@ export async function updateGameAction(form: FormData): Promise<void> {
       awayShots: intOrNull(str(form, 'awayShots', 3)),
       homeGoalieId: await goalie(str(form, 'homeGoalieId', 40), g.homeId),
       awayGoalieId: await goalie(str(form, 'awayGoalieId', 40), g.awayId),
+      confirmedBy: final ? 'admin' : '',
     },
   });
   await audit(me.id, 'league.game.update', id, { homeScore, awayScore, final });
@@ -280,4 +283,106 @@ export async function deleteGoalAction(form: FormData): Promise<void> {
   await audit(me.id, 'league.goal.delete', goal.gameId);
   refresh();
   redirect(`/admin/sutaz/zapas/${goal.gameId}#goly`);
+}
+
+// ───────── Zápis výsledku vedúcim tímu ─────────
+// Každý tím zapíše skóre zápasu, svojich strelcov, súpisku a brankára. Keď sa skóre oboch zápisov zhoduje,
+// výsledok sa sám zapíše do súťaže. Pri nezhode dostanú vedúci oboch tímov e-mail.
+export type ReportState = { error?: string; errors?: string[]; done?: 'waiting' | 'confirmed' | 'mismatch' | 'swapped'; at?: number };
+
+export async function submitReportAction(_prev: ReportState, form: FormData): Promise<ReportState> {
+  const t = await getT();
+  const user = await getSessionUser();
+  if (!user) return { error: t('Prihlás sa, prosím.') };
+  await ensureLeagueTables();
+  const gameId = str(form, 'gameId', 40);
+  const teamId = str(form, 'teamId', 40);
+  if (!isId(gameId) || !isId(teamId)) return { error: t('Neplatná požiadavka.') };
+  const limit = await hitLimit(`league:report:${user.id}`, 40, 60 * 60);
+  if (!limit.ok) return { error: t('Priveľa pokusov. Skús to o chvíľu.') };
+
+  const team = await prisma.leagueTeam.findFirst({ where: { id: teamId, userId: user.id, status: 'APPROVED' }, include: { players: { select: { id: true } } } });
+  if (!team) return { error: t('Výsledok môže zapísať len vedúci tímu.') };
+  const game = await prisma.leagueGame.findUnique({ where: { id: gameId }, include: { home: true, away: true } });
+  if (!game || (game.homeId !== teamId && game.awayId !== teamId)) return { error: t('Zápas sa nenašiel.') };
+  if (game.status === 'FINAL') return { error: t('Výsledok tohto zápasu je už zapísaný. Ak je v ňom chyba, napíš správcovi súťaže.') };
+  if (game.startsAt.getTime() > Date.now()) return { error: t('Výsledok sa dá zapísať až po začiatku zápasu.') };
+
+  const num = (k: string) => (str(form, k, 3) === '' ? NaN : Number(str(form, k, 3)));
+  let goalsRaw: unknown = [];
+  try {
+    goalsRaw = JSON.parse(String(form.get('goals') ?? '[]').slice(0, 20000));
+  } catch {
+    goalsRaw = [];
+  }
+  const input: ReportInput = {
+    homeScore: num('homeScore'),
+    awayScore: num('awayScore'),
+    decision: str(form, 'decision', 3),
+    shots: str(form, 'shots', 3) === '' ? null : num('shots'),
+    goalieId: isId(str(form, 'goalieId', 40)) ? str(form, 'goalieId', 40) : null,
+    lineup: [...new Set(form.getAll('lineup').map(String).filter(isId))].slice(0, 40),
+    goals: readGoals(goalsRaw).slice(0, 40),
+  };
+  const side = game.homeId === teamId ? 'home' : 'away';
+  const errors = checkReport(input, side, team.players.map((p) => p.id));
+  if (errors.length) return { error: t('Zápis má chyby – oprav ich a odošli znova.'), errors: errors.map((e) => t(e)) };
+
+  const data = { userId: user.id, homeScore: input.homeScore, awayScore: input.awayScore, decision: input.decision, shots: input.shots, goalieId: input.goalieId, lineup: input.lineup, goals: input.goals };
+  await prisma.leagueReport.upsert({ where: { gameId_teamId: { gameId, teamId } }, create: { gameId, teamId, ...data }, update: data });
+  const otherId = side === 'home' ? game.awayId : game.homeId;
+  const other = await prisma.leagueReport.findUnique({ where: { gameId_teamId: { gameId, teamId: otherId } } });
+  revalidatePath('/sutaz/moj-tim', 'layout');
+  if (!other) return { done: 'waiting', at: Date.now() };
+
+  const cmp = compareReports(input, other);
+  const base = await getBaseUrl();
+  const matchName = `${game.home.name} – ${game.away.name}`;
+  const recipients = [game.home, game.away].filter((x) => x.contactEmail);
+  const rowsFor = (homeScore: number, awayScore: number) => (tt: typeof t) => [
+    { label: tt('Zápas'), value: matchName },
+    { label: tt('Skóre'), value: `${homeScore} : ${awayScore}` },
+  ];
+
+  if (cmp !== 'match') {
+    for (const r of recipients)
+      await sendLeagueResultEmail(MAIL_SK_EN(), r.contactEmail, r.contactName, `${base}/sutaz/moj-tim/zapas/${gameId}?tim=${r.id}`, cmp, matchName, (tt) => [
+        { label: tt('Zápas'), value: matchName },
+        { label: tt('Zápis domácich'), value: `${(side === 'home' ? input : other).homeScore} : ${(side === 'home' ? input : other).awayScore}` },
+        { label: tt('Zápis hostí'), value: `${(side === 'away' ? input : other).homeScore} : ${(side === 'away' ? input : other).awayScore}` },
+      ]).catch(() => undefined);
+    return { done: cmp, at: Date.now() };
+  }
+
+  // zhoda → výsledok sa zapíše aj so strelcami oboch tímov, súpiskami, brankármi a strelami
+  const home = side === 'home' ? input : { ...other, lineup: readIds(other.lineup), goals: readGoals(other.goals) };
+  const away = side === 'away' ? input : { ...other, lineup: readIds(other.lineup), goals: readGoals(other.goals) };
+  const goalRows = [
+    ...home.goals.map((g) => ({ ...g, teamId: game.homeId })),
+    ...away.goals.map((g) => ({ ...g, teamId: game.awayId })),
+  ];
+  await prisma.$transaction([
+    prisma.leagueGoal.deleteMany({ where: { gameId } }),
+    prisma.leagueGame.update({
+      where: { id: gameId },
+      data: {
+        status: 'FINAL',
+        confirmedBy: 'teams',
+        homeScore: input.homeScore,
+        awayScore: input.awayScore,
+        decision: input.decision,
+        homeShots: home.shots,
+        awayShots: away.shots,
+        homeGoalieId: home.goalieId,
+        awayGoalieId: away.goalieId,
+        homeLineup: home.lineup,
+        awayLineup: away.lineup,
+      },
+    }),
+    ...goalRows.map((g) => prisma.leagueGoal.create({ data: { gameId, teamId: g.teamId, scorerId: g.scorerId, assist1Id: g.assist1Id, assist2Id: g.assist2Id, period: g.period, time: g.time, kind: g.kind } })),
+  ]);
+  await audit(user.id, 'league.game.confirmed', gameId, { homeScore: input.homeScore, awayScore: input.awayScore });
+  revalidatePath('/sutaz', 'layout');
+  for (const r of recipients) await sendLeagueResultEmail(MAIL_SK_EN(), r.contactEmail, r.contactName, `${base}/sutaz/vysledky`, 'ok', matchName, rowsFor(input.homeScore, input.awayScore)).catch(() => undefined);
+  return { done: 'confirmed', at: Date.now() };
 }

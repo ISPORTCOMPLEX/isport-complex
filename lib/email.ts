@@ -234,3 +234,21 @@ export async function sendSecurityNoticeEmail(lang: MailLang, to: string, firstN
     outro: t('Ak si to nebol ty, okamžite si obnov heslo a kontaktuj nás.'),
   }));
 }
+
+// Súťaž tímov: výsledok zápasu potvrdený oboma tímami / zápisy sa nezhodujú.
+export async function sendLeagueResultEmail(lang: MailLang, to: string, name: string, url: string, kind: 'ok' | 'mismatch' | 'swapped', match: string, rows: Rows) {
+  await send(to, lang, (t) => ({
+    subject: kind === 'ok' ? t('Výsledok potvrdený: {match}', { match }) : t('Výsledok sa nezhoduje: {match}', { match }),
+    title: kind === 'ok' ? t('Výsledok je zapísaný') : t('Výsledok sa nezhoduje'),
+    intro:
+      kind === 'ok'
+        ? t('Ahoj {name}, oba tímy zapísali rovnaký výsledok zápasu, preto sa zapísal do súťaže aj so strelcami a súpiskou.', { name })
+        : kind === 'swapped'
+          ? t('Ahoj {name}, výsledok, ktorý zapísal súper, je opačný ako váš. Vyzerá to, že jeden z tímov prehodil domácich a hostí. Skontrolujte zápis – výsledok sa zapíše, až keď sa budú zhodovať.', { name })
+          : t('Ahoj {name}, výsledok, ktorý zapísal súper, sa nezhoduje s vaším. Skontrolujte zápis (aj to, kto bol domáci a kto hosť) – výsledok sa zapíše, až keď sa budú zhodovať.', { name }),
+    button: kind === 'ok' ? t('Pozrieť výsledok') : t('Skontrolovať zápis'),
+    url,
+    outro: t('Toto je automatická správa zo súťaže tímov I-SPORT COMPLEX.'),
+    rows: rows(t),
+  }));
+}

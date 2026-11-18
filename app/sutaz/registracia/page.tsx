@@ -48,6 +48,9 @@ export default async function RegistraciaPage() {
           {mine.length ? (
             <section className="lgo__box">
               <h2 className="lgreg-side__h">{t('Moje tímy')}</h2>
+              <p className="lg-muted lgreg-side__p">
+                <Link href="/sutaz/moj-tim">{t('Zápasy a zápis výsledkov')} →</Link>
+              </p>
               <ul className="lgreg-mine">
                 {mine.map((x) => (
                   <li key={x.id}>

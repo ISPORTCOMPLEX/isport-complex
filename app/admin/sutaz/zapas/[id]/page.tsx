@@ -8,6 +8,7 @@ import { AdmHead, Chip, Empty, Panel } from '@/components/admin/ui';
 import { TeamBadge } from '@/components/league/ui';
 import { GOAL_KIND } from '@/lib/league/labels';
 import { sortGoals } from '@/lib/league/calc';
+import { compareReports } from '@/lib/league/report';
 import { addGoalAction, deleteGameAction, deleteGoalAction, updateGameAction } from '@/lib/actions/league';
 import { todayIso } from '@/lib/booking/time';
 import { getT } from '@/lib/i18n/server';
@@ -27,7 +28,7 @@ export default async function AdminGamePage({ params, searchParams }: Props) {
   const sp = await searchParams;
   const g = await prisma.leagueGame.findUnique({
     where: { id },
-    include: { home: { include: { players: { orderBy: [{ number: 'asc' }, { name: 'asc' }] } } }, away: { include: { players: { orderBy: [{ number: 'asc' }, { name: 'asc' }] } } }, goals: true },
+    include: { home: { include: { players: { orderBy: [{ number: 'asc' }, { name: 'asc' }] } } }, away: { include: { players: { orderBy: [{ number: 'asc' }, { name: 'asc' }] } } }, goals: true, reports: true },
   });
   if (!g) notFound();
   const all = [...g.home.players, ...g.away.players];
@@ -76,6 +77,45 @@ export default async function AdminGamePage({ params, searchParams }: Props) {
       {g.status === 'FINAL' && goals.length > 0 && (hg !== g.homeScore || ag !== g.awayScore) ? (
         <div className="alert alert--error">{t('Zapísané góly ({hg}:{ag}) nesedia so skóre zápasu ({hs}:{as}).', { hg, ag, hs: g.homeScore ?? 0, as: g.awayScore ?? 0 })}</div>
       ) : null}
+
+      <Panel title={t('Zápisy tímov')}>
+        {g.reports.length === 0 ? (
+          <Empty>{g.status === 'FINAL' ? (g.confirmedBy === 'admin' ? t('Výsledok zapísal správca.') : t('Bez zápisov tímov.')) : t('Tímy zatiaľ výsledok nezapísali. Vedúci tímov ho zapisujú na stránke Môj tím.')}</Empty>
+        ) : (
+          <>
+            <ul className="lg-adm-goals">
+              {[g.home, g.away].map((team) => {
+                const r = g.reports.find((x) => x.teamId === team.id);
+                return (
+                  <li key={team.id}>
+                    <span className="lg-adm-gt">{team.id === g.homeId ? t('Domáci') : t('Hostia')}</span>
+                    <TeamBadge team={team} size="sm" />
+                    <span>
+                      <b>{team.name}</b>{' '}
+                      {r ? (
+                        <small>
+                          {t('zapísal')} {r.homeScore}:{r.awayScore}
+                          {r.decision === 'OT' ? ` ${t('pp')}` : r.decision === 'SO' ? ` ${t('sn')}` : ''}
+                        </small>
+                      ) : (
+                        <small>{t('zatiaľ nezapísal')}</small>
+                      )}
+                    </span>
+                    <span />
+                  </li>
+                );
+              })}
+            </ul>
+            {g.reports.length === 2 ? (
+              compareReports(g.reports[0], g.reports[1]) === 'match' ? (
+                <p className="muted">{t('Zápisy sa zhodujú.')}</p>
+              ) : (
+                <div className="alert alert--error">{t('Zápisy tímov sa nezhodujú – vedúci tímov dostali e-mail. Ak sa nedohodnú, výsledok môžeš zapísať ručne nižšie.')}</div>
+              )
+            ) : null}
+          </>
+        )}
+      </Panel>
 
       <Panel title={t('Výsledok a termín')}>
         <form action={updateGameAction} className="lg-adm-game">

@@ -78,3 +78,34 @@ test('farby tímu', () => {
   assert.equal(inkOn('#ffffff'), '#0b1626');
   assert.equal(inkOn('#0b1626'), '#ffffff');
 });
+
+import { compareReports, checkReport, ownGoalsNeeded } from '../lib/league/report.ts';
+
+test('zápis: zhoda, prehodené strany, nezhoda', () => {
+  assert.equal(compareReports({ homeScore: 3, awayScore: 2, decision: 'REG' }, { homeScore: 3, awayScore: 2, decision: 'REG' }), 'match');
+  assert.equal(compareReports({ homeScore: 3, awayScore: 2, decision: 'REG' }, { homeScore: 2, awayScore: 3, decision: 'REG' }), 'swapped');
+  assert.equal(compareReports({ homeScore: 3, awayScore: 2, decision: 'REG' }, { homeScore: 3, awayScore: 2, decision: 'OT' }), 'mismatch');
+  assert.equal(compareReports({ homeScore: 4, awayScore: 2, decision: 'REG' }, { homeScore: 3, awayScore: 2, decision: 'REG' }), 'mismatch');
+});
+
+test('zápis: kontrola gólov a súpisky', () => {
+  const roster = ['a', 'b', 'c', 'd', 'e', 'f'];
+  const base = { homeScore: 2, awayScore: 1, decision: 'REG', shots: 20, goalieId: 'a', lineup: roster };
+  const g = (scorerId: string, assist1Id: string | null = null, period = 1) => ({ scorerId, assist1Id, assist2Id: null, period, time: '05:00', kind: 'EV' });
+  assert.deepEqual(checkReport({ ...base, goals: [g('b', 'c'), g('d')] }, 'home', roster), []);
+  assert.equal(checkReport({ ...base, goals: [g('b')] }, 'home', roster).length, 1); // chýba gól
+  assert.deepEqual(checkReport({ ...base, goals: [g('b')] }, 'away', roster), []); // hostia dali 1
+  assert.ok(checkReport({ ...base, goals: [g('b', 'b'), g('d')] }, 'home', roster).length); // asistencia = strelec
+  assert.ok(checkReport({ ...base, homeScore: 1, awayScore: 1, goals: [g('b')] }, 'home', roster).length); // remíza
+  assert.ok(checkReport({ ...base, lineup: ['a', 'b'], goals: [g('b'), g('a')] }, 'home', roster).length); // málo hráčov
+  assert.equal(ownGoalsNeeded({ homeScore: 3, awayScore: 2, decision: 'SO' }, 'home'), 2);
+  assert.equal(ownGoalsNeeded({ homeScore: 3, awayScore: 2, decision: 'SO' }, 'away'), 2);
+  assert.deepEqual(checkReport({ ...base, homeScore: 3, awayScore: 2, decision: 'OT', goals: [g('b'), g('c'), g('d', null, 4)] }, 'home', roster), []);
+});
+
+test('odohrané zápasy hráča podľa súpisky', () => {
+  const games = [g('1', 'a', 'b', 2, 0, 'REG', 1, { homeLineup: ['p2'] }), g('2', 'a', 'b', 1, 0, 'REG', 2)];
+  const sk = Object.fromEntries(skaterStats(P, T, games, []).map((r) => [r.player.id, r]));
+  assert.equal(sk.p1.gp, 1); // v prvom zápase nebol na súpiske
+  assert.equal(sk.p2.gp, 2);
+});

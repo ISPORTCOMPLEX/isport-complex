@@ -12,7 +12,7 @@ const TABS = [
   { href: '/sutaz/rozpis', label: 'Rozpis' },
 ];
 
-export function LeagueTabs() {
+export function LeagueTabs({ myTeam = false }: { myTeam?: boolean }) {
   const t = useT();
   const path = usePathname() ?? '/sutaz';
   return (
@@ -24,9 +24,15 @@ export function LeagueTabs() {
           </Link>
         ))}
       </nav>
-      <Link href="/sutaz/registracia" className="lgb__reg" aria-current={path === '/sutaz/registracia' ? 'page' : undefined}>
-        {t('Registrácia tímu')}
-      </Link>
+      {myTeam ? (
+        <Link href="/sutaz/moj-tim" className="lgb__reg" aria-current={path.startsWith('/sutaz/moj-tim') ? 'page' : undefined}>
+          {t('Môj tím')}
+        </Link>
+      ) : (
+        <Link href="/sutaz/registracia" className="lgb__reg" aria-current={path === '/sutaz/registracia' ? 'page' : undefined}>
+          {t('Registrácia tímu')}
+        </Link>
+      )}
     </div>
   );
 }

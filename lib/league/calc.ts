@@ -16,6 +16,8 @@ export type LGame = {
   awayShots: number | null;
   homeGoalieId: string | null;
   awayGoalieId: string | null;
+  homeLineup?: unknown; // id hráčov, ktorí nastúpili (keď ich tím zapísal)
+  awayLineup?: unknown;
 };
 export type LGoal = { id: string; gameId: string; teamId: string; scorerId: string | null; assist1Id: string | null; assist2Id: string | null; period: number; time: string; kind: string; createdAt?: Date };
 
@@ -131,17 +133,23 @@ export function goalLines(goals: LGoal[], games: LGame[]): Map<string, GoalLine[
 
 export type SkaterRow = { player: LPlayer; team: LTeam; gp: number; g: number; a: number; pts: number };
 export function skaterStats(players: LPlayer[], teams: LTeam[], games: LGame[], goals: LGoal[]): SkaterRow[] {
-  const final = new Set(games.filter(isFinal).map((x) => x.id));
-  const gp = new Map<string, number>();
-  for (const x of games.filter(isFinal)) for (const t of [x.homeId, x.awayId]) gp.set(t, (gp.get(t) ?? 0) + 1);
+  const done = games.filter(isFinal);
+  const final = new Set(done.map((x) => x.id));
   const teamOf = new Map(teams.map((t) => [t.id, t]));
   const counted = goals.filter((x) => final.has(x.gameId));
+  // odohrané zápasy hráča: podľa súpisky zápasu, ak ju tím zapísal, inak každý zápas tímu
+  const played = (p: LPlayer) =>
+    done.filter((x) => {
+      if (x.homeId !== p.teamId && x.awayId !== p.teamId) return false;
+      const lineup = x.homeId === p.teamId ? x.homeLineup : x.awayLineup;
+      return Array.isArray(lineup) && lineup.length ? lineup.includes(p.id) : true;
+    }).length;
   return players
     .filter((p) => p.position !== 'G' && teamOf.has(p.teamId))
     .map((p) => {
       const g = counted.filter((x) => x.scorerId === p.id).length;
       const a = counted.filter((x) => x.assist1Id === p.id || x.assist2Id === p.id).length;
-      return { player: p, team: teamOf.get(p.teamId) as LTeam, gp: gp.get(p.teamId) ?? 0, g, a, pts: g + a };
+      return { player: p, team: teamOf.get(p.teamId) as LTeam, gp: played(p), g, a, pts: g + a };
     });
 }
 
