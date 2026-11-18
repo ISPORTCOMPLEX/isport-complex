@@ -3,6 +3,8 @@ import { getSite } from '@/lib/siteSettings';
 import { InquiryForm } from '@/components/InquiryForm';
 import { createFormStamp } from '@/lib/formGuard';
 import { RzBand } from '@/components/booking/RzBand';
+import { AreaArt } from '@/components/home/AreaArt';
+import { Faq } from '@/components/Faq';
 
 export const metadata: Metadata = { title: 'Pre kluby', description: 'Sezónny prenájom ľadu pre hokejové kluby, školy a firmy v I-SPORT COMPLEX Košice.' };
 
@@ -17,6 +19,7 @@ export default async function PreKlubyPage() {
   return (
     <>
       <RzBand
+        art={<AreaArt zone="ice" />}
         crumbs={[{ href: '/', label: 'Komplex' }, { label: 'Pre kluby' }]}
         title={
           <>
@@ -76,6 +79,14 @@ export default async function PreKlubyPage() {
           </div>
         </div>
       </section>
+      <Faq
+        items={[
+          ['Ako rýchlo dostanem ponuku?', 'Najneskôr do 2 pracovných dní ti pošleme ponuku s voľnými časmi a cenou.'],
+          ['Ako sa platí sezónny prenájom?', 'Jednou mesačnou faktúrou na klub, školu alebo firmu, so splatnosťou. Žiadne platby za každú hodinu.'],
+          ['Dajú sa prenajať aj bloky na kemp alebo turnaj?', 'Áno. Do dopytu napíš termíny a rozsah – pripravíme ponuku aj na jednorazové bloky.'],
+          ['Čo je v cene?', 'Celá ľadová plocha, šatne a úprava ľadu pred každým blokom. Rodičia a fanúšikovia môžu sledovať tréning zo skyboxov, bufet je priamo v hale.'],
+        ]}
+      />
     </>
   );
 }

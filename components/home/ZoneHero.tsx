@@ -9,7 +9,8 @@ import { CLEAR, scene, type Weather } from '@/lib/sky';
 import type { Zone } from '@/components/home/ComplexExplorer';
 
 // Hero podstránky: ilustrácia areálu priblížená na danú časť, s rovnakým časom a počasím ako na hlavnej stránke.
-const VIEW: Record<Zone, string> = {
+const VIEW: Record<Zone | 'all', string> = {
+  all: '0 150 1600 430',
   ice: '40 140 860 400',
   sky: '560 290 520 250',
   food: '560 330 520 250',
@@ -18,7 +19,7 @@ const VIEW: Record<Zone, string> = {
   well: '1000 300 620 290',
 };
 
-export function ZoneHero({ zone, now: initialNow, weather = CLEAR }: { zone: Zone; now: number; weather?: Weather }) {
+export function ZoneHero({ zone, now: initialNow, weather = CLEAR, bare = false }: { zone: Zone | 'all'; now: number; weather?: Weather; bare?: boolean }) {
   const [now, setNow] = useState(initialNow);
   useEffect(() => {
     setNow(Date.now());
@@ -28,15 +29,17 @@ export function ZoneHero({ zone, now: initialNow, weather = CLEAR }: { zone: Zon
   const sky = useMemo(() => scene(now, weather), [now, weather]);
   return (
     <>
-      <div className={`cx__art cxe__art band2__art ph-${sky.phase}${sky.lights ? ' lights-on' : ''} is-${zone}`} aria-hidden="true">
+      <div className={`cx__art cxe__art ${bare ? 'zone-art' : 'band2__art'} ph-${sky.phase}${sky.lights ? ' lights-on' : ''} ${zone === 'all' ? '' : ` is-${zone}`}`} aria-hidden="true">
         <svg viewBox={VIEW[zone]} preserveAspectRatio="xMidYMid slice" focusable="false">
           <ComplexArt sky={<ComplexSky s={sky} w={weather} />} front={<ComplexWeather s={sky} w={weather} />} />
         </svg>
       </div>
-      <Link href={`/?areal=${zone}#komplex`} className="band2__where">
-        Ukázať v areáli
-        <span aria-hidden="true">→</span>
-      </Link>
+      {zone === 'all' || bare ? null : (
+        <Link href={`/?areal=${zone}#komplex`} className="band2__where">
+          Ukázať v areáli
+          <span aria-hidden="true">→</span>
+        </Link>
+      )}
     </>
   );
 }

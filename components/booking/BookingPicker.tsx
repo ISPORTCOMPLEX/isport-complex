@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useRef, useState } from 'react';
-import { Dyn } from '@/components/Dyn';
 import { Icon } from '@/components/Icon';
 import { EmptyState, ZamboniArt } from '@/components/EmptyArt';
 import type { DayOption } from '@/lib/dates';
@@ -47,127 +46,6 @@ function Check({ size = 18, color = '#fff' }: { size?: number; color?: string })
 }
 
 
-// Časová os dňa: celý deň na jednom riadku – voľné, obsadené, večerná cena a vybraný úsek.
-// Ťuknutie na voľnú hodinu ju vyberie, okraje výberu sa dajú potiahnuť (myš aj prst).
-// Je to len pohodlnejší ovládač – z klávesnice a pre čítačky slúži mriežka časov pod ňou.
-function Timeline({ slots, ok, start, hours, peakFrom, maxHours, onPick, onRange }: {
-  slots: Slot[];
-  ok: (s: Slot | undefined) => boolean;
-  start: number | null;
-  hours: number;
-  peakFrom: number | null;
-  maxHours: number;
-  onPick: (h: number) => void;
-  onRange: (start: number, count: number) => void;
-}) {
-  const track = useRef<HTMLDivElement | null>(null);
-  const drag = useRef<'l' | 'r' | null>(null);
-  const [tip, setTip] = useState<number | null>(null);
-  const first = slots[0]?.hour ?? 0;
-  const n = slots.length;
-  const byHour = new Map(slots.map((s) => [s.hour, s]));
-  const allFree = (a: number, b: number) => {
-    for (let h = a; h < b; h++) if (!ok(byHour.get(h))) return false;
-    return true;
-  };
-  const hourAt = (x: number) => {
-    const r = track.current?.getBoundingClientRect();
-    if (!r) return null;
-    return first + Math.max(0, Math.min(n - 1, Math.floor(((x - r.left) / r.width) * n)));
-  };
-  const move = (e: React.PointerEvent) => {
-    const h = hourAt(e.clientX);
-    if (h === null) return;
-    if (!drag.current || start === null) {
-      setTip(e.pointerType === 'mouse' ? h : null);
-      return;
-    }
-    const end = start + hours;
-    if (drag.current === 'l') {
-      const s0 = Math.max(end - maxHours, Math.min(h, end - 1));
-      if (allFree(s0, end)) onRange(s0, end - s0);
-    } else {
-      const e0 = Math.min(start + maxHours, Math.max(h + 1, start + 1));
-      if (allFree(start, e0)) onRange(start, e0 - start);
-    }
-  };
-  const peakIdx = peakFrom === null ? -1 : slots.findIndex((s) => s.hour >= peakFrom);
-  const tipSlot = tip === null ? undefined : byHour.get(tip);
-  return (
-    <div className="tl" aria-hidden="true">
-      <div className="tl__scale">
-        {slots.map((s) => (
-          <span key={s.hour}>{String(s.hour).padStart(2, '0')}</span>
-        ))}
-        <span className="tl__last">{String(first + n).padStart(2, '0')}</span>
-      </div>
-      <div
-        ref={track}
-        className="tl__track"
-        onPointerMove={move}
-        onPointerLeave={() => setTip(null)}
-        onPointerUp={() => (drag.current = null)}
-        onPointerCancel={() => (drag.current = null)}
-      >
-        {slots.map((s) => {
-          const free = ok(s);
-          return (
-            <button
-              key={s.hour}
-              type="button"
-              tabIndex={-1}
-              className={`tl__h${free ? '' : s.bookable ? ' is-busy' : ' is-past'}${peakFrom !== null && s.hour >= peakFrom ? ' is-peak' : ''}`}
-              disabled={!free}
-              onClick={() => onPick(s.hour)}
-            />
-          );
-        })}
-        {start !== null ? (
-          <Dyn as="div" className="tl__sel" css={{ 'grid-column': `${start - first + 1} / span ${hours}` }}>
-            <b>
-              {String(start).padStart(2, '0')} – {String(start + hours).padStart(2, '0')}
-            </b>
-            <small>
-              {hours} h · {slots.filter((x) => x.hour >= start && x.hour < start + hours).reduce((a, x) => a + x.price, 0).toLocaleString('sk-SK')} €
-            </small>
-            <span
-              className="tl__grip tl__grip--l"
-              onPointerDown={(e) => {
-                drag.current = 'l';
-                track.current?.setPointerCapture(e.pointerId);
-              }}
-            />
-            <span
-              className="tl__grip tl__grip--r"
-              onPointerDown={(e) => {
-                drag.current = 'r';
-                track.current?.setPointerCapture(e.pointerId);
-              }}
-            />
-          </Dyn>
-        ) : null}
-        {tipSlot && !drag.current ? (
-          <Dyn as="span" className="tl__tip" css={{ left: `${((tipSlot.hour - first + 0.5) / n) * 100}%` }}>
-            <b>{pad(tipSlot.hour)}</b>
-            {ok(tipSlot) ? `voľné · ${eur(tipSlot.price)}` : tipSlot.bookable ? 'obsadené' : 'nedostupné'}
-          </Dyn>
-        ) : null}
-      </div>
-      {peakIdx > 0 && peakIdx < n ? (
-        <Dyn as="div" className="tl__price" css={{ 'grid-template-columns': `${peakIdx}fr ${n - peakIdx}fr` }}>
-          <span>
-            {pad(first)} – {pad(slots[peakIdx].hour)} · {eur(slots[0].price)} / hod
-          </span>
-          <span>
-            od {pad(slots[peakIdx].hour)} · {eur(slots[peakIdx].price)} / hod
-          </span>
-        </Dyn>
-      ) : null}
-    </div>
-  );
-}
-
-// Výber termínu: celá ľadová plocha (šatňa v cene) + voliteľne sprchy. Dostupnosť aj cenu na konci znova overí server.
 export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, isToday, dayLong, dayLongYear, slots, initialHour, initialShowers, maxHours, showersEnabled, showerPrice, cancelFreeHours, presun = null }: Props) {
   const ok = (s: Slot | undefined) => Boolean(s && s.free && s.bookable);
   const router = useRouter();
@@ -233,13 +111,10 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
   return (
     <div className="rz2__grid">
       <div className="rz2__main">
-        {/* 01 DEŇ */}
+        {/* DEŇ */}
         <section className="rz2__step" aria-labelledby="rz-s1">
           <div className="rz2__row">
             <h2 id="rz-s1" className="rz2__h">
-              <span className="wide-display rz2__n" aria-hidden="true">
-                01
-              </span>
               <span className="disp">Deň</span>
             </h2>
             <div className="rz2__nav">
@@ -334,13 +209,10 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
           </p>
         </section>
 
-        {/* 02 ČAS */}
+        {/* ČAS */}
         <section className="rz2__step" aria-labelledby="rz-s2">
           <div className="rz2__row">
             <h2 id="rz-s2" className="rz2__h">
-              <span className="wide-display rz2__n" aria-hidden="true">
-                02
-              </span>
               <span className="disp">Čas</span>
               <span className="rz2__hday">{isToday ? `dnes, ${dayLong}` : dayLong}</span>
             </h2>
@@ -351,7 +223,7 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
               </span>
               <span>
                 <i className="is-sel" />
-                Tvoj výber – potiahni okraj
+                Tvoj výber
               </span>
               <span>
                 <i className="is-off" />
@@ -365,23 +237,6 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
               ) : null}
             </div>
           </div>
-          <Timeline
-            slots={slots}
-            ok={ok}
-            start={valid ? start : null}
-            hours={hours}
-            peakFrom={peakFrom}
-            maxHours={maxHours}
-            onPick={(h) => {
-              buzz();
-              setStart(h);
-              setCount((c) => Math.min(c, Math.max(runFrom(h), 1)));
-            }}
-            onRange={(s0, c) => {
-              setStart(s0);
-              setCount(c);
-            }}
-          />
           {anyFree ? null : (
             <EmptyState art={<ZamboniArt />} title="Na tento deň je ľad plný" text={nextFree ? `Rolba už upravuje plochu pre ďalších. Najbližší deň s voľným časom je ${nextFree.label.toLowerCase()}.` : 'Rolba už upravuje plochu pre ďalších. Skús iný deň v kalendári.'}>
               {nextFree ? (
@@ -406,7 +261,7 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
                 <button
                   key={s.hour}
                   type="button"
-                  className={`rz2__slot${sel ? ' is-sel' : ''}`}
+                  className={`rz2__slot${sel ? ' is-sel' : ''}${peakFrom !== null && s.hour >= peakFrom ? ' is-peak' : ''}`}
                   aria-pressed={sel}
                   aria-label={`${pad(s.hour)}, ${eur(s.price)}`}
                   onClick={() => {
@@ -428,12 +283,9 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
           </div>
         </section>
 
-        {/* 03 DOPLNKY */}
+        {/* DOPLNKY */}
         <section className="rz2__step" aria-labelledby="rz-s3">
           <h2 id="rz-s3" className="rz2__h">
-            <span className="wide-display rz2__n" aria-hidden="true">
-              03
-            </span>
             <span className="disp">
               <span className="rz2__mtitle">Dĺžka a </span>
               <span className="rz2__dtitle">D</span>

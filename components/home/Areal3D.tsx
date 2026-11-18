@@ -24,6 +24,7 @@ export function supports3D(): boolean {
 
 export function Areal3D({
   sky,
+  now,
   weather,
   labels,
   open,
@@ -33,6 +34,7 @@ export function Areal3D({
   onReady,
 }: {
   sky: Scene;
+  now: number;
   weather: Weather;
   labels: Label[];
   open: Zone3D | null;
@@ -62,6 +64,7 @@ export function Areal3D({
     let visible = true;
     let io: IntersectionObserver | null = null;
     const t0 = performance.now();
+    const perf = { n: 0, sum: 0, last: 0, low: false };
     const el = canvas.current!;
     const box = wrap.current!;
 
@@ -71,7 +74,18 @@ export function Areal3D({
       if (!a || dead || !visible || document.hidden) return;
       const w = box.clientWidth;
       const h = box.clientHeight;
-      a.render((performance.now() - t0) / 1000, w, h, activeRef.current);
+      const t = performance.now();
+      a.render((t - t0) / 1000, w, h, activeRef.current);
+      // prvé 3 s merania: ak snímka trvá dlho, prepne na nižšiu kvalitu (raz)
+      if (perf.n < 180 && !perf.low) {
+        if (perf.last) perf.sum += t - perf.last;
+        perf.last = t;
+        perf.n++;
+        if (perf.n === 90 && perf.sum / 89 > 30) {
+          perf.low = true;
+          a.setQuality('low');
+        }
+      }
       tags.current.forEach((node, z) => {
         const p = a.project(z, w, h);
         node.style.setProperty('translate', `${p.x.toFixed(1)}px ${p.y.toFixed(1)}px`);
@@ -83,7 +97,10 @@ export function Areal3D({
       if (!raf && visible && !document.hidden) raf = requestAnimationFrame(loop);
     };
 
-    (async () => {
+    let started = false;
+    const start = async () => {
+      if (started) return;
+      started = true;
       try {
         const font = getComputedStyle(document.documentElement).getPropertyValue('--font-display').trim() || 'sans-serif';
         // písmo na nápisy v 3D (tabuľa, dres, strecha) musí byť načítané skôr, než sa nakreslí do textúr
@@ -91,7 +108,7 @@ export function Areal3D({
         const mod = await import('@/components/home/areal3d/scene');
         if (dead) return;
         const cores = navigator.hardwareConcurrency || 4;
-        areal.current = mod.createAreal(el, { font, quality: cores >= 6 && (window.devicePixelRatio || 1) <= 2 ? 'high' : 'low' });
+        areal.current = mod.createAreal(el, { font, now: Date.now(), quality: cores >= 6 && (window.devicePixelRatio || 1) <= 2 ? 'high' : 'low' });
         el.addEventListener('webglcontextlost', () => onReadyRef.current?.(false));
         setReady(true);
         onReadyRef.current?.(true);
@@ -99,12 +116,17 @@ export function Areal3D({
       } catch {
         onReadyRef.current?.(false);
       }
-    })();
+    };
 
-    io = new IntersectionObserver(([e]) => {
-      visible = e.isIntersecting;
-      kick();
-    });
+    // 3D sa načíta až keď sa areál blíži k obrazovke
+    io = new IntersectionObserver(
+      ([e]) => {
+        visible = e.isIntersecting;
+        if (visible) start();
+        kick();
+      },
+      { rootMargin: '300px 0px' },
+    );
     io.observe(box);
     const onVis = () => kick();
     document.addEventListener('visibilitychange', onVis);
@@ -119,8 +141,8 @@ export function Areal3D({
   }, []);
   // obloha a počasie
   useEffect(() => {
-    if (ready) areal.current?.setSky(sky, weather);
-  }, [ready, sky, weather]);
+    if (ready) areal.current?.setSky(sky, weather, now);
+  }, [ready, sky, weather, now]);
   // kamera na otvorenú časť
   useEffect(() => {
     if (ready) areal.current?.focus(open);

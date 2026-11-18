@@ -3,14 +3,48 @@ import QRCode from 'qrcode';
 import { getSite } from '@/lib/siteSettings';
 import { appUrl } from '@/lib/requestInfo';
 import { StoreBadge } from '@/components/StoreBadge';
+import { OpenNow } from '@/components/OpenNow';
+import { mapLinks } from '@/lib/maps';
 
-// Päta: logo so sloganom, tri stĺpce odkazov, obrovský obrysový nápis a právne odkazy.
+const LAD: [string, string][] = [
+  ['/rezervacia', 'Rezervácia'],
+  ['/cennik', 'Cenník a storno'],
+  ['/pre-kluby', 'Pre kluby'],
+  ['/ucet', 'Môj účet'],
+];
+const KOMPLEX: [string, string][] = [
+  ['/aktuality', 'Novinky'],
+  ['/bufet-skyboxy', 'Bufet a skyboxy'],
+  ['/ihrisko', 'Futbalové ihrisko'],
+  ['/fitness-wellness', 'Fitness a wellness'],
+  ['/fotky', 'Fotky'],
+];
+
+// Päta: logo so sloganom, odkazy, kontakt s otváracími hodinami a právne odkazy.
+// Na mobile je kontakt hore ako karta (Zavolať, Navigovať, hodiny) a odkazy v rozbaľovacích skupinách.
 // Chýbajúce údaje (telefón, e-mail, IČO) sa nezobrazujú.
 export async function Footer() {
   const site = await getSite();
   const c = site.company;
   const { ios, android } = site.apps;
   // blok s aplikáciou len ak je aspoň jeden odkaz do obchodu
+  const hours = site.hours.filter((h) => h.time.trim());
+  const links = mapLinks(site.hall);
+  const social =
+    site.social.facebook || site.social.instagram ? (
+      <>
+        {site.social.facebook ? (
+          <a href={site.social.facebook} target="_blank" rel="noopener noreferrer">
+            Facebook<span className="sr-only"> (otvorí sa v novom okne)</span>
+          </a>
+        ) : null}
+        {site.social.instagram ? (
+          <a href={site.social.instagram} target="_blank" rel="noopener noreferrer">
+            Instagram<span className="sr-only"> (otvorí sa v novom okne)</span>
+          </a>
+        ) : null}
+      </>
+    ) : null;
   const appQr = ios || android ? await QRCode.toDataURL(`${appUrl() ?? ''}/aplikacia`, { margin: 1, width: 220, color: { dark: '#0A0E14', light: '#F4F6F8' } }).catch(() => null) : null;
   return (
     <footer className="ft2">
@@ -24,19 +58,21 @@ export async function Footer() {
           <div className="ft2__cols">
             <nav aria-label="Ľad" className="ft2__col">
               <h2 className="wide-display">Ľad</h2>
-              <Link href="/rezervacia">Rezervácia</Link>
-              <Link href="/cennik">Cenník a storno</Link>
-              <Link href="/pre-kluby">Pre kluby</Link>
-              <Link href="/ucet">Môj účet</Link>
+              {LAD.map(([h, t]) => (
+                <Link key={h} href={h}>
+                  {t}
+                </Link>
+              ))}
             </nav>
             <nav aria-label="Komplex" className="ft2__col">
               <h2 className="wide-display">Komplex</h2>
-              <Link href="/aktuality">Novinky</Link>
-              <Link href="/bufet-skyboxy">Bufet a skyboxy</Link>
-              <Link href="/ihrisko">Futbalové ihrisko</Link>
-              <Link href="/fitness-wellness">Fitness a wellness</Link>
+              {KOMPLEX.map(([h, t]) => (
+                <Link key={h} href={h}>
+                  {t}
+                </Link>
+              ))}
             </nav>
-            <div className="ft2__col">
+            <div className="ft2__col ft2__contact">
               <h2 className="wide-display">Kontakt</h2>
               <span className="ft2__addr">
                 {site.hall.street}
@@ -45,19 +81,80 @@ export async function Footer() {
               </span>
               {site.phone ? <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a> : null}
               {site.email ? <a href={`mailto:${site.email}`}>{site.email}</a> : null}
+              {hours.length ? (
+                <dl className="ft2__hours">
+                  {hours.map((h) => (
+                    <div key={h.days}>
+                      <dt>{h.days}</dt>
+                      <dd>{h.time}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
+              <OpenNow hours={site.hours} />
               <Link href="/kontakt">Napísať nám</Link>
-              {site.social.facebook ? (
-                <a href={site.social.facebook} target="_blank" rel="noopener noreferrer">
-                  Facebook<span className="sr-only"> (otvorí sa v novom okne)</span>
-                </a>
-              ) : null}
-              {site.social.instagram ? (
-                <a href={site.social.instagram} target="_blank" rel="noopener noreferrer">
-                  Instagram<span className="sr-only"> (otvorí sa v novom okne)</span>
-                </a>
-              ) : null}
+              {social}
             </div>
           </div>
+        </div>
+        {/* mobil: kontakt hore ako karta, odkazy v rozbaľovacích skupinách */}
+        <div className="ft2__m">
+          <div className="ft2__card">
+            <h2 className="wide-display">Kontakt</h2>
+            <p className="ft2__maddr">
+              {site.hall.street}
+              <br />
+              {site.hall.city}
+            </p>
+            <div className="ft2__mbtns">
+              {site.phone ? (
+                <a href={`tel:${site.phone.replace(/\s/g, '')}`} className="sbtn sbtn--md">
+                  Zavolať
+                </a>
+              ) : null}
+              <a href={links.directions} target="_blank" rel="noopener noreferrer" className={`sbtn sbtn--md${site.phone ? ' sbtn--ghost' : ''}`}>
+                Navigovať<span className="sr-only"> (otvorí sa v novom okne)</span>
+              </a>
+            </div>
+            {site.email ? (
+              <a href={`mailto:${site.email}`} className="ft2__mail">
+                {site.email}
+              </a>
+            ) : null}
+            {hours.length ? (
+              <dl className="ft2__hours">
+                {hours.map((h) => (
+                  <div key={h.days}>
+                    <dt>{h.days}</dt>
+                    <dd>{h.time}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+            <OpenNow hours={site.hours} />
+          </div>
+          <details className="ft2__acc">
+            <summary>Ľad</summary>
+            {LAD.map(([h, t]) => (
+              <Link key={h} href={h}>
+                {t}
+              </Link>
+            ))}
+          </details>
+          <details className="ft2__acc">
+            <summary>Komplex</summary>
+            {KOMPLEX.map(([h, t]) => (
+              <Link key={h} href={h}>
+                {t}
+              </Link>
+            ))}
+          </details>
+          <details className="ft2__acc">
+            <summary>Kontakt a správa</summary>
+            <Link href="/kontakt">Napísať nám</Link>
+            <Link href="/ucet">Môj účet</Link>
+          </details>
+          {social ? <div className="ft2__soc">{social}</div> : null}
         </div>
         {ios || android ? (
           <section className="app2" aria-labelledby="app2-t">
@@ -97,14 +194,7 @@ export async function Footer() {
             </div>
           </section>
         ) : null}
-        {/* nápis sa vždy roztiahne presne na šírku päty – nikdy sa neoreže */}
-        <div className="ft2__word" aria-hidden="true">
-          <svg viewBox="0 0 1000 120" focusable="false">
-            <text x="4" y="108" textLength="992" lengthAdjust="spacingAndGlyphs">
-              I-SPORT COMPLEX
-            </text>
-          </svg>
-        </div>
+        <div className="ft2__kick" aria-hidden="true" />
         <div className="ft2__bottom">
           <span>
             © {new Date().getFullYear()} {c.name}

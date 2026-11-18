@@ -6,6 +6,7 @@ import { galleryPhotos, slotPhotos, type SlotKey } from '@/lib/media';
 import { ZoneHero } from '@/components/home/ZoneHero';
 import type { Zone } from '@/components/home/ComplexExplorer';
 import { kosiceWeather } from '@/lib/weather';
+import { AreaArt } from '@/components/home/AreaArt';
 import { weatherLabel } from '@/lib/sky';
 
 // Spoločné rozloženie stránok jednotlivých častí komplexu.
@@ -51,7 +52,8 @@ export async function PartPage({
   );
 }
 
-// Fotka časti komplexu z Cloudinary; kým nie je nahraná, ukáže sa sivý zástupca s popisom.
+// Fotka časti komplexu z Cloudinary; kým nie je nahraná, ukáže sa výrez z ilustrácie areálu (nikdy prázdna sivá plocha).
+const SLOT_ZONE: Partial<Record<SlotKey, Zone>> = { 'ladova-plocha': 'ice', skyboxy: 'sky', bufet: 'food', ihrisko: 'pitch', posilnovna: 'gym', wellness: 'well' };
 export async function PartPhoto({ label, slot, index = 0 }: { label: string; slot?: SlotKey; index?: number }) {
   const photo = slot ? (await slotPhotos(slot, '16:10'))[index] : undefined;
   if (photo)
@@ -60,12 +62,20 @@ export async function PartPhoto({ label, slot, index = 0 }: { label: string; slo
         <CloudImage photo={photo} className="pp__img" />
       </Link>
     );
+  const zone = slot ? SLOT_ZONE[slot] : undefined;
+  if (zone)
+    return (
+      <div className="pp__photo pp__photo--art" role="img" aria-label={label}>
+        <AreaArt zone={zone} bare />
+      </div>
+    );
   return <div className="pp__photo">{label}</div>;
 }
 
 // Sekcia „Fotky“ v štýle IMDb: 2 riadky (3 + 4), „+N“ a odkaz na všetky fotky. Klik otvorí prehliadač /fotky/<id>.
-export async function PartGallery({ slot, title }: { slot: SlotKey; title?: string }) {
-  const all = await galleryPhotos(slot);
+// skip: koľko prvých fotiek už stránka ukazuje vyššie (aby sa neopakovali)
+export async function PartGallery({ slot, title, skip = 0 }: { slot: SlotKey; title?: string; skip?: number }) {
+  const all = (await galleryPhotos(slot)).slice(skip);
   if (all.length === 0) return null;
   const first = all.slice(0, 7);
   const rows = first.length <= 3 ? [first.length] : [3, first.length - 3];

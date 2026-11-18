@@ -40,8 +40,8 @@ export default function FitnessWellnessPage() {
           </div>
         </div>
         <div className="wrap">
-          <PartGallery slot="posilnovna" title="Posilňovňa" />
-          <PartGallery slot="wellness" title="Wellness" />
+          <PartGallery skip={1} slot="posilnovna" title="Posilňovňa" />
+          <PartGallery skip={1} slot="wellness" title="Wellness" />
         </div>
       </section>
     </PartPage>

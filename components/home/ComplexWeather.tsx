@@ -51,6 +51,10 @@ export function ComplexWeather({ s, w }: { s: Scene; w: Weather }) {
           <rect x="1206" y="286" width="368" height="276" fill="#000000" />
           <rect x="-200" y="561" width="2000" height="400" fill="#000000" />
         </mask>
+        <radialGradient id="cxv-litice">
+          <stop offset="0" stopColor="#EAF4FF" stopOpacity=".28" />
+          <stop offset="1" stopColor="#EAF4FF" stopOpacity="0" />
+        </radialGradient>
         <linearGradient id="cxv-fogband" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#C7D0D9" stopOpacity="0" />
           <stop offset=".6" stopColor="#C7D0D9" stopOpacity=".5" />
@@ -58,8 +62,26 @@ export function ComplexWeather({ s, w }: { s: Scene; w: Weather }) {
         </linearGradient>
       </defs>
 
-      {/* cez deň je zem svetlejšia */}
-      <rect x="-200" y="565" width="2000" height="300" fill="#4A5868" opacity={(s.dayness * 0.32).toFixed(2)} />
+      {/* noc: maketa stmavne (násobenie farieb), svetlá sa rozsvietia nad ňou */}
+      {s.dayness < 0.98 ? <rect x="0" y="118" width="1600" height="542" fill="#22324A" className="cxv-night" opacity={((1 - s.dayness) * 0.78).toFixed(2)} /> : null}
+      {s.lights ? (
+        <g className="cxv-lit">
+          <ellipse cx="370" cy="400" rx="330" ry="150" fill="url(#cxv-litice)" />
+          {[150, 262, 478, 590].map((x) => (
+            <rect key={x} x={x - 22} y="266" width="44" height="7" rx="3.5" fill="#F4FAFF" />
+          ))}
+          <rect x="660" y="351" width="200" height="96" fill="#FFB020" opacity=".18" />
+          <rect x="660" y="456" width="200" height="104" fill="#FFB020" opacity=".16" />
+          <rect x="1221" y="306" width="339" height="114" fill="#DDEBFF" opacity=".12" />
+          <rect x="1221" y="436" width="339" height="124" fill="#FFB020" opacity=".14" />
+          <path d="M892 334L944 515H1060ZM1188 334L1136 515H1020Z" fill="url(#cxv-flood)" />
+          <circle cx="892" cy="328" r="40" fill="url(#cxv-glow)" />
+          <circle cx="1188" cy="328" r="40" fill="url(#cxv-glow)" />
+          <rect x="878" y="320" width="28" height="12" rx="2" fill="#FFF8E2" />
+          <rect x="1174" y="320" width="28" height="12" rx="2" fill="#FFF8E2" />
+          <path d="M912 515L1168 515L1196 560L884 560Z" fill="#FFF4CF" opacity=".12" />
+        </g>
+      ) : null}
 
       {w.snowCover ? (
         <g className="cxv-snowcover" fill="#F2F6FA">

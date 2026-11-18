@@ -78,9 +78,6 @@ export default async function UdajePage({ searchParams }: Props) {
           <div className="rz2__main dk2">
             <section className="rz2__step" aria-label="Údaje">
               <h2 className="rz2__h">
-                <span className="wide-display rz2__n" aria-hidden="true">
-                  04
-                </span>
                 <span className="disp">Údaje a platba</span>
               </h2>
               <div className="rz2__card">

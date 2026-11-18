@@ -2,6 +2,7 @@ import type { SiteFull } from '@/lib/siteSettings';
 import { mapLinks } from '@/lib/maps';
 import { LocationActions } from './LocationActions';
 import { LocationMap } from './LocationMap';
+import { OpenNow } from '@/components/OpenNow';
 
 // „Kde nás nájdeš“: info vľavo, štylizovaná tmavá mapa s červeným pinom vpravo. Google mapa sa načíta až po kliknutí.
 // Chýbajúce údaje (telefón, e-mail, hodiny) sa nezobrazujú.
@@ -13,12 +14,16 @@ export function LocationSection({ site, id = 'mapa', title = 'Príď na Juh' }: 
     ...site.hours.filter((h) => h.time.trim()).map((h) => ({ k: h.days, v: <>{h.time}</> })),
   ].filter((r) => r !== null);
   return (
-    <section id={id} className="wrap loc2" aria-labelledby={`${id}-t`}>
+    <section id={id} className="lite loc3" aria-labelledby={`${id}-t`}>
+      <div className="wrap loc2">
+      <div className="shd">
+        <h2 id={`${id}-t`} className="disp shd__t">
+          {title}
+        </h2>
+        <span className="shd__line" aria-hidden="true" />
+      </div>
       <div className="loc2__box">
         <div className="loc2__info">
-          <h2 id={`${id}-t`} className="disp loc2__title">
-            {title}
-          </h2>
           <p className="loc2__addr">
             {site.hall.street}
             <br />
@@ -34,9 +39,11 @@ export function LocationSection({ site, id = 'mapa', title = 'Príď na Juh' }: 
               ))}
             </dl>
           ) : null}
+          <OpenNow hours={site.hours} className="loc2__open" />
           <LocationActions links={map} address={map.address} phone={site.phone} />
         </div>
         <LocationMap embed={map.embed} address={map.address} />
+      </div>
       </div>
     </section>
   );

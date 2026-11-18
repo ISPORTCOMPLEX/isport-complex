@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { PartCta, PartGallery, PartPage } from '@/components/PartPage';
-import { RinkPlan } from '@/components/Rink';
+import { PartCta, PartGallery, PartPage, PartPhoto } from '@/components/PartPage';
 import { getBookingSettings } from '@/lib/booking/settings';
 
 export const metadata: Metadata = { title: 'Ľadová plocha', description: 'Prenájom celej tréningovej ľadovej plochy v I-SPORT COMPLEX Košice. Rezervácia online, šatňa v cene, sprchy za príplatok.' };
@@ -70,12 +69,18 @@ export default async function LadovaPlochaPage() {
               </Link>
             </div>
           </div>
-          <div className="pp__rink">
-            <RinkPlan highlight="full" />
+          <div className="pp__side">
+            <PartPhoto label="Ľadová plocha I-SPORT COMPLEX" slot="ladova-plocha" />
+            <ul className="pp__incl" aria-label="V cene prenájmu">
+              <li>Celá plocha len pre tvoj tím</li>
+              <li>Šatňa v cene</li>
+              <li>Úprava ľadu pred každým blokom</li>
+              <li>Potvrdenie s QR kódom v mobile</li>
+            </ul>
           </div>
         </div>
         <div className="wrap">
-          <PartGallery slot="ladova-plocha" />
+          <PartGallery skip={1} slot="ladova-plocha" />
         </div>
       </section>
 

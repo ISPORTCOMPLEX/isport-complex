@@ -177,6 +177,7 @@ export function ComplexExplorer({ zones, now: initialNow, weather = CLEAR }: { z
           {is3d ? (
             <Areal3D
               sky={sky}
+              now={now}
               weather={weather}
               labels={zones.map((z) => ({ zone: z.zone, name: z.name }))}
               open={open}

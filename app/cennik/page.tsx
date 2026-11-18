@@ -4,6 +4,8 @@ import { price } from '@/lib/site';
 import { getBookingSettings } from '@/lib/booking/settings';
 import { RzBand } from '@/components/booking/RzBand';
 import { PartCta } from '@/components/PartPage';
+import { AreaArt } from '@/components/home/AreaArt';
+import { Faq } from '@/components/Faq';
 
 export const metadata: Metadata = { title: 'Cenník', description: 'Cenník prenájmu ľadovej plochy v I-SPORT COMPLEX Košice. Šatňa v cene, sprchy za príplatok.' };
 
@@ -14,12 +16,13 @@ export default async function CennikPage() {
   return (
     <>
       <RzBand
+        art={<AreaArt zone="ice" />}
         crumbs={[{ href: '/', label: 'Komplex' }, { label: 'Cenník' }]}
         title="Cenník"
         lead={
           <>
             <p>Ceny sú vrátane DPH. Prenajíma sa celá ľadová plocha, šatňa aj úprava ľadu sú v cene.</p>
-            {settings.temporary ? <p className="rz-temp">Ceny sú zatiaľ orientačné.</p> : null}
+            {settings.temporary ? <p className="rz-note">Pre tvoju rezerváciu vždy platí cena uvedená v potvrdení.</p> : null}
           </>
         }
       />
@@ -118,6 +121,16 @@ export default async function CennikPage() {
           </div>
         </div>
       </section>
+      <Faq
+        items={[
+          ['Dokedy môžem rezerváciu zrušiť zadarmo?', `Online a bez poplatku najneskôr ${settings.cancelFreeHours} hodín pred začiatkom. Neskôr už len cez recepciu.`],
+          ['Ako zaplatím?', 'Na recepcii v hotovosti alebo kartou, prípadne bankovým prevodom – údaje dostaneš v potvrdení. Kluby platia mesačnou faktúrou.'],
+          ['Je šatňa v cene?', 'Áno. Šatňa aj úprava ľadu sú v cene každého prenájmu.'],
+          ...(settings.showersEnabled ? ([['Koľko stoja sprchy?', `${settings.showerPrice} € jednorazovo pre celý tím – zaškrtneš ich pri rezervácii.`]] as [string, string][]) : []),
+          ['Kedy mám prísť?', '30 minút pred začiatkom. Na recepcii ukážeš QR kód z potvrdenia a šatňa je pripravená. Uvoľniť ju treba do 30 minút po tréningu.'],
+          ['Platí cena z webu?', 'Áno, pre tvoju rezerváciu vždy platí cena uvedená v potvrdení, ktoré dostaneš e-mailom aj v účte.'],
+        ]}
+      />
     </>
   );
 }

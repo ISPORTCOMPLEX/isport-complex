@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { Icon } from '@/components/Icon';
 import { BottomNav } from '@/components/nav/BottomNav';
 import { InstallPrompt } from '@/components/nav/InstallPrompt';
 import { LogoLockup } from './Logo';
+import { IceStrip } from './nav/IceStrip';
 import { MobileNav } from './NavLinks';
 import { MegaNav, type MegaPhotos } from './nav/MegaNav';
 import { getSessionUser } from '@/lib/session';
@@ -27,55 +27,14 @@ async function megaPhotos(): Promise<MegaPhotos> {
   }
 }
 
-// Dnešné otváracie hodiny (Po–Pi / So / Ne podľa nastavení webu). Prázdne = riadok sa nezobrazí.
-function todayHours(hours: { days: string; time: string }[]): string {
-  const wd = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Bratislava', weekday: 'short' }).format(new Date());
-  const i = wd === 'Sat' ? 1 : wd === 'Sun' ? 2 : 0;
-  return hours[i]?.time?.trim() ?? '';
-}
-
-// Horná lišta + hlavička. Na úvode leží hlavička priamo na hero (priehľadná), inde je tmavá a drží sa hore.
+// Lišta „Ľad dnes“ (hodiny dňa ako výsledková tabuľa) + tmavomodrá hlavička s menu.
 export async function Header() {
   const [user, ice, photos, site] = await Promise.all([getSessionUser(), iceToday(), megaPhotos(), getSite()]);
-  const open = todayHours(site.hours);
   const staff = user ? isStaff(user.role) : false;
-  const short = `${site.hall.street}, ${site.hall.city.replace(/^\d{3}\s?\d{2}\s*/, '')}`;
+  const nowHour = Number(new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Europe/Bratislava' }).format(new Date())) % 24;
   return (
     <>
-      <div className="tb">
-        <div className="wrap tb__in">
-          <span className="tb__l">
-            <span className="tb__it">
-              <Icon name="adresa" size={15} />
-              {short}
-            </span>
-            {site.phone ? (
-              <a className="tb__it" href={`tel:${site.phone.replace(/\s/g, '')}`}>
-                Recepcia: {site.phone}
-              </a>
-            ) : null}
-          </span>
-          <span className="tb__r">
-            {open ? (
-              <span className="tb__open">
-                <i aria-hidden="true" />
-                Dnes otvorené {open}
-              </span>
-            ) : null}
-            {staff ? (
-              <Link href="/admin" className="tb__admin">
-                <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="currentColor" />
-                </svg>
-                Administrácia
-              </Link>
-            ) : null}
-            <Link href={user ? '/ucet' : '/prihlasenie'} className="tb__acc">
-              {user ? 'Môj účet' : 'Prihlásiť sa'}
-            </Link>
-          </span>
-        </div>
-      </div>
+      <IceStrip ice={ice} nowHour={nowHour} />
       <header className="hd">
         <div className="wrap hd__in">
           <Link href="/" className="hd__logo" aria-label="I-SPORT COMPLEX, domov">
@@ -83,6 +42,14 @@ export async function Header() {
           </Link>
           <MegaNav ice={ice} photos={photos} />
           <div className="hd__actions">
+            {staff ? (
+              <Link href="/admin" className="hd__link">
+                Administrácia
+              </Link>
+            ) : null}
+            <Link href={user ? '/ucet' : '/prihlasenie'} className="hd__link">
+              {user ? 'Môj účet' : 'Prihlásiť sa'}
+            </Link>
             <Link href="/rezervacia" className="sbtn hd__book" data-magnet="">
               Rezervovať ľad
             </Link>

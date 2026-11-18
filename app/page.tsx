@@ -10,21 +10,43 @@ import { dayAvailability } from '@/lib/booking/availability';
 import { iceToday } from '@/lib/booking/iceToday';
 import { photosBySlot, toWebPhoto, type WebPhoto } from '@/lib/media';
 import { homeArticles } from '@/lib/articles/queries';
-import { LiveIce, WeekMap } from '@/components/home/LiveIce';
-import { ScrollStory } from '@/components/home/ScrollStory';
+import { iceNow } from '@/components/home/LiveIce';
 import { kosiceWeather } from '@/lib/weather';
 import { HeroVideo } from '@/components/home/HeroVideo';
+import { CloudImage } from '@/components/CloudImage';
+import { ZoneHero } from '@/components/home/ZoneHero';
+import { JsonLd } from '@/components/JsonLd';
+import { appUrl } from '@/lib/requestInfo';
 
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
 const pad = (h: number) => `${String(h).padStart(2, '0')}:00`;
 const h2 = (h: number) => String(h).padStart(2, '0');
 
-function Arrow({ size = 20, color = 'currentColor' }: { size?: number; color?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke={color} strokeWidth="3" />
-    </svg>
-  );
+// údaje o hale pre Google (Mapy, vyhľadávanie) – len to, čo je naozaj vyplnené
+function businessLd(site: Awaited<ReturnType<typeof getSite>>) {
+  const base = appUrl() ?? '';
+  const days = [['Mo', 'Tu', 'We', 'Th', 'Fr'], ['Sa'], ['Su']];
+  const hours = site.hours
+    .map((h, i) => {
+      const m = /(\d{1,2})[:.](\d{2})\s*[–-]\s*(\d{1,2})[:.](\d{2})/.exec(h.time);
+      return m ? { '@type': 'OpeningHoursSpecification', dayOfWeek: days[i]?.map((d) => `https://schema.org/${{ Mo: 'Monday', Tu: 'Tuesday', We: 'Wednesday', Th: 'Thursday', Fr: 'Friday', Sa: 'Saturday', Su: 'Sunday' }[d]}`), opens: `${m[1].padStart(2, '0')}:${m[2]}`, closes: `${m[3].padStart(2, '0')}:${m[4]}` } : null;
+    })
+    .filter(Boolean);
+  const [zip, ...rest] = site.hall.city.split(' ');
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SportsActivityLocation',
+    name: 'I-SPORT COMPLEX',
+    description: 'Tréningová hokejová hala v Košiciach na Juhu – prenájom ľadu online, skyboxy, bufet a futbalové ihrisko.',
+    url: base || undefined,
+    image: base ? `${base}/brand/logo-slogan-na-tmave.svg` : undefined,
+    telephone: site.phone || undefined,
+    email: site.email || undefined,
+    address: { '@type': 'PostalAddress', streetAddress: site.hall.street, postalCode: /^\d/.test(zip) ? `${zip} ${rest[0] ?? ''}`.trim() : undefined, addressLocality: 'Košice', addressCountry: 'SK' },
+    geo: site.hall.lat && site.hall.lng ? { '@type': 'GeoCoordinates', latitude: Number(site.hall.lat), longitude: Number(site.hall.lng) } : undefined,
+    openingHoursSpecification: hours.length ? hours : undefined,
+    sameAs: [site.social.facebook, site.social.instagram].filter(Boolean),
+  };
 }
 
 export default async function HomePage() {
@@ -41,19 +63,22 @@ export default async function HomePage() {
   const nowHour = Number(new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Europe/Bratislava' }).format(renderedAt)) % 24;
   const week = nextDays(7);
   const weekAvail = await Promise.all(week.map((d) => dayAvailability(settings, d.iso).catch(() => [])));
-  const days = week.slice(0, 5);
-  const avail = weekAvail.slice(0, 5);
-  const weekDays = week.map((d, i) => ({
+  const qbDays = week.map((d, i) => ({
     iso: d.iso,
+    short: d.short,
+    num: d.num,
+    long: longDayLabel(d.iso),
     name: i === 0 ? 'Dnes' : longDayLabel(d.iso).split(' ')[0].replace(/^./, (c: string) => c.toUpperCase()),
     date: d.label.replace(/^\S+\s/, ''),
-    slots: weekAvail[i].map((x) => ({ hour: x.hour, free: x.free, bookable: x.bookable, price: x.price })),
+    slots: weekAvail[i].map((s) => ({ hour: s.hour, ok: s.free && s.bookable, past: !s.bookable, price: s.price })),
   }));
-  const qbDays = days.map((d, i) => ({
-    ...d,
-    long: longDayLabel(d.iso),
-    slots: avail[i].map((s) => ({ hour: s.hour, ok: s.free && s.bookable, past: !s.bookable, price: s.price })),
-  }));
+  // „práve teraz“ do tabule v úvode
+  const now = iceNow(
+    (weekAvail[0] ?? []).map((x) => ({ hour: x.hour, free: x.free, bookable: x.bookable })),
+    nowHour,
+    settings.openHour,
+    settings.closeHour,
+  );
   // fotky interiéru pre interaktívny rez komplexom
   const photos = (slot: string): WebPhoto[] => (photoMap[slot] ?? []).map((p) => toWebPhoto(p, '4:3')).filter((p): p is WebPhoto => p !== null);
   const zones: ZoneInfo[] = [
@@ -65,201 +90,186 @@ export default async function HomePage() {
     { zone: 'well', name: 'Wellness', hall: 'Hala 2 · prízemie', text: 'Regenerácia po tréningu v hale 2. Wellness pripravujeme spolu s posilňovňou.', href: '/fitness-wellness', cta: 'Viac o hale 2', soon: true, photos: photos('wellness') },
   ];
 
-  // Tabuľa „Ľad dnes“: najbližšia voľná hodina a ďalších 6 hodín dňa.
+  // Karta „Najbližší voľný ľad“: prvá voľná hodina dňa, za ňou ďalšie 4 voľné hodiny.
   const firstFree = ice.slots.find((s) => s.ok) ?? null;
-  const chips = firstFree ? ice.slots.filter((s) => s.hour > firstFree.hour).slice(0, 6) : [];
-  // na mobile len prvé 4 voľné hodiny
-  const mobileChips = new Set(chips.filter((s) => s.ok).slice(0, 4).map((s) => s.hour));
-  const priceHour = `${ice.priceLabel} / hod`;
-  const ticker = [
-    `Ľad · ${priceHour}`,
-    'Šatňa v cene',
-    settings.showersEnabled ? `Sprchy ${eur(settings.showerPrice)} pre tím` : null,
-    `Storno zdarma ${settings.cancelFreeHours} h`,
-    'QR potvrdenie v mobile',
-    'Skyboxy nad ľadom',
-  ].filter((t): t is string => t !== null);
-  const tickerRow = (hidden: boolean) => (
-    <div className="tk__row" aria-hidden={hidden || undefined}>
-      {ticker.map((t) => (
-        <span key={t} className="u-contents">
-          <span>{t}</span>
-          <span aria-hidden="true">✕</span>
-        </span>
-      ))}
-    </div>
-  );
+  const nextFree = firstFree ? ice.slots.filter((s) => s.ok && s.hour > firstFree.hour).slice(0, 4) : [];
+  // o koľko minút začína (len dnes a len do 12 hodín – inak stačí čas)
+  const nowMin = nowHour * 60 + Number(new Intl.DateTimeFormat('en-GB', { minute: '2-digit', timeZone: 'Europe/Bratislava' }).format(renderedAt));
+  const inMin = firstFree && ice.day === 'dnes' ? firstFree.hour * 60 - nowMin : null;
+  const inLabel = inMin !== null && inMin > 0 && inMin < 720 ? (inMin < 60 ? `o ${inMin} minút` : `o ${Math.floor(inMin / 60)} h ${inMin % 60 ? `${inMin % 60} min` : ''}`.trim()) : null;
+  const heroPhoto = photos('ladova-plocha')[0] ?? photos('komplex')[0] ?? null;
+  // fotky na karty „Pre koho“ (bez fotky sa ukáže ilustrácia časti areálu)
+  const whoPhoto = (...slots: string[]) => slots.map((x) => photos(x)[0]).find(Boolean) ?? null;
 
   return (
     <>
-      {/* HERO – textúra ľadu, „Tvoj ľad. Tvoj čas.“ a tabuľa „Ľad dnes“ */}
-      <section className={`hx2${site.heroVideo ? ' hx2--video' : ''}`}>
-        {site.heroVideo ? <HeroVideo src={site.heroVideo} poster={site.heroVideo.replace(/\.mp4$/, '.jpg')} /> : null}
-        <span className="hx2__shade" aria-hidden="true" />
-        <span className="wide-display hx2__word" aria-hidden="true">
-          Košice
-        </span>
-        <div className="wrap hx2__in">
-          <div className="hx2__copy">
-            <h1 className="disp hx2__title">
+      {/* HERO – fotka haly, „Tvoj ľad. Tvoj čas.“ a karta najbližšieho voľného ľadu */}
+      <section className={`hx3${site.heroVideo ? ' hx3--video' : ''}${heroPhoto ? ' hx3--photo' : ''}`}>
+        {site.heroVideo ? <HeroVideo src={site.heroVideo} poster={site.heroVideo.replace(/\.mp4$/, '.jpg')} /> : heroPhoto ? <CloudImage photo={{ ...heroPhoto, alt: '' }} sizes="100vw" className="hx3__img" priority /> : null}
+        <span className="hx3__shade" aria-hidden="true" />
+        <div className="wrap hx3__in">
+          <div className="hx3__copy">
+            <p className="hx3__eb">
+              <i aria-hidden="true" />
+              Tréningová hokejová hala, Košice – Juh
+            </p>
+            <h1 className="disp hx3__title">
               Tvoj ľad.
               <br />
-              <span className="is-red">Tvoj čas.</span>
+              Tvoj čas.
             </h1>
-            <p className="hx2__lead">Tréningová hala v Košiciach na Juhu. Celá ľadová plocha pre kluby, školy, firmy aj partie – vyber hodinu online a potvrdenie s QR kódom máš hneď v telefóne.</p>
-            <div className="hx2__btns">
+            <p className="hx3__lead">Celá plocha len pre tvoj tím. Hodinu vyberieš online a potvrdenie s QR kódom máš hneď v telefóne.</p>
+            <div className="hx3__btns">
               <Link href="/rezervacia" className="sbtn" data-magnet="">
                 Rezervovať ľad
-                <Arrow />
               </Link>
               <Link href="/pre-kluby" className="sbtn sbtn--ghost">
-                Sezónny prenájom
+                Sezónny prenájom pre kluby
               </Link>
+              <a href="#komplex" className="hx3__play">
+                <span aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path d="M7 4l13 8-13 8z" fill="currentColor" />
+                  </svg>
+                </span>
+                Prejdi si areál v 3D
+              </a>
             </div>
           </div>
 
-          <aside className="board" aria-label={ice.day === 'zajtra' ? 'Ľad zajtra' : 'Ľad dnes'}>
-            <div className="board__bar">
-              <span className="wide-display">{ice.day === 'zajtra' ? 'Ľad zajtra' : 'Ľad dnes'}</span>
-              <span className="board__live">
-                <i aria-hidden="true" />
-                Naživo
-              </span>
+          <aside className="nxf" aria-label="Najbližší voľný ľad">
+            <div className="nxf__bar">
+              <span>Najbližší voľný ľad</span>
+              {now ? (
+                <span className={`nxf__now is-${now.tone}`}>
+                  <i aria-hidden="true" />
+                  {now.text}
+                </span>
+              ) : null}
             </div>
-            <div className="board__body">
-              <div className="board__top">
-                <span className="board__next">
-                  <span className="board__lbl">Najbližšie voľné</span>
-                  <span className="disp board__time">{firstFree ? pad(firstFree.hour) : '—'}</span>
-                </span>
-                <span className="board__cnt">
-                  <span>{ice.dayLabel}</span>
-                  <span className="disp">{ice.hours.length ? `${ice.hours.length} ${ice.hours.length === 1 ? 'voľná' : ice.hours.length <= 4 ? 'voľné' : 'voľných'}` : 'Plno'}</span>
-                </span>
-              </div>
-              {chips.length ? (
-                <div className="board__chips">
-                  {chips.map((s) =>
-                    s.ok ? (
-                      <Link key={s.hour} href={`/rezervacia?datum=${ice.iso}&cas=${s.hour}`} className={`chip2${mobileChips.has(s.hour) ? '' : ' m-hide'}`} aria-label={`${pad(s.hour)}, voľné, ${eur(s.price)}`}>
-                        <span className="disp">{pad(s.hour)}</span>
-                        <span>{eur(s.price)}</span>
-                      </Link>
-                    ) : (
-                      <span key={s.hour} className="chip2 is-off m-hide">
-                        <span className="disp">{pad(s.hour)}</span>
-                        <span>obsadené</span>
-                      </span>
-                    ),
-                  )}
-                </div>
+            <div className="nxf__body">
+              {firstFree ? (
+                <>
+                  <span className="nxf__day">{ice.day === 'dnes' ? `Dnes, ${ice.dayLabel}` : `Zajtra, ${ice.dayLabel}`}</span>
+                  <div className="nxf__main">
+                    <span className="disp nxf__time">{pad(firstFree.hour)}</span>
+                    <span className="nxf__meta">
+                      <b className="disp">{eur(firstFree.price)}</b>
+                      {inLabel ? <span>{inLabel}</span> : null}
+                    </span>
+                  </div>
+                  <Link href={`/rezervacia?datum=${ice.iso}&cas=${firstFree.hour}`} className="sbtn sbtn--block">
+                    Rezervovať {pad(firstFree.hour)}
+                  </Link>
+                  {nextFree.length ? (
+                    <div className="nxf__chips">
+                      {nextFree.map((x) => (
+                        <Link key={x.hour} href={`/rezervacia?datum=${ice.iso}&cas=${x.hour}`} aria-label={`${pad(x.hour)}, voľné, ${eur(x.price)}`}>
+                          <b className="disp">{pad(x.hour)}</b>
+                          <span>{eur(x.price)}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : null}
+                </>
               ) : (
-                <p className="board__empty">Najbližšie voľné časy nájdeš v rezervácii.</p>
+                <>
+                  <p className="nxf__empty">Dnes a zajtra je ľad obsadený. Voľné časy na ďalšie dni nájdeš v rozpise.</p>
+                  <Link href="/rezervacia" className="sbtn sbtn--block">
+                    Otvoriť rozpis ľadu
+                  </Link>
+                </>
               )}
-              <Link href={ice.iso ? `/rezervacia?datum=${ice.iso}` : '/rezervacia'} className="board__all">
-                Celý deň a ďalšie termíny
-                <Arrow color="#E30613" />
-              </Link>
             </div>
           </aside>
         </div>
-
-        <div className="tk">
-          <div className="wide-display tk__track">
-            {tickerRow(false)}
-          </div>
-        </div>
       </section>
-
-      <LiveIce slots={weekDays[0]?.slots ?? []} hour={nowHour} iso={week[0].iso} openHour={settings.openHour} closeHour={settings.closeHour} />
-
-      {/* NOVINKY – vždy prvé */}
-      <NewsSection items={news} />
-
-      {/* RÝCHLA REZERVÁCIA – svetlá ľadová sekcia */}
-      <section className="ice2">
-        <div className="wrap ice2__in">
-          <QuickBook days={qbDays} showersEnabled={settings.showersEnabled} showerPrice={settings.showerPrice} />
-        </div>
-      </section>
-
-      <WeekMap days={weekDays} />
 
       {/* PÁS ČÍSEL */}
-      <section className="stats" aria-label="Ľad v číslach">
-        <div className="wrap stats__in">
+      <section className="st3" aria-label="Ľad v číslach">
+        <div className="wrap st3__in">
           <div>
-            <span className="wide-display">{ice.priceLabel}</span>
+            <b className="disp">{ice.priceLabel}</b>
             <span>za hodinu, celá plocha</span>
           </div>
           <div>
-            <span className="wide-display">
-              {h2(settings.openHour)}–{h2(settings.closeHour)}
-            </span>
+            <b className="disp">Šatňa v cene</b>
+            <span>aj úprava ľadu pred každým blokom</span>
+          </div>
+          <div>
+            <b className="disp">{settings.cancelFreeHours} hodín</b>
+            <span>dovtedy zrušíš rezerváciu zadarmo</span>
+          </div>
+          <div>
+            <b className="disp">
+              {h2(settings.openHour)} – {h2(settings.closeHour)}
+            </b>
             <span>časy na ľade každý deň</span>
           </div>
-          <div>
-            <span className="wide-display">{settings.cancelFreeHours} h</span>
-            <span>zrušenie bez poplatku</span>
-          </div>
-          <div>
-            <span className="wide-display">0 €</span>
-            <span>za šatňu a úpravu ľadu</span>
-          </div>
         </div>
       </section>
 
-      <ScrollStory now={renderedAt} weather={weather} />
+      {/* REZERVÁCIA – deň aj celý týždeň v jednej sekcii */}
+      <section className="ice2 lite" id="rezervacia">
+        <div className="wrap ice2__in">
+          <QuickBook days={qbDays} showersEnabled={settings.showersEnabled} showerPrice={settings.showerPrice} maxHours={settings.maxHours} />
+        </div>
+      </section>
 
-      {/* KOMPLEX – interaktívny rez: klik priblíži časť a ukáže fotky */}
-      <section id="komplex" className="wrap cx2" aria-labelledby="cx2-t">
-        <div className="sec-head">
-          <div className="sec-head__l">
-            <h2 id="cx2-t" className="disp sec-title">
-              Jeden komplex.
-              <br />
-              <span className="is-outline">Všetko na mieste.</span>
+      {/* AREÁL – tmavý pás medzi modrými čiarami: 3D maketa / ilustrácia, klik priblíži časť a ukáže fotky */}
+      <section id="komplex" className="cx3" aria-labelledby="cx2-t">
+        <div className="wrap cx2">
+          <div className="shd">
+            <h2 id="cx2-t" className="disp shd__t">
+              Jeden areál, všetko na mieste
             </h2>
+            <span className="shd__line" aria-hidden="true" />
+            {(photoMap.prehliadka ?? []).length ? (
+              <Link href="/prehliadka" className="shd__more">
+                Prehliadka 360°
+              </Link>
+            ) : null}
           </div>
-          <p className="sec-head__p">V hale 1 ľad, skyboxy a bufet, medzi halami ihrisko, v hale 2 posilňovňa a wellness. Klikni na miesto a pozri sa dnu.</p>
+          <p className="shd__p">V hale 1 ľad, skyboxy a bufet, medzi halami ihrisko, v hale 2 posilňovňa a wellness. Klikni na miesto a pozri sa dnu.</p>
+          <ComplexExplorer zones={zones} now={renderedAt} weather={weather} />
         </div>
-        <ComplexExplorer zones={zones} now={renderedAt} weather={weather} />
-        {(photoMap.prehliadka ?? []).length ? (
-          <Link href="/prehliadka" className="cx2__tour">
-            Prehliadka 360° – rozhliadni sa po hale
-            <Arrow size={16} />
-          </Link>
-        ) : null}
       </section>
 
-      {/* PRE KOHO */}
-      <section className="wrap who" aria-label="Pre koho">
-        <h2 className="disp who__mtitle">Pre koho</h2>
-        <div className="who__grid">
-          {[
-            { href: '/pre-kluby', l: 'K', eb: 'Kluby a školy', t: 'Pevné hodiny na celú sezónu', p: 'Jedna zmluva, mesačná faktúra. Ponuku s voľnými časmi pošleme do 2 pracovných dní.', m: 'Sezónny prenájom, mesačná faktúra', go: 'Poslať dopyt' },
-            { href: '/kontakt', l: 'F', eb: 'Firmy a partie', t: 'Firemný hokej s bufetom', p: 'Ľad pre tím, skybox s výhľadom pre hostí a občerstvenie po zápase.', m: 'Firemný hokej s bufetom', go: 'Napísať nám' },
-            { href: '/bufet-skyboxy', l: 'R', eb: 'Rodičia a fanúšikovia', t: 'Tréning v teple skyboxu', p: 'Výhľad na celú plochu, bufet o poschodie nižšie.', m: 'Skyboxy s výhľadom na plochu', go: 'Skyboxy' },
-          ].map((c) => (
-            <Link key={c.l} href={c.href} className="who__card">
-              <span className="wide-display who__letter" aria-hidden="true">
-                {c.l}
-              </span>
-              <span className="eb eb--red">{c.eb}</span>
-              <span className="disp who__t">{c.t}</span>
-              <span className="who__p">{c.p}</span>
-              <span className="who__m">{c.m}</span>
-              <span className="who__go">
-                {c.go}
-                <Arrow size={18} color="#E30613" />
-              </span>
-            </Link>
-          ))}
+      {/* NOVINKY */}
+      <NewsSection items={news} />
+
+      {/* PRE KOHO – fotky z haly, bez fotky ilustrácia časti areálu */}
+      <section className="lite who3" aria-labelledby="who3-t">
+        <div className="wrap">
+          <div className="shd">
+            <h2 id="who3-t" className="disp shd__t">
+              Pre koho je ľad
+            </h2>
+            <span className="shd__line" aria-hidden="true" />
+          </div>
+          <div className="who3__grid">
+            {[
+              { href: '/pre-kluby', t: 'Kluby a školy', p: 'Pevné hodiny na celú sezónu, jedna zmluva a mesačná faktúra.', go: 'Poslať dopyt', photo: whoPhoto('ladova-plocha', 'komplex'), zone: 'ice' as const },
+              { href: '/rezervacia', t: 'Firmy a partie', p: 'Ľad pre tím, skybox pre hostí a občerstvenie po zápase.', go: 'Rezervovať hodinu', photo: whoPhoto('bufet', 'komplex'), zone: 'food' as const },
+              { href: '/bufet-skyboxy', t: 'Rodičia a fanúšikovia', p: 'Tréning sleduješ v teple skyboxu, bufet je o poschodie nižšie.', go: 'Skyboxy a bufet', photo: whoPhoto('skyboxy'), zone: 'sky' as const },
+            ].map((c) => (
+              <Link key={c.href} href={c.href} className="who3__card">
+                {c.photo ? <CloudImage photo={{ ...c.photo, alt: '' }} sizes="(max-width: 900px) 100vw, 33vw" className="who3__img" /> : <span className="who3__art" aria-hidden="true"><ZoneHero zone={c.zone} now={renderedAt} weather={weather} bare /></span>}
+                <span className="who3__ov" aria-hidden="true" />
+                <span className="who3__tx">
+                  <span className="disp who3__t">{c.t}</span>
+                  <span className="who3__p">{c.p}</span>
+                  <span className="who3__go">{c.go}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* KONTAKT / MAPA */}
       <LocationSection site={site} />
+      <JsonLd data={businessLd(site)} />
 
     </>
   );

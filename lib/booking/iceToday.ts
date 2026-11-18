@@ -4,7 +4,7 @@ import { nextDays, longDayLabel } from '@/lib/dates';
 import { getBookingSettings } from './settings';
 import { dayAvailability } from './availability';
 
-export type IceSlot = { hour: number; ok: boolean; price: number };
+export type IceSlot = { hour: number; ok: boolean; free: boolean; price: number }; // ok = voľné a ešte sa dá rezervovať
 export type IceToday = {
   day: 'dnes' | 'zajtra' | null;
   iso: string | null;
@@ -28,7 +28,7 @@ export const iceToday = cache(async (): Promise<IceToday> => {
     const days = nextDays(2);
     for (const [i, d] of days.entries()) {
       const raw = await dayAvailability(s, d.iso);
-      const slots = raw.map((x) => ({ hour: x.hour, ok: x.free && x.bookable, price: x.price }));
+      const slots = raw.map((x) => ({ hour: x.hour, ok: x.free && x.bookable, free: x.free, price: x.price }));
       const hours = slots.filter((x) => x.ok).map((x) => `${String(x.hour).padStart(2, '0')}:00`);
       if (hours.length) return { ...base, day: i === 0 ? 'dnes' : 'zajtra', iso: d.iso, dayLabel: longDayLabel(d.iso), hours, slots };
     }

@@ -25,7 +25,7 @@ export default async function IhriskoPage() {
         <div className="wrap pp__grid">
           <div className="pp__copy">
             <PartPhoto label="Foto: ihrisko" slot="ihrisko" />
-            <PartGallery slot="ihrisko" />
+            <PartGallery skip={1} slot="ihrisko" />
             <p className="pp__p">
               Na ihrisko si môžeš dohodnúť pravidelný termín pre tím aj jednorazový zápas.
               {site.phone ? (

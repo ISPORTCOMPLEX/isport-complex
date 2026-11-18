@@ -34,8 +34,8 @@ export default function BufetSkyboxyPage() {
           </div>
         </div>
         <div className="wrap">
-          <PartGallery slot="skyboxy" title="Skyboxy" />
-          <PartGallery slot="bufet" title="Bufet" />
+          <PartGallery skip={1} slot="skyboxy" title="Skyboxy" />
+          <PartGallery skip={1} slot="bufet" title="Bufet" />
         </div>
       </section>
     </PartPage>

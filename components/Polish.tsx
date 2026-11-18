@@ -1,18 +1,15 @@
 'use client';
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 
 // Drobnosti, ktoré robia web „živým“ – všetko len ako vylepšenie (bez JavaScriptu web funguje rovnako):
-//  • plynulé prechody medzi stránkami (View Transitions API; prvky s rovnakým view-transition-name sa „premenia“),
+//  • krátke vysunutie novej stránky po prechode (bez čakania na snímku stránky – nič nesekne),
+//  • zastavenie animácií mimo obrazovky,
 //  • nadpis v úvode sa vysunie po písmenách,
 //  • hlavné tlačidlá sa na počítači jemne pritiahnu ku kurzoru (data-magnet),
 //  • farba lišty prehliadača na mobile podľa sekcie, ktorá je práve hore.
 // Pri „obmedziť pohyb“ sa nič z pohybu nerobí.
-
-type VT = { finished: Promise<void> };
-type DocVT = Document & { startViewTransition?: (cb: () => Promise<void>) => VT };
-let done: (() => void) | null = null;
 
 const THEME: [string, string][] = [
   ['.ice2', '#dfeaf2'],
@@ -22,51 +19,35 @@ const THEME: [string, string][] = [
 const BASE = '#0A0A0A';
 
 export function Polish() {
-  const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
 
-  // nová stránka je vykreslená – prechod môže dobehnúť
+  // prechod medzi stránkami: nová stránka sa jemne vysunie (len opacity a posun – plynulé aj na slabom mobile).
+  // Navigácia nikdy nečaká na animáciu; prvé načítanie sa neanimuje.
+  const first = useRef(true);
   useEffect(() => {
-    if (done) {
-      const d = done;
-      done = null;
-      requestAnimationFrame(() => d());
+    if (first.current) {
+      first.current = false;
+      return;
     }
-  }, [pathname, search]);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const main = document.getElementById('obsah');
+    if (!main) return;
+    main.classList.remove('pg-in');
+    void main.offsetWidth;
+    main.classList.add('pg-in');
+    const t = window.setTimeout(() => main.classList.remove('pg-in'), 450);
+    return () => window.clearTimeout(t);
+  }, [pathname]);
 
-  // prechody medzi stránkami: zachytí kliknutie na interný odkaz skôr než Next Link
+  // animácie ilustrácií mimo obrazovky stoja (šetrí procesor a batériu)
   useEffect(() => {
-    const doc = document as DocVT;
-    if (!doc.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const onClick = (e: MouseEvent) => {
-      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
-      if (!a || a.target || a.hasAttribute('download') || a.dataset.noVt !== undefined) return;
-      const url = new URL(a.href, window.location.href);
-      if (url.origin !== window.location.origin) return;
-      if (/^\/(admin|api|videa|obrazky|aplikacia)(\/|$)/.test(url.pathname)) return;
-      if (url.pathname === window.location.pathname && url.search === window.location.search) return; // kotva na tej istej stránke
-      e.preventDefault();
-      e.stopPropagation();
-      const href = url.pathname + url.search + url.hash;
-      doc.startViewTransition!(
-        () =>
-          new Promise<void>((resolve) => {
-            done = resolve;
-            window.setTimeout(() => {
-              if (done === resolve) {
-                done = null;
-                resolve();
-              }
-            }, 1800);
-            router.push(href, { scroll: !url.hash });
-          }),
-      );
-    };
-    document.addEventListener('click', onClick, true);
-    return () => document.removeEventListener('click', onClick, true);
-  }, [router]);
+    const els = document.querySelectorAll('.cxe__art, .band2__art, .zone-art, .tk, .hx2');
+    if (!els.length || !('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver((list) => list.forEach((e) => e.target.classList.toggle('is-off', !e.isIntersecting)), { rootMargin: '120px' });
+    els.forEach((e) => io.observe(e));
+    return () => io.disconnect();
+  }, [pathname, search]);
 
   // nadpis v úvode po písmenách (raz po načítaní stránky)
   useEffect(() => {

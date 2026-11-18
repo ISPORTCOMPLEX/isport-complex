@@ -1,69 +1,100 @@
 import Link from 'next/link';
 import { CoverImg } from '@/components/articles/ArticleCard';
-import { fmtArticleDate, fmtDuration, fmtShortDate, type ArticleCard } from '@/lib/articles/queries';
+import { CATEGORIES } from '@/lib/articles/blocks';
+import { fmtArticleDate, fmtDuration, type ArticleCard } from '@/lib/articles/queries';
 
-function Arrow({ size = 18 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="#E30613" strokeWidth="3" />
-    </svg>
-  );
+const meta = (a: ArticleCard) => (a.videoSeconds !== null ? `video${a.videoSeconds ? ` ${fmtDuration(a.videoSeconds)}` : ''}` : `${a.readMinutes} ${a.readMinutes === 1 ? 'minúta' : a.readMinutes <= 4 ? 'minúty' : 'minút'} čítania`);
+// farebné štítky kategórií ako na športových weboch (červená, modrá, žltá, tmavá)
+const tone = (a: ArticleCard) => (a.pinned ? 'red' : ({ novinky: 'red', turnaje: 'blue', kempy: 'yellow', oznamy: 'ink' } as Record<string, string>)[a.category] ?? 'red');
+
+function Chip({ a }: { a: ArticleCard }) {
+  return <span className={`cat cat--${tone(a)}`}>{a.pinned ? 'Dôležité' : a.categoryLabel}</span>;
 }
 
-const meta = (a: ArticleCard) => (a.videoSeconds !== null ? `video${a.videoSeconds ? ` ${fmtDuration(a.videoSeconds)}` : ''}` : `${a.readMinutes} min čítania`);
-
-// Úvod: NOVINKY – veľký článok vľavo, vpravo zoznam ďalších troch s obrysovými číslami 02–04.
+// Úvod: NOVINKY ako redakčná titulka – hlavný článok, vedľa dva s fotkou, pod nimi rad štyroch krátkych.
 export function NewsSection({ items }: { items: ArticleCard[] }) {
-  const [big, ...rest] = items;
-  const side = rest.slice(0, 3);
+  const [lead, ...rest] = items;
+  const tiles = rest.slice(0, 2);
+  const small = rest.slice(2, 6);
   return (
-    <section className="wrap nw2" aria-labelledby="nw2-t">
-      <div className="sec-head">
-        <div className="sec-head__l">
-          <h2 id="nw2-t" className="disp sec-title">
+    <section className="lite lite--white nw3" aria-labelledby="nw3-t">
+      <div className="wrap">
+        <div className="shd">
+          <h2 id="nw3-t" className="disp shd__t">
             Novinky
           </h2>
-        </div>
-        {big ? (
-          <Link href="/aktuality" className="more-link">
-            Všetky články
-            <Arrow />
-          </Link>
-        ) : null}
-      </div>
-      {big ? (
-        <div className={`nw2__grid${side.length ? '' : ' is-solo'}`}>
-          <Link href={`/aktuality/${big.slug}`} className="nw2__big">
-            <CoverImg a={big} ratio="16:10" sizes="(max-width: 900px) 100vw, 800px" className="nw2__img" />
-            <span className="nw2__ov" aria-hidden="true" />
-            <span className="nw2__tx">
-              <span className="tag-red">{big.pinned ? 'Dôležité' : big.categoryLabel}</span>
-              <span className="disp nw2__t">{big.title}</span>
-              <span className="nw2__meta">
-                <time dateTime={big.date.toISOString()}>{fmtArticleDate(big.date)}</time> · {meta(big)}
-              </span>
-            </span>
-          </Link>
-          {side.length ? (
-            <ol className="nw2__list">
-              {side.map((a, i) => (
-                <li key={a.id}>
-                  <Link href={`/aktuality/${a.slug}`} className="nw2__row">
-                    <span className="nw2__rtx">
-                      <span className={`nw2__k${i === 0 ? ' is-red' : ''}`}>
-                        {a.videoSeconds !== null ? 'Video' : a.categoryLabel} · <time dateTime={a.date.toISOString()}>{fmtShortDate(a.date)}</time>
-                      </span>
-                      <span className="disp nw2__rt">{a.title}</span>
-                    </span>
-                  </Link>
-                </li>
+          {lead ? (
+            <nav className="nw3__cats" aria-label="Kategórie noviniek">
+              <Link href="/aktuality" className="is-on">
+                Všetko
+              </Link>
+              {CATEGORIES.map((c) => (
+                <Link key={c.key} href={`/aktuality?kategoria=${c.key}`}>
+                  {c.label}
+                </Link>
               ))}
-            </ol>
+            </nav>
+          ) : null}
+          <span className="shd__line" aria-hidden="true" />
+          {lead ? (
+            <Link href="/aktuality" className="shd__more">
+              Všetky články
+            </Link>
           ) : null}
         </div>
-      ) : (
-        <p className="nw2__empty">Prvé články pribudnú čoskoro.</p>
-      )}
+        {lead ? (
+          <>
+            <div className={`nw3__top${tiles.length ? '' : ' is-solo'}`}>
+              <Link href={`/aktuality/${lead.slug}`} className="nw3__lead">
+                <CoverImg a={lead} ratio="16:10" sizes="(max-width: 900px) 100vw, 760px" className="nw3__img" />
+                <span className="nw3__ov" aria-hidden="true" />
+                <span className="nw3__ltx">
+                  <Chip a={lead} />
+                  <span className="disp nw3__lt">{lead.title}</span>
+                  <span className="nw3__meta">
+                    <time dateTime={lead.date.toISOString()}>{fmtArticleDate(lead.date)}</time>, {meta(lead)}
+                  </span>
+                </span>
+              </Link>
+              {tiles.length ? (
+                <div className="nw3__tiles">
+                  {tiles.map((a) => (
+                    <Link key={a.id} href={`/aktuality/${a.slug}`} className="nw3__tile">
+                      <span className="nw3__tim">
+                        <CoverImg a={a} ratio="4:3" sizes="(max-width: 900px) 40vw, 200px" className="nw3__img" />
+                      </span>
+                      <span className="nw3__ttx">
+                        <Chip a={a} />
+                        <span className="disp nw3__tt">{a.title}</span>
+                        <time className="nw3__meta" dateTime={a.date.toISOString()}>
+                          {fmtArticleDate(a.date)}
+                        </time>
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {small.length ? (
+              <ul className="nw3__row">
+                {small.map((a) => (
+                  <li key={a.id}>
+                    <Link href={`/aktuality/${a.slug}`} className="nw3__sm">
+                      <span className={`nw3__k is-${tone(a)}`}>{a.videoSeconds !== null ? 'Video' : a.pinned ? 'Dôležité' : a.categoryLabel}</span>
+                      <span className="disp nw3__st">{a.title}</span>
+                      <time className="nw3__meta" dateTime={a.date.toISOString()}>
+                        {fmtArticleDate(a.date)}
+                      </time>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </>
+        ) : (
+          <p className="nw3__empty">Prvé články pribudnú čoskoro.</p>
+        )}
+      </div>
     </section>
   );
 }

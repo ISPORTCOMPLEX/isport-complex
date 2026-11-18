@@ -43,7 +43,7 @@ export default async function RezervaciaPage({ searchParams }: Props) {
           </>
         }
         checks={['Celá plocha, 60 min', 'Šatňa a úprava ľadu v cene', `Storno zdarma do ${settings.cancelFreeHours} h`]}
-        lead={settings.temporary ? <p className="rz-temp">Ceny sú zatiaľ orientačné.</p> : undefined}
+        lead={settings.temporary ? <p className="rz-note">Ceny sú s DPH. Pre tvoju rezerváciu platí cena v potvrdení.</p> : undefined}
       />
       <div className="wrap rz2">
         {presun ? (

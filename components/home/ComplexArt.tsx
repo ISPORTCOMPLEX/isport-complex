@@ -1,4 +1,5 @@
-// Ilustrácia areálu I-SPORT COMPLEX (viewBox 0 0 1600 700): hala 1 (ľad, skyboxy, bufet), ihrisko medzi halami, hala 2 (posilňovňa, wellness).
+// Ilustrácia areálu I-SPORT COMPLEX v štýle architektonickej makety (rovnaký ako 3D model): svetlé matné haly
+// na podstavci, farba len tam, kde niečo znamená (ľad, ihrisko, bazén, dresy, ľudia). viewBox 0 0 1600 700: hala 1 (ľad, skyboxy, bufet), ihrisko medzi halami, hala 2 (posilňovňa, wellness).
 // Čisté SVG bez inline štýlov (CSP) – pohyb riadia triedy cxv-* v globals.css. Postavičky sú kreslené od chodidiel (0,0).
 import type { ReactNode } from 'react';
 
@@ -196,11 +197,11 @@ function Runner({ x }: P) {
 function Tree({ x, s = 1 }: { x: number; s?: number }) {
   return (
     <g transform={`translate(${x} 560) scale(${s})`}>
-      <rect x="-3" y="-30" width="6" height="30" fill="#2A2018" />
-      <circle cx="0" cy="-46" r="22" fill="#163A29" />
-      <circle cx="-12" cy="-34" r="14" fill="#1B4732" />
-      <circle cx="12" cy="-36" r="15" fill="#1A4330" />
-      <circle cx="4" cy="-60" r="12" fill="#1E4E37" />
+      <ellipse cx="6" cy="0" rx="20" ry="3" fill="#000000" opacity=".08" />
+      <rect x="-1.5" y="-26" width="3" height="26" fill="#AEB8C2" />
+      <circle cx="0" cy="-44" r="20" fill="url(#cxv-tree)" />
+      <circle cx="-11" cy="-33" r="12" fill="url(#cxv-tree)" />
+      <circle cx="11" cy="-35" r="13" fill="url(#cxv-tree)" />
     </g>
   );
 }
@@ -209,44 +210,48 @@ export function ComplexArt({ sky, front }: { sky: ReactNode; front: ReactNode })
   return (
     <>
         <defs>
-          <linearGradient id="cxv-hall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#141C29" /><stop offset="1" stopColor="#0C1018" /></linearGradient>
-          <linearGradient id="cxv-roof" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#3A4657" /><stop offset=".5" stopColor="#5A6B80" /><stop offset="1" stopColor="#3A4657" /></linearGradient>
-          <linearGradient id="cxv-beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#DCEBFA" stopOpacity=".22" /><stop offset="1" stopColor="#DCEBFA" stopOpacity="0" /></linearGradient>
+          <linearGradient id="cxv-hall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#E3E8ED" /><stop offset="1" stopColor="#CDD5DD" /></linearGradient>
+          <linearGradient id="cxv-roof" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#E9EDF1" /><stop offset=".5" stopColor="#FFFFFF" /><stop offset="1" stopColor="#E9EDF1" /></linearGradient>
+          <linearGradient id="cxv-beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#FFFFFF" stopOpacity=".55" /><stop offset="1" stopColor="#FFFFFF" stopOpacity="0" /></linearGradient>
           <linearGradient id="cxv-ice" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#F6FBFF" /><stop offset="1" stopColor="#B9D3E8" /></linearGradient>
           <linearGradient id="cxv-glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#BFE3FF" stopOpacity=".16" /><stop offset="1" stopColor="#BFE3FF" stopOpacity=".04" /></linearGradient>
           <radialGradient id="cxv-warm" cx=".5" cy=".2" r=".8"><stop offset="0" stopColor="#FFB020" stopOpacity=".26" /><stop offset="1" stopColor="#FFB020" stopOpacity="0" /></radialGradient>
-          <linearGradient id="cxv-room" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#1F2634" /><stop offset="1" stopColor="#161C27" /></linearGradient>
+          <linearGradient id="cxv-room" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#F1F3F6" /><stop offset="1" stopColor="#E2E7EC" /></linearGradient>
           <linearGradient id="cxv-turf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#1E7A45" /><stop offset="1" stopColor="#15603A" /></linearGradient>
           <linearGradient id="cxv-flood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#FFF4CF" stopOpacity=".26" /><stop offset="1" stopColor="#FFF4CF" stopOpacity="0" /></linearGradient>
-          <linearGradient id="cxv-h2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#151D2A" /><stop offset="1" stopColor="#0E131B" /></linearGradient>
-          <linearGradient id="cxv-mirror" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#33445A" /><stop offset="1" stopColor="#1C2533" /></linearGradient>
+          <linearGradient id="cxv-h2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#E3E8ED" /><stop offset="1" stopColor="#CDD5DD" /></linearGradient>
+          <linearGradient id="cxv-mirror" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#F7FAFC" /><stop offset="1" stopColor="#C9D3DC" /></linearGradient>
           <linearGradient id="cxv-wood" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#B07642" /><stop offset="1" stopColor="#8A5830" /></linearGradient>
           <linearGradient id="cxv-water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#47CFD6" /><stop offset="1" stopColor="#1A7C97" /></linearGradient>
-          <linearGradient id="cxv-ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#121720" /><stop offset="1" stopColor="#08090D" /></linearGradient>
+          <linearGradient id="cxv-ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#EEF1F4" /><stop offset="1" stopColor="#DDE2E7" /></linearGradient>
           <radialGradient id="cxv-glow"><stop offset="0" stopColor="#FFF6DA" stopOpacity=".38" /><stop offset="1" stopColor="#FFF6DA" stopOpacity="0" /></radialGradient>
-          <pattern id="cxv-net" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 0L8 8M8 0L0 8" stroke="#C9D4DE" strokeWidth=".6" opacity=".35" /></pattern>
+          <pattern id="cxv-net" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 0L8 8M8 0L0 8" stroke="#8A97A4" strokeWidth=".6" opacity=".5" /></pattern>
+          <linearGradient id="cxv-plinth" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#C9D1D9" /><stop offset="1" stopColor="#AEB8C2" /></linearGradient>
+          <radialGradient id="cxv-tree" cx=".38" cy=".32" r=".75"><stop offset="0" stopColor="#FFFFFF" /><stop offset="1" stopColor="#D3DAE1" /></radialGradient>
         </defs>
 
         {sky}
 
         {/* ===== HALA 1 ===== */}
         <path d="M40 560V300C200 120 700 120 860 300V560Z" fill="url(#cxv-hall)" />
-        <path d="M77 275.6L123.6 264.6M111.5 252.2L90.2 286.8M150.9 232L203.7 229M194.4 214.9L161.7 245.3M241.4 200.9L297 205.3M291.1 190L249 215.7M342.9 182.2L398.1 193.5M396.1 177.6L346.9 197.9M450 176L501.9 193.5M503.9 177.6L450 192M557.1 182.2L603 205.3M608.9 190L553.1 197.9M658.6 200.9L696.3 229M705.6 214.9L651 215.7M749.1 232L776.4 264.6M788.5 252.2L738.3 245.3M823 275.6L838 312" stroke="#263244" strokeWidth="1.4" fill="none" />
-        <path d="M62 312C214 152 686 152 838 312" stroke="#2C394C" strokeWidth="2" fill="none" />
+        <path d="M77 275.6L123.6 264.6M111.5 252.2L90.2 286.8M150.9 232L203.7 229M194.4 214.9L161.7 245.3M241.4 200.9L297 205.3M291.1 190L249 215.7M342.9 182.2L398.1 193.5M396.1 177.6L346.9 197.9M450 176L501.9 193.5M503.9 177.6L450 192M557.1 182.2L603 205.3M608.9 190L553.1 197.9M658.6 200.9L696.3 229M705.6 214.9L651 215.7M749.1 232L776.4 264.6M788.5 252.2L738.3 245.3M823 275.6L838 312" stroke="#BAC3CC" strokeWidth="1.4" fill="none" />
+        <path d="M62 312C214 152 686 152 838 312" stroke="#AEB8C2" strokeWidth="2" fill="none" />
+        <path d="M30 305C194 113 706 113 870 305" stroke="#AEB8C2" strokeWidth="17" strokeLinecap="round" fill="none" />
         <path d="M30 305C194 113 706 113 870 305" stroke="url(#cxv-roof)" strokeWidth="13" strokeLinecap="round" fill="none" />
-        <path d="M40 300V560M860 300V560" stroke="#2C3747" strokeWidth="3" />
+        <path d="M30 305C194 113 706 113 870 305" stroke="#E30613" strokeWidth="2.4" strokeLinecap="round" fill="none" transform="translate(0 7)" />
+        <path d="M40 300V560M860 300V560" stroke="#E30613" strokeWidth="3" />
         <text x="450" y="100" textAnchor="middle" className="cxv-sign">I-SPORT COMPLEX</text>
         <rect x="374" y="108" width="152" height="3" fill="#E30613" />
         <text x="62" y="350" className="cxe__tag">HALA 1</text>
 
         <g className="cxv-z cxv-z-ice">
           <g data-st="2">
-          <path d="M150 250.7V266M262 212.5V266M478 192.4V266M590 203.1V266M352 197.3V296M388 194.1V296" stroke="#2C394C" strokeWidth="1.5" />
+          <path d="M150 250.7V266M262 212.5V266M478 192.4V266M590 203.1V266M352 197.3V296M388 194.1V296" stroke="#AEB8C2" strokeWidth="1.5" />
           <path d="M130 274L170 274L214 520H86Z" fill="url(#cxv-beam)" />
   <path d="M242 274L282 274L326 520H198Z" fill="url(#cxv-beam)" />
   <path d="M458 274L498 274L542 520H414Z" fill="url(#cxv-beam)" />
   <path d="M570 274L610 274L654 520H526Z" fill="url(#cxv-beam)" />
-          <rect x="128" y="266" width="44" height="7" rx="3.5" fill="#EAF2F9" /><rect x="128" y="272" width="44" height="2" fill="#9FD3FF" opacity=".7" />
+          <rect x="128" y="266" width="44" height="7" rx="3.5" fill="#FFFFFF" stroke="#C3CCD5" /><rect x="128" y="272" width="44" height="2" fill="#9FD3FF" opacity=".7" />
   <rect x="240" y="266" width="44" height="7" rx="3.5" fill="#EAF2F9" /><rect x="240" y="272" width="44" height="2" fill="#9FD3FF" opacity=".7" />
   <rect x="456" y="266" width="44" height="7" rx="3.5" fill="#EAF2F9" /><rect x="456" y="272" width="44" height="2" fill="#9FD3FF" opacity=".7" />
   <rect x="568" y="266" width="44" height="7" rx="3.5" fill="#EAF2F9" /><rect x="568" y="272" width="44" height="2" fill="#9FD3FF" opacity=".7" />
@@ -284,7 +289,7 @@ export function ComplexArt({ sky, front }: { sky: ReactNode; front: ReactNode })
           </g>
           <g data-st="0">
           <rect x="70" y="520" width="600" height="14" rx="3" fill="url(#cxv-ice)" />
-          <rect x="70" y="534" width="600" height="26" fill="#1A2230" />
+          <rect x="70" y="534" width="600" height="26" fill="#C3CCD5" />
           <rect x="300" y="520" width="4" height="14" fill="#2E6BE6" /><rect x="368" y="520" width="5" height="14" fill="#E30613" /><rect x="436" y="520" width="4" height="14" fill="#2E6BE6" />
           </g>
           <g data-st="1">
@@ -309,15 +314,15 @@ export function ComplexArt({ sky, front }: { sky: ReactNode; front: ReactNode })
 
         {/* skybox (poschodie) */}
         <g className="cxv-z cxv-z-sky">
-          <rect x="652" y="344" width="208" height="7" fill="#2C3747" />
+          <rect x="652" y="344" width="208" height="7" fill="#AEB8C2" />
           <rect x="660" y="351" width="200" height="96" fill="url(#cxv-room)" />
           <rect x="660" y="351" width="200" height="96" fill="url(#cxv-warm)" />
           <rect x="660" y="351" width="9" height="96" fill="#9FD3FF" opacity=".32" />
           <rect x="806" y="364" width="38" height="24" rx="2" fill="#0A0E14" stroke="#3A4656" />
           <rect x="810" y="368" width="30" height="16" fill="#BFE3FF" opacity=".55" />
-          <path d="M720 351V362M800 351V362" stroke="#3A4656" strokeWidth="1.5" />
+          <path d="M720 351V362M800 351V362" stroke="#8A97A4" strokeWidth="1.5" />
           <path d="M712 368a8 8 0 0 1 16 0Z" fill="#FFB020" /><path d="M792 368a8 8 0 0 1 16 0Z" fill="#FFB020" />
-          <rect x="668" y="414" width="150" height="5" rx="2" fill="#3A4656" />
+          <rect x="668" y="414" width="150" height="5" rx="2" fill="#8A97A4" />
           <rect x="684" y="406" width="6" height="8" rx="1.5" fill="#FFB020" opacity=".9" />
           <rect x="742" y="406" width="6" height="8" rx="1.5" fill="#E7EEF4" />
           <Fan x={706} c="#E30613" />
@@ -328,17 +333,17 @@ export function ComplexArt({ sky, front }: { sky: ReactNode; front: ReactNode })
             <path d="M716 388L712 396L726 388Z" fill="#FFB020" />
             <text x="737" y="381" textAnchor="middle" className="cxv-bubble-t">GÓÓÓL!</text>
           </g>
-          <rect x="652" y="447" width="208" height="9" fill="#2C3747" />
+          <rect x="652" y="447" width="208" height="9" fill="#AEB8C2" />
         </g>
 
         {/* bufet (prízemie) */}
         <g className="cxv-z cxv-z-food">
-          <rect x="660" y="456" width="200" height="104" fill="#18202C" />
+          <rect x="660" y="456" width="200" height="104" fill="#E6EAEE" />
           <rect x="660" y="456" width="200" height="104" fill="url(#cxv-warm)" />
           <rect x="684" y="468" width="64" height="30" rx="3" fill="#0A0E14" stroke="#3A4656" />
           <text x="716" y="481" textAnchor="middle" className="cxv-menu">BUFET</text>
           <path d="M692 487H722M692 492H714M728 487H740M728 492H740" stroke="#7C8794" strokeWidth="1.5" />
-          <rect x="766" y="476" width="54" height="3" rx="1.5" fill="#3A4656" />
+          <rect x="766" y="476" width="54" height="3" rx="1.5" fill="#8A97A4" />
           <rect x="770" y="466" width="7" height="10" rx="1.5" fill="#E7EEF4" /><rect x="781" y="466" width="7" height="10" rx="1.5" fill="#FFB020" /><rect x="792" y="466" width="7" height="10" rx="1.5" fill="#E30613" />
           <rect x="826" y="482" width="22" height="34" rx="3" fill="#C9D1DA" />
           <rect x="830" y="488" width="14" height="8" rx="1.5" fill="#1B2230" />
@@ -357,7 +362,7 @@ export function ComplexArt({ sky, front }: { sky: ReactNode; front: ReactNode })
           <path d="M892 334L944 515H1060Z" fill="url(#cxv-flood)" className="cxv-floodbeam" />
           <path d="M1188 334L1136 515H1020Z" fill="url(#cxv-flood)" className="cxv-floodbeam" />
           <rect x="912" y="462" width="256" height="53" fill="url(#cxv-net)" />
-          <path d="M912 462V515M944 462V515M976 462V515M1008 462V515M1040 462V515M1072 462V515M1104 462V515M1136 462V515M1168 462V515M912 462H1168" stroke="#4A5868" strokeWidth="1.6" />
+          <path d="M912 462V515M944 462V515M976 462V515M1008 462V515M1040 462V515M1072 462V515M1104 462V515M1136 462V515M1168 462V515M912 462H1168" stroke="#8A97A4" strokeWidth="1.6" />
           <path d="M912 515L1168 515L1196 560L884 560Z" fill="url(#cxv-turf)" />
           <path d="M912 515L944 515L923 560L884 560Z" fill="#FFFFFF" opacity=".05" /><path d="M976 515L1008 515L1001 560L962 560Z" fill="#FFFFFF" opacity=".05" /><path d="M1040 515L1072 515L1079 560L1040 560Z" fill="#FFFFFF" opacity=".05" /><path d="M1104 515L1136 515L1157 560L1118 560Z" fill="#FFFFFF" opacity=".05" />
           <path d="M920 519L1160 519L1184 556L896 556Z" stroke="#FFFFFF" strokeWidth="1.5" fill="none" opacity=".75" />
@@ -377,15 +382,16 @@ export function ComplexArt({ sky, front }: { sky: ReactNode; front: ReactNode })
           <Keeper x={1162} />
         </g>
         {/* stožiare svetiel */}
-        <path d="M892 560V330M1188 560V330" stroke="#3A4656" strokeWidth="4" />
+        <path d="M892 560V330M1188 560V330" stroke="#9AA6B2" strokeWidth="4" />
         <rect x="878" y="320" width="28" height="12" rx="2" fill="#E4ECF4" /><rect x="1174" y="320" width="28" height="12" rx="2" fill="#E4ECF4" />
         <g className="cxv-floodbeam"><circle cx="892" cy="328" r="34" fill="url(#cxv-glow)" /><circle cx="1188" cy="328" r="34" fill="url(#cxv-glow)" /></g>
 
         {/* ===== HALA 2 ===== */}
         <rect x="1220" y="300" width="340" height="260" fill="url(#cxv-h2)" />
-        <rect x="1206" y="286" width="368" height="15" rx="3" fill="url(#cxv-roof)" />
+        <rect x="1206" y="286" width="368" height="15" rx="3" fill="#F4F6F8" stroke="#AEB8C2" strokeWidth="2" />
+        <rect x="1206" y="299" width="368" height="2.4" fill="#E30613" />
         <rect x="1214" y="301" width="7" height="259" fill="#E30613" />
-        <path d="M1560 301V560" stroke="#2C3747" strokeWidth="3" />
+        <path d="M1560 301V560" stroke="#E30613" strokeWidth="3" />
         <text x="1224" y="276" className="cxe__tag">HALA 2</text>
 
         <g className="cxv-z cxv-z-gym">
@@ -394,12 +400,12 @@ export function ComplexArt({ sky, front }: { sky: ReactNode; front: ReactNode })
           <path d="M1270 380L1310 318M1300 380L1340 318M1420 380L1460 318" stroke="#FFFFFF" strokeWidth="6" opacity=".04" />
           <circle cx="1356" cy="334" r="9" fill="#0A0E14" stroke="#7C8794" strokeWidth="1.5" />
           <path d="M1356 334V327" stroke="#E4ECF4" strokeWidth="1.5" strokeLinecap="round" className="cxv-clock" />
-          <rect x="1220" y="420" width="340" height="9" fill="#1A1F28" />
+          <rect x="1220" y="420" width="340" height="9" fill="#AEB8C2" />
           <path d="M1262 420V346M1318 420V346" stroke="#7C8794" strokeWidth="4" strokeLinecap="round" />
           <path d="M1258 420H1266M1314 420H1322" stroke="#7C8794" strokeWidth="4" strokeLinecap="round" />
           <Lifter x={1290} />
           <Curler x={1392} />
-          <rect x="1440" y="408" width="78" height="12" rx="4" fill="#2C3747" />
+          <rect x="1440" y="408" width="78" height="12" rx="4" fill="#4A5868" />
           <path d="M1512 408L1506 368" stroke="#7C8794" strokeWidth="3.5" strokeLinecap="round" />
           <rect x="1496" y="360" width="20" height="10" rx="2" fill="#1B2230" stroke="#7C8794" />
           <rect x="1499" y="363" width="9" height="4" fill="#3DDC84" opacity=".8" />
@@ -408,7 +414,7 @@ export function ComplexArt({ sky, front }: { sky: ReactNode; front: ReactNode })
         </g>
 
         <g className="cxv-z cxv-z-well">
-          <rect x="1220" y="429" width="340" height="7" fill="#2C3747" />
+          <rect x="1220" y="429" width="340" height="7" fill="#AEB8C2" />
           <rect x="1221" y="436" width="339" height="124" fill="url(#cxv-warm)" />
           <path d="M1376 444a10 6 0 0 1 20 0M1478 444a10 6 0 0 1 20 0" fill="#FFB020" opacity=".85" />
           <rect x="1240" y="478" width="100" height="82" rx="4" fill="url(#cxv-wood)" />
@@ -437,10 +443,13 @@ export function ComplexArt({ sky, front }: { sky: ReactNode; front: ReactNode })
         </g>
 
         {/* zem, chodník, stromy */}
-        <rect x="-200" y="560" width="2000" height="240" fill="url(#cxv-ground)" />
-        <rect x="-200" y="560" width="2000" height="5" fill="#1C2430" />
-        <rect x="-200" y="604" width="2000" height="34" fill="#0C1017" />
-        <path d="M-200 621H1800" stroke="#2A3442" strokeWidth="2" strokeDasharray="22 18" />
+        {/* podstavec makety: chodník, cesta a predná hrana */}
+        <rect x="-200" y="560" width="2000" height="62" fill="url(#cxv-ground)" />
+        <rect x="-200" y="560" width="2000" height="4" fill="#C9D1D9" />
+        <rect x="-200" y="586" width="2000" height="24" fill="#A9B3BD" />
+        <path d="M-200 598H1800" stroke="#FFFFFF" strokeWidth="2" strokeDasharray="22 18" opacity=".9" />
+        <rect x="-200" y="622" width="2000" height="22" fill="url(#cxv-plinth)" />
+        <rect x="-200" y="644" width="2000" height="10" fill="#000000" opacity=".22" />
         <Tree x={16} s={1.1} />
         <Tree x={872} s={0.75} />
         <Tree x={1203} s={0.8} />

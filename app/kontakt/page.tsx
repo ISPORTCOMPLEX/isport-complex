@@ -6,6 +6,8 @@ import { createFormStamp } from '@/lib/formGuard';
 import { RzBand } from '@/components/booking/RzBand';
 import { LocationSection } from '@/components/location/LocationSection';
 import { Icon } from '@/components/Icon';
+import { AreaArt } from '@/components/home/AreaArt';
+import { OpenNow } from '@/components/OpenNow';
 
 export const metadata: Metadata = { title: 'Kontakt', description: 'Kontakt, adresa a otváracie hodiny I-SPORT COMPLEX, Jarmočná 2627/10, Košice – Juh.' };
 
@@ -15,6 +17,7 @@ export default async function KontaktPage() {
   return (
     <>
       <RzBand
+        art={<AreaArt />}
         crumbs={[{ href: '/', label: 'Komplex' }, { label: 'Kontakt' }]}
         title="Kontakt"
         lead={
@@ -73,6 +76,7 @@ export default async function KontaktPage() {
                       </div>
                     ))}
                 </dl>
+                <OpenNow hours={site.hours} className="u-mt8-15" />
               </div>
             ) : null}
             <div>

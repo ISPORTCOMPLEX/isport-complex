@@ -124,7 +124,7 @@ export const homeArticles = cache(async (): Promise<ArticleCard[]> => {
     const rows = await prisma.article.findMany({
       where: liveWhere(),
       orderBy: [{ pinned: 'desc' }, { publishedAt: 'desc' }, { publishAt: 'desc' }],
-      take: 4,
+      take: 7, // hlavný + 2 s fotkou + rad 4 krátkych
       select: cardSelect,
     });
     return rows.map(toCard);
