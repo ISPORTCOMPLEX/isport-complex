@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { CloudImage } from '@/components/CloudImage';
-import { lonelyXUrl, sanitizeInline, type Block } from '@/lib/articles/blocks';
+import { sanitizeInline, splitXParts, type Block } from '@/lib/articles/blocks';
 import { XCard } from './XCard';
 import { articleImage, fmtDuration, videoPoster, videoSrc } from '@/lib/articles/queries';
 import { YouTube } from './YouTube';
@@ -11,16 +11,12 @@ import { getXPost, type XPost } from '@/lib/articles/xpost';
 export async function ArticleBody({ slug, blocks, title }: { slug: string; blocks: Block[]; title: string }) {
   const t = await getT();
   // náhľady príspevkov z X načítame naraz (server, s vyrovnávacou pamäťou)
-  // aj textový blok, v ktorom je len odkaz na príspevok z X, sa zobrazí ako náhľad
-  const xUrl = (b: Block) => (b.type === 'xpost' ? b.url : b.type === 'text' ? lonelyXUrl(b.html) : null);
-  const xposts = new Map<string, XPost | null>(
-    await Promise.all(
-      blocks
-        .map((b) => [b.id, xUrl(b)] as const)
-        .filter((e): e is readonly [string, string] => e[1] !== null)
-        .map(async ([id, url]) => [id, await getXPost(url)] as const),
-    ),
-  );
+  // aj riadok textu, v ktorom je len odkaz na príspevok z X, sa zobrazí ako náhľad
+  const parts = new Map(blocks.filter((b) => b.type === 'text').map((b) => [b.id, splitXParts(sanitizeInline((b as { html: string }).html))]));
+  const urls = new Set<string>();
+  for (const b of blocks) if (b.type === 'xpost') urls.add(b.url);
+  for (const ps of parts.values()) for (const p of ps) if ('x' in p) urls.add(p.x);
+  const xposts = new Map<string, XPost | null>(await Promise.all([...urls].map(async (u) => [u, await getXPost(u)] as const)));
   let n = 0; // poradie fotky v prehliadači /aktuality/<slug>/fotky/<n>
   const viewer = (i: number) => `/aktuality/${slug}/fotky/${i}`;
   return (
@@ -28,9 +24,13 @@ export async function ArticleBody({ slug, blocks, title }: { slug: string; block
       {blocks.map((b) => {
         switch (b.type) {
           case 'text': {
-            const xu = lonelyXUrl(b.html);
-            if (xu) return <XCard key={b.id} url={xu} x={xposts.get(b.id) ?? null} t={t} />;
-            return b.html ? <div key={b.id} className="ab__p" dangerouslySetInnerHTML={{ __html: sanitizeInline(b.html) }} /> : null;
+            const ps = parts.get(b.id) ?? [];
+            if (!ps.length) return null;
+            return (
+              <div key={b.id} className="u-contents">
+                {ps.map((p, k) => ('x' in p ? <XCard key={k} url={p.x} x={xposts.get(p.x) ?? null} t={t} /> : <div key={k} className="ab__p" dangerouslySetInnerHTML={{ __html: p.html }} />))}
+              </div>
+            );
           }
           case 'heading':
             return b.text ? (
@@ -104,7 +104,7 @@ export async function ArticleBody({ slug, blocks, title }: { slug: string; block
               </figure>
             );
           case 'xpost':
-            return <XCard key={b.id} url={b.url} x={xposts.get(b.id) ?? null} fallback={{ author: b.author, text: b.text, date: b.date }} t={t} />;
+            return <XCard key={b.id} url={b.url} x={xposts.get(b.url) ?? null} fallback={{ author: b.author, text: b.text, date: b.date }} t={t} />;
           case 'quote':
             return b.text ? (
               <blockquote key={b.id} className="ab__q">

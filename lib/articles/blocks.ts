@@ -245,3 +245,32 @@ export function lonelyXUrl(html: string): string | null {
   }
   return /^\S+$/.test(text) ? xPostUrl(text) : null;
 }
+
+// Textový blok rozdelený na časti: riadky, v ktorých je len odkaz na príspevok z X, sa stanú náhľadom,
+// zvyšok ostane textom. (Riadky oddeľuje <br>; zoznamy sa nedelia.)
+export type TextPart = { html: string } | { x: string };
+export function splitXParts(html: string): TextPart[] {
+  if (/<(ul|ol)\b/i.test(html)) {
+    const u = lonelyXUrl(html);
+    return [u ? { x: u } : { html }];
+  }
+  const lines = html.split(/<br\s*\/?>/i);
+  const out: TextPart[] = [];
+  let buf: string[] = [];
+  const flush = () => {
+    // prázdne riadky na začiatku a konci časti zahodíme (medzeru robí odsadenie bloku)
+    while (buf.length && !buf[0].trim()) buf.shift();
+    while (buf.length && !buf[buf.length - 1].trim()) buf.pop();
+    if (buf.length) out.push({ html: buf.join('<br>') });
+    buf = [];
+  };
+  for (const line of lines) {
+    const u = line.trim() ? lonelyXUrl(line) : null;
+    if (u) {
+      flush();
+      out.push({ x: u });
+    } else buf.push(line);
+  }
+  flush();
+  return out;
+}

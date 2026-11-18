@@ -1,7 +1,7 @@
 // Testy redakčného systému bez databázy: čistenie textu (XSS), bloky, adresy článkov a videí.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sanitizeInline, safeHref, slugify, youtubeIdFrom, normalizeBlocks, normalizeCover, readMinutes, galleryImages, xPostUrl, lonelyXUrl } from '../lib/articles/blocks.ts';
+import { sanitizeInline, safeHref, slugify, youtubeIdFrom, normalizeBlocks, normalizeCover, readMinutes, galleryImages, xPostUrl, lonelyXUrl, splitXParts } from '../lib/articles/blocks.ts';
 import { parseVideoPath } from '../lib/cloudinary.ts';
 
 test('text: povolené formátovanie ostane', () => {
@@ -137,4 +137,9 @@ test('text s jediným odkazom na X sa zobrazí ako náhľad', () => {
   assert.equal(lonelyXUrl('<a href="https://x.com/a/status/123456">Pozri príspevok na X</a>'), 'https://x.com/a/status/123456');
   assert.equal(lonelyXUrl('Toto je dlhší odstavec. A v ňom <a href="https://x.com/a/status/123456">odkaz</a>.'), null);
   assert.equal(lonelyXUrl('<a href="https://example.com">x</a>'), null);
+});
+
+test('riadok s odkazom na X uprostred textu sa oddelí ako náhľad', () => {
+  const parts = splitXParts('Text odstavca.<br><br><a href="https://x.com/a/status/2123086672028127264?a=x&amp;s=20">https://x.com/a/status/2123086672028127264?a=x&amp;s=20</a><br><br>Ďalší.');
+  assert.deepEqual(parts, [{ html: 'Text odstavca.' }, { x: 'https://x.com/a/status/2123086672028127264' }, { html: 'Ďalší.' }]);
 });
