@@ -1,7 +1,7 @@
 // Testy redakčného systému bez databázy: čistenie textu (XSS), bloky, adresy článkov a videí.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sanitizeInline, safeHref, slugify, youtubeIdFrom, normalizeBlocks, normalizeCover, readMinutes, galleryImages, xPostUrl } from '../lib/articles/blocks.ts';
+import { sanitizeInline, safeHref, slugify, youtubeIdFrom, normalizeBlocks, normalizeCover, readMinutes, galleryImages, xPostUrl, lonelyXUrl } from '../lib/articles/blocks.ts';
 import { parseVideoPath } from '../lib/cloudinary.ts';
 
 test('text: povolené formátovanie ostane', () => {
@@ -130,4 +130,11 @@ test('príspevok z X: len odkaz na konkrétny príspevok', () => {
   assert.equal(xPostUrl('javascript:alert(1)'), null);
   const b = normalizeBlocks([{ type: 'xpost', url: 'https://x.com/a/status/123456', text: '<script>x</script>Ahoj', author: 'A' }])[0];
   assert.equal(b?.type, 'xpost');
+});
+
+test('text s jediným odkazom na X sa zobrazí ako náhľad', () => {
+  assert.equal(lonelyXUrl('https://x.com/a/status/123456'), 'https://x.com/a/status/123456');
+  assert.equal(lonelyXUrl('<a href="https://x.com/a/status/123456">Pozri príspevok na X</a>'), 'https://x.com/a/status/123456');
+  assert.equal(lonelyXUrl('Toto je dlhší odstavec. A v ňom <a href="https://x.com/a/status/123456">odkaz</a>.'), null);
+  assert.equal(lonelyXUrl('<a href="https://example.com">x</a>'), null);
 });

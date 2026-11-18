@@ -16,6 +16,7 @@ export type XPost = {
   photos: { src: string; w: number; h: number }[];
   video: { poster: string; w: number; h: number } | null;
   likes: number | null;
+  replies: number | null;
 };
 
 const idFrom = (url: string) => /\/status\/(\d{5,25})/.exec(url)?.[1] ?? null;
@@ -35,6 +36,7 @@ type Raw = {
   display_text_range?: [number, number];
   created_at?: string;
   favorite_count?: number;
+  conversation_count?: number;
   user?: { name?: string; screen_name?: string; profile_image_url_https?: string; is_blue_verified?: boolean; verified?: boolean };
   mediaDetails?: { type?: string; media_url_https?: string; original_info?: { width?: number; height?: number } }[];
   entities?: { urls?: { url?: string; expanded_url?: string; display_url?: string }[] };
@@ -78,6 +80,7 @@ export async function getXPost(url: string): Promise<XPost | null> {
       photos,
       video: poster ? { poster, w: v?.original_info?.width ?? 1280, h: v?.original_info?.height ?? 720 } : null,
       likes: typeof j.favorite_count === 'number' ? j.favorite_count : null,
+      replies: typeof j.conversation_count === 'number' ? j.conversation_count : null,
     };
   } catch {
     return null;

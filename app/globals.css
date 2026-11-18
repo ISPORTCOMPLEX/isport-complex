@@ -5180,3 +5180,40 @@ a.is__c:hover { background: #0f1c30; color: var(--white); }
 .ab__xp-media--video { position: relative; }
 .ab__xp-play { position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; background: rgba(11, 22, 38, 0.75); }
 .ab__xp-play::after { content: ''; position: absolute; left: 26px; top: 20px; border-left: 18px solid #fff; border-top: 12px solid transparent; border-bottom: 12px solid transparent; }
+
+/* ---------- vložený príspevok z X (vzhľad ako na X) ---------- */
+.xc { max-width: 550px; margin: 32px auto; padding: 14px 16px 12px; border: 1px solid #cfd9de; border-radius: 12px; background: #fff; color: #0f1419; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.35; }
+.xc a { color: inherit; text-decoration: none; }
+.xc__head { display: flex; align-items: flex-start; gap: 10px; }
+.xc__av { flex: none; display: grid; place-items: center; width: 48px; height: 48px; overflow: hidden; border-radius: 50%; background: #e7ecf0; font-weight: 700; color: #536471; }
+.xc__av img { width: 100%; height: 100%; object-fit: cover; }
+.xc__who { display: flex; flex-direction: column; min-width: 0; padding-top: 2px; }
+.xc__name { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; font-size: 15px; }
+.xc__name:hover { text-decoration: underline; }
+.xc__ver { display: inline-block; width: 18px; height: 18px; border-radius: 50%; background: #1d9bf0; position: relative; }
+.xc__ver::after { content: ''; position: absolute; left: 6px; top: 3px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.xc__handle { color: #536471; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xc__follow { color: #1d9bf0 !important; font-weight: 700; }
+.xc__follow:hover { text-decoration: underline !important; }
+.xc__logo { margin-left: auto; font-size: 26px; font-weight: 700; line-height: 1; color: #0f1419; }
+.xc__text { margin: 12px 0 0; font-size: 20px; line-height: 1.3; white-space: pre-line; overflow-wrap: anywhere; }
+.xc__hl { color: #1d9bf0; }
+.xc__media { position: relative; display: grid; gap: 2px; margin-top: 12px; overflow: hidden; border: 1px solid #cfd9de; border-radius: 16px; }
+.xc__media img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.xc__media--1 img { height: auto; max-height: 560px; }
+.xc__media--2 { grid-template-columns: 1fr 1fr; aspect-ratio: 16 / 9; }
+.xc__media--3, .xc__media--4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; aspect-ratio: 16 / 9; }
+.xc__media--3 img:first-child { grid-row: span 2; }
+.xc__watch { position: absolute; right: 12px; top: 12px; padding: 6px 14px; border-radius: 999px; background: rgba(15, 20, 25, 0.75); color: #fff; font-weight: 700; font-size: 14px; }
+.xc__play { position: absolute; left: 50%; top: 50%; width: 66px; height: 66px; margin: -33px 0 0 -33px; border-radius: 50%; background: #1d9bf0; box-shadow: 0 0 0 4px #fff; }
+.xc__play::after { content: ''; position: absolute; left: 26px; top: 20px; border-left: 20px solid #fff; border-top: 13px solid transparent; border-bottom: 13px solid transparent; }
+.xc__media--video:hover .xc__play { background: #1a8cd8; }
+.xc__date { display: inline-block; margin-top: 12px; color: #536471 !important; font-size: 15px; }
+.xc__date:hover { text-decoration: underline !important; }
+.xc__acts { display: flex; align-items: center; gap: 28px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eff3f4; color: #536471; font-weight: 700; font-size: 14px; }
+.xc__acts a { display: inline-flex; align-items: center; gap: 6px; color: #0f1419; }
+.xc__acts a:hover { color: #1d9bf0; }
+.xc__heart { color: #f91880; font-size: 19px; line-height: 1; }
+.xc__bubble { display: inline-block; width: 18px; height: 15px; border-radius: 9px 9px 9px 2px; background: #1d9bf0; }
+.xc__more { display: block; margin-top: 10px; padding: 7px 16px; border: 1px solid #cfd9de; border-radius: 999px; text-align: center; color: #1d9bf0 !important; font-weight: 700; }
+.xc__more:hover { background: rgba(29, 155, 240, 0.1); }

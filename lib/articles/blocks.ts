@@ -231,3 +231,17 @@ export function galleryImages(blocks: Block[]): (Img & { alt: string })[] {
   }
   return out;
 }
+
+// Textový blok, v ktorom je len odkaz na príspevok z X (vložená adresa alebo jeden odkaz) –
+// na webe sa zobrazí ako náhľad príspevku, rovnako ako blok „Príspevok z X“.
+export function lonelyXUrl(html: string): string | null {
+  const hrefs = [...html.matchAll(/href\s*=\s*"([^"]+)"/gi)].map((m) => m[1].replace(/&amp;/g, '&'));
+  const text = plainText(html).trim();
+  if (hrefs.length > 1) return null;
+  if (hrefs.length === 1) {
+    const url = xPostUrl(hrefs[0]);
+    // odkaz musí byť jediný obsah bloku (text odkazu môže byť ľubovoľný krátky)
+    return url && text.length <= 160 && !/[.!?]\s+\S/.test(text) ? url : null;
+  }
+  return /^\S+$/.test(text) ? xPostUrl(text) : null;
+}
