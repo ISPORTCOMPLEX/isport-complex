@@ -14,31 +14,20 @@ async function Chip({ a }: { a: ArticleCard }) {
   return <span className={`cat cat--${tone(a)}`}>{a.pinned ? t('Dôležité') : t(a.categoryLabel)}</span>;
 }
 
-// Úvod: NOVINKY ako redakčná titulka – hlavný článok, vedľa dva s fotkou, pod nimi rad štyroch krátkych.
+// Úvod: NOVINKY ako titulka športového webu – hlavný článok (fotka, titulok, perex), vedľa zoznam najnovších
+// s náhľadmi, pod nimi rad štyroch kariet s fotkou. Čitateľné titulky (bez zúženého písma), čisté biele pozadie.
 export async function NewsSection({ items }: { items: ArticleCard[] }) {
   const t = await getT();
   const [lead, ...rest] = items;
-  const tiles = rest.slice(0, 2);
-  const small = rest.slice(2, 6);
+  const side = rest.slice(0, 3);
+  const row = rest.slice(3, 7);
   return (
-    <section className="lite lite--white nw3" aria-labelledby="nw3-t">
+    <section className="lite lite--white nw4" aria-labelledby="nw4-t">
       <div className="wrap">
         <div className="shd">
-          <h2 id="nw3-t" className="disp shd__t">
+          <h2 id="nw4-t" className="disp shd__t">
             {t('Novinky')}
           </h2>
-          {lead ? (
-            <nav className="nw3__cats" aria-label={t('Kategórie noviniek')}>
-              <Link href="/aktuality" className="is-on">
-                {t('Všetko')}
-              </Link>
-              {CATEGORIES.map((c) => (
-                <Link key={c.key} href={`/aktuality?kategoria=${c.key}`}>
-                  {t(c.label)}
-                </Link>
-              ))}
-            </nav>
-          ) : null}
           <span className="shd__line" aria-hidden="true" />
           {lead ? (
             <Link href="/aktuality" className="shd__more">
@@ -47,46 +36,65 @@ export async function NewsSection({ items }: { items: ArticleCard[] }) {
           ) : null}
         </div>
         {lead ? (
+          <nav className="nw4__cats" aria-label={t('Kategórie noviniek')}>
+            {CATEGORIES.map((c) => (
+              <Link key={c.key} href={`/aktuality?kategoria=${c.key}`}>
+                {t(c.label)}
+              </Link>
+            ))}
+          </nav>
+        ) : null}
+        {lead ? (
           <>
-            <div className={`nw3__top${tiles.length ? '' : ' is-solo'}`}>
-              <Link href={`/aktuality/${lead.slug}`} className="nw3__lead">
-                <CoverImg a={lead} ratio="16:10" sizes="(max-width: 900px) 100vw, 760px" className="nw3__img" />
-                <span className="nw3__ov" aria-hidden="true" />
-                <span className="nw3__ltx">
+            <div className={`nw4__top${side.length ? '' : ' is-solo'}`}>
+              <Link href={`/aktuality/${lead.slug}`} className="nw4__lead">
+                <span className="nw4__lim">
+                  <CoverImg a={lead} ratio="16:9" sizes="(max-width: 1000px) 100vw, 820px" className="nw4__img" />
+                </span>
+                <span className="nw4__ltx">
                   <Chip a={lead} />
-                  <span className="disp nw3__lt">{lead.title}</span>
-                  <span className="nw3__meta">
-                    <time dateTime={lead.date.toISOString()}>{fmtArticleDate(lead.date, t)}</time>, {meta(lead, t)}
+                  <span className="nw4__lt">{lead.title}</span>
+                  {lead.perex ? <span className="nw4__lp">{lead.perex}</span> : null}
+                  <span className="nw4__meta">
+                    <time dateTime={lead.date.toISOString()}>{fmtArticleDate(lead.date, t)}</time> · {meta(lead, t)}
                   </span>
                 </span>
               </Link>
-              {tiles.length ? (
-                <div className="nw3__tiles">
-                  {tiles.map((a) => (
-                    <Link key={a.id} href={`/aktuality/${a.slug}`} className="nw3__tile">
-                      <span className="nw3__tim">
-                        <CoverImg a={a} ratio="4:3" sizes="(max-width: 900px) 40vw, 200px" className="nw3__img" />
-                      </span>
-                      <span className="nw3__ttx">
-                        <Chip a={a} />
-                        <span className="disp nw3__tt">{a.title}</span>
-                        <time className="nw3__meta" dateTime={a.date.toISOString()}>
-                          {fmtArticleDate(a.date, t)}
-                        </time>
-                      </span>
-                    </Link>
-                  ))}
+              {side.length ? (
+                <div className="nw4__side">
+                  <h3 className="nw4__sh">{t('Najnovšie')}</h3>
+                  <ul className="nw4__list">
+                    {side.map((a) => (
+                      <li key={a.id}>
+                        <Link href={`/aktuality/${a.slug}`} className="nw4__it">
+                          <span className="nw4__tim">
+                            <CoverImg a={a} ratio="4:3" sizes="128px" className="nw4__img" />
+                          </span>
+                          <span className="nw4__itx">
+                            <span className={`nw4__k is-${tone(a)}`}>{a.videoSeconds !== null ? t('Video') : a.pinned ? t('Dôležité') : t(a.categoryLabel)}</span>
+                            <span className="nw4__tt">{a.title}</span>
+                            <time className="nw4__meta" dateTime={a.date.toISOString()}>
+                              {fmtArticleDate(a.date, t)}
+                            </time>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ) : null}
             </div>
-            {small.length ? (
-              <ul className="nw3__row">
-                {small.map((a) => (
+            {row.length ? (
+              <ul className="nw4__row">
+                {row.map((a) => (
                   <li key={a.id}>
-                    <Link href={`/aktuality/${a.slug}`} className="nw3__sm">
-                      <span className={`nw3__k is-${tone(a)}`}>{a.videoSeconds !== null ? t('Video') : a.pinned ? t('Dôležité') : t(a.categoryLabel)}</span>
-                      <span className="disp nw3__st">{a.title}</span>
-                      <time className="nw3__meta" dateTime={a.date.toISOString()}>
+                    <Link href={`/aktuality/${a.slug}`} className="nw4__card">
+                      <span className="nw4__cim">
+                        <CoverImg a={a} ratio="16:9" sizes="(max-width: 700px) 100vw, (max-width: 1000px) 50vw, 300px" className="nw4__img" />
+                      </span>
+                      <span className={`nw4__k is-${tone(a)}`}>{a.videoSeconds !== null ? t('Video') : a.pinned ? t('Dôležité') : t(a.categoryLabel)}</span>
+                      <span className="nw4__tt">{a.title}</span>
+                      <time className="nw4__meta" dateTime={a.date.toISOString()}>
                         {fmtArticleDate(a.date, t)}
                       </time>
                     </Link>
@@ -96,7 +104,7 @@ export async function NewsSection({ items }: { items: ArticleCard[] }) {
             ) : null}
           </>
         ) : (
-          <p className="nw3__empty">{t('Prvé články pribudnú čoskoro.')}</p>
+          <p className="nw4__empty">{t('Prvé články pribudnú čoskoro.')}</p>
         )}
       </div>
     </section>

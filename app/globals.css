@@ -5296,3 +5296,58 @@ a.is__c:hover { background: #0f1c30; color: var(--white); }
   .nart .ab { font-size: 17px; }
   .nart__by { flex-wrap: wrap; }
 }
+
+/* ===== v28 · Novinky na úvode (titulka športového webu) ===== */
+.nw4 { padding: 80px 0 88px; }
+.nw4 .shd { color: var(--ink); }
+.nw4__cats { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 14px 0 0 38px; }
+.nw4__cats a { font-weight: 600; font-size: 14px; color: var(--muted); }
+.nw4__cats a:hover { color: var(--red); }
+.nw4__top { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 40px; margin-top: 30px; }
+.nw4__top.is-solo { grid-template-columns: minmax(0, 1fr); max-width: 900px; }
+.nw4__img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.nw4 :is(.nw4__lim, .nw4__tim, .nw4__cim) { position: relative; display: block; overflow: hidden; border-radius: 4px; background: var(--navy); }
+.nw4 :is(.nw4__lim, .nw4__tim, .nw4__cim) :is(picture, .ac__noimg) { position: absolute; inset: 0; }
+.nw4 :is(.nw4__lim, .nw4__cim) { aspect-ratio: 16 / 9; }
+.nw4__tim { aspect-ratio: 4 / 3; }
+.nw4 a:hover .nw4__img { transform: scale(1.035); }
+.nw4__lead { display: flex; flex-direction: column; color: var(--ink); }
+.nw4__ltx { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding-top: 20px; }
+.nw4__lt { font-family: var(--font-archivo), system-ui, sans-serif; font-weight: 800; font-size: clamp(26px, 2.7vw, 38px); line-height: 1.12; letter-spacing: -0.015em; color: var(--ink); text-wrap: balance; transition: color 0.2s; }
+.nw4__lp { font-size: 17px; line-height: 1.55; color: #4b5866; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nw4__meta { font-size: 13px; color: var(--muted); }
+.nw4__side { min-width: 0; }
+.nw4__sh { margin: 0; padding-bottom: 12px; border-bottom: 3px solid var(--ink); font-family: var(--font-archivo), system-ui, sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); }
+.nw4__list { list-style: none; margin: 0; padding: 0; }
+.nw4__list li + li { border-top: 1px solid #e3e8ed; }
+.nw4__it { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 16px; align-items: start; padding: 18px 0; color: var(--ink); }
+.nw4__itx { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.nw4__k { font-weight: 700; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--red); }
+.nw4__k.is-blue { color: var(--blue); }
+.nw4__k.is-yellow { color: #a87a00; }
+.nw4__k.is-ink { color: var(--ink-2, #3b4a5c); }
+.nw4__tt { font-family: var(--font-archivo), system-ui, sans-serif; font-weight: 700; font-size: 17px; line-height: 1.3; color: var(--ink); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; transition: color 0.2s; }
+.nw4 a:hover :is(.nw4__lt, .nw4__tt) { color: var(--red); }
+.nw4__row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin: 44px 0 0; padding: 36px 0 0; list-style: none; border-top: 1px solid #e3e8ed; }
+.nw4__card { display: flex; flex-direction: column; gap: 8px; color: var(--ink); }
+.nw4__card .nw4__cim { margin-bottom: 6px; }
+.nw4__empty { margin: 30px 0 0; color: var(--muted); }
+@media (max-width: 1000px) {
+  .nw4__top { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .nw4__row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .nw4 { padding: 56px 0 64px; }
+  .nw4__cats { margin-left: 0; }
+  .nw4__lt { font-size: 25px; }
+  .nw4__it { grid-template-columns: 104px minmax(0, 1fr); gap: 14px; padding: 14px 0; }
+  .nw4__tt { font-size: 16px; }
+  .nw4__row { grid-template-columns: minmax(0, 1fr); gap: 0; margin-top: 0; padding-top: 0; border-top: 1px solid #e3e8ed; }
+  .nw4__row li + li { border-top: 1px solid #e3e8ed; }
+  .nw4__card { display: grid; grid-template-columns: 104px minmax(0, 1fr); grid-template-rows: auto auto 1fr; column-gap: 14px; row-gap: 6px; padding: 14px 0; }
+  .nw4__card .nw4__cim { grid-row: 1 / 4; margin: 0; aspect-ratio: 4 / 3; }
+}
+.cx3[hidden] { display: none; }
+.cxe--loading { margin-top: 30px; aspect-ratio: 16 / 7; border-radius: 6px; background: linear-gradient(100deg, rgba(255, 255, 255, 0.03) 30%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 70%) 0 0 / 300% 100%; animation: cxeLoad 1.4s linear infinite; }
+@keyframes cxeLoad { to { background-position: -150% 0; } }
+@media (prefers-reduced-motion: reduce) { .cxe--loading { animation: none; } }

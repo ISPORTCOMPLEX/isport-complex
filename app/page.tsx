@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { QuickBook } from '@/components/home/QuickBook';
 import { NewsSection } from '@/components/home/NewsSection';
-import { ComplexExplorer, type ZoneInfo } from '@/components/home/ComplexExplorer';
+import type { ZoneInfo } from '@/components/home/ComplexExplorer';
+import { ComplexGate } from '@/components/home/ComplexGate';
 import { LocationSection } from '@/components/location/LocationSection';
 import { longDayLabel, nextDays, weekdayName } from '@/lib/dates';
 import { getSite } from '@/lib/siteSettings';
@@ -222,9 +223,13 @@ export default async function HomePage() {
       </section>
 
       {/* AREÁL – tmavý pás medzi modrými čiarami: 3D maketa / ilustrácia, klik priblíži časť a ukáže fotky */}
-      <section id="komplex" className="cx3" aria-labelledby="cx2-t">
-        <div className="wrap cx2">
-          <div className="shd">
+      <ComplexGate
+        zones={zones}
+        now={renderedAt}
+        weather={weather}
+        head={
+          <>
+            <div className="shd">
             <h2 id="cx2-t" className="disp shd__t">
               {t('Jeden areál, všetko na mieste')}
             </h2>
@@ -236,9 +241,9 @@ export default async function HomePage() {
             ) : null}
           </div>
           <p className="shd__p">{t('V hale 1 ľad, skyboxy a bufet, medzi halami ihrisko, v hale 2 posilňovňa a wellness. Klikni na miesto a pozri sa dnu.')}</p>
-          <ComplexExplorer zones={zones} now={renderedAt} weather={weather} />
-        </div>
-      </section>
+          </>
+        }
+      />
 
       {/* NOVINKY */}
       <NewsSection items={news} />
