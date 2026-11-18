@@ -10,20 +10,20 @@ export const VOTER_COOKIE = 'isp_v';
 export const COMMENT_MAX = 1000;
 
 const DDL = [
-  `CREATE TABLE IF NOT EXISTS "ArticleReaction" ("id" TEXT NOT NULL, "articleId" TEXT NOT NULL, "voter" TEXT NOT NULL, "value" INTEGER NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "ArticleReaction_pkey" PRIMARY KEY ("id"))`,
-  `CREATE UNIQUE INDEX IF NOT EXISTS "ArticleReaction_articleId_voter_key" ON "ArticleReaction"("articleId", "voter")`,
-  `DO $$ BEGIN ALTER TABLE "ArticleReaction" ADD CONSTRAINT "ArticleReaction_articleId_fkey" FOREIGN KEY ("articleId") REFERENCES "Article"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$`,
-  `CREATE TABLE IF NOT EXISTS "ArticleComment" ("id" TEXT NOT NULL, "articleId" TEXT NOT NULL, "userId" TEXT NOT NULL, "body" TEXT NOT NULL, "hiddenAt" TIMESTAMP(3), "hiddenBy" TEXT, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "ArticleComment_pkey" PRIMARY KEY ("id"))`,
-  `CREATE INDEX IF NOT EXISTS "ArticleComment_articleId_createdAt_idx" ON "ArticleComment"("articleId", "createdAt")`,
-  `CREATE INDEX IF NOT EXISTS "ArticleComment_userId_idx" ON "ArticleComment"("userId")`,
-  `DO $$ BEGIN ALTER TABLE "ArticleComment" ADD CONSTRAINT "ArticleComment_articleId_fkey" FOREIGN KEY ("articleId") REFERENCES "Article"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$`,
-  `DO $$ BEGIN ALTER TABLE "ArticleComment" ADD CONSTRAINT "ArticleComment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$`,
+  () => prisma.$executeRaw`CREATE TABLE IF NOT EXISTS "ArticleReaction" ("id" TEXT NOT NULL, "articleId" TEXT NOT NULL, "voter" TEXT NOT NULL, "value" INTEGER NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "ArticleReaction_pkey" PRIMARY KEY ("id"))`,
+  () => prisma.$executeRaw`CREATE UNIQUE INDEX IF NOT EXISTS "ArticleReaction_articleId_voter_key" ON "ArticleReaction"("articleId", "voter")`,
+  () => prisma.$executeRaw`DO $$ BEGIN ALTER TABLE "ArticleReaction" ADD CONSTRAINT "ArticleReaction_articleId_fkey" FOREIGN KEY ("articleId") REFERENCES "Article"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$`,
+  () => prisma.$executeRaw`CREATE TABLE IF NOT EXISTS "ArticleComment" ("id" TEXT NOT NULL, "articleId" TEXT NOT NULL, "userId" TEXT NOT NULL, "body" TEXT NOT NULL, "hiddenAt" TIMESTAMP(3), "hiddenBy" TEXT, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "ArticleComment_pkey" PRIMARY KEY ("id"))`,
+  () => prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "ArticleComment_articleId_createdAt_idx" ON "ArticleComment"("articleId", "createdAt")`,
+  () => prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "ArticleComment_userId_idx" ON "ArticleComment"("userId")`,
+  () => prisma.$executeRaw`DO $$ BEGIN ALTER TABLE "ArticleComment" ADD CONSTRAINT "ArticleComment_articleId_fkey" FOREIGN KEY ("articleId") REFERENCES "Article"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$`,
+  () => prisma.$executeRaw`DO $$ BEGIN ALTER TABLE "ArticleComment" ADD CONSTRAINT "ArticleComment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$`,
 ];
 
 let ready: Promise<void> | null = null;
 export function ensureSocialTables(): Promise<void> {
   ready ??= (async () => {
-    for (const sql of DDL) await prisma.$executeRawUnsafe(sql);
+    for (const run of DDL) await run();
   })().catch((e) => {
     ready = null; // pri ďalšej požiadavke skúsi znova
     throw e;
