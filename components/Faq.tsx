@@ -8,7 +8,8 @@ export async function Faq({ items, title, id = 'otazky' }: { items: FaqItem[]; t
   if (!items.length) return null;
   const t = await getT();
   return (
-    <section className="wrap faq" id={id} aria-labelledby={`${id}-t`}>
+    <section className="faq-sec" id={id} aria-labelledby={`${id}-t`}>
+      <div className="wrap faq">
       <h2 id={`${id}-t`} className="disp sec-title">
         {title ?? t('Časté otázky')}
       </h2>
@@ -19,6 +20,7 @@ export async function Faq({ items, title, id = 'otazky' }: { items: FaqItem[]; t
             <p>{a}</p>
           </details>
         ))}
+      </div>
       </div>
       <JsonLd data={{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: items.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) }} />
     </section>

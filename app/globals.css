@@ -4979,3 +4979,174 @@ a.is__c:hover { background: #0f1c30; color: var(--white); }
 .mnav__lang { margin-bottom: 8px; }
 .legal__lang { margin: 0 0 18px; padding: 12px 16px; border-left: 3px solid var(--yellow); background: rgba(242, 194, 48, 0.08); font-size: 14px; line-height: 1.5; }
 .legal__lang a { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+
+/* =====================================================================
+   v27 – podstránky v štýle v26: svetlé obsahové sekcie, nadpisy s bodkou,
+   tlačidlá vo vete. Tmavomodrá ostáva hlavička, pás s názvom stránky,
+   „Ako to prebieha“ a päta.
+   ===================================================================== */
+/* ps = pás fotiek vnútri sekcie – len zdedí farby */
+.pp-dark, .dk2.rz-dk, .faq-sec {
+  --text: #0b1626; --text-2: #2b3846; --muted: #5d6b79; --faint: #7a8794;
+  --edge: #d5dce3; --edge-soft: #dfe5ea; --edge-mid: #cfd7df; --edge-strong: #c3ccd5;
+  --surface: #ffffff; --surface-2: #eef1f4; --surface-3: #e6ebf0;
+  --panel: #ffffff; --panel-2: #f6f8fa;
+  background: var(--paper); color: var(--text);
+}
+.pp-dark { background: #fff; }
+.dk2.rz-dk + .pp-dark, .pp-dark + .dk2.rz-dk { border-top: 1px solid #dfe5ea; }
+/* FAQ: celá šírka v svetlom páse */
+.faq-sec { padding: 88px 0 96px; background: var(--paper); }
+.faq-sec .faq { margin: 0 auto; }
+
+/* nadpisy sekcií: červená bodka ako na úvode */
+.pp-dark :is(.pp__h, .pp__h2, h2.cond):not(.ps h2), .dk2.rz-dk :is(.pp__h, .pp__h2, h2.cond), .faq-sec .sec-title, .bx__title {
+  position: relative; padding-left: 30px; color: var(--text);
+}
+.pp-dark :is(.pp__h, .pp__h2, h2.cond):not(.ps h2)::before, .dk2.rz-dk :is(.pp__h, .pp__h2, h2.cond)::before, .faq-sec .sec-title::before, .bx__title::before {
+  content: ''; position: absolute; left: 0; top: 0.3em; width: 16px; height: 16px; border-radius: 50%; background: var(--red);
+}
+/* pás fotiek: rovnaká bodka namiesto šikmej značky */
+.ps__ttl::before { width: 16px; height: 16px; border-radius: 50%; clip-path: none; }
+:is(.pp-dark, .dk2.rz-dk) .ps__all { color: var(--text) !important; letter-spacing: 0; text-transform: none; font-size: 15px; }
+:is(.pp-dark, .dk2.rz-dk) .ps__all:hover { color: var(--red) !important; }
+:is(.pp-dark, .dk2.rz-dk) .ps__ttl small { color: var(--muted); -webkit-text-stroke: 0; font-family: inherit; font-style: normal; font-weight: 700; }
+/* ceny na stránke Ľadová plocha */
+.pp-dark.pp-ice2 .ix__prices dd.cond { color: var(--text); }
+.pp-dark.pp-ice2 .ix__prices > div::before { width: 16px; height: 4px; clip-path: none; border-radius: 2px; }
+.bx__title { color: var(--white); }
+.pp__h { font-size: clamp(44px, 5vw, 64px); }
+.pp__h2 { font-size: clamp(32px, 3.4vw, 44px); }
+
+/* riadky a zoznamy na svetlom pozadí */
+.pp-dark .v3-rows > div, .dk2.rz-dk .v3-rows > div { border-bottom-color: #dfe5ea; }
+.pp-dark .pp__p, .dk2.rz-dk .pp__p { color: var(--text-2); }
+.pp-dark .ulink, .dk2.rz-dk .ulink { color: var(--text); }
+
+/* cenník */
+.dk2.rz-dk .pt { border-top-color: var(--text); }
+.dk2.rz-dk .pt__row:not(.pt__row--head) { background: #fff; border: 1px solid #dfe5ea; border-radius: 6px; }
+.dk2.rz-dk .pt__row > span { border-left-color: #dfe5ea; }
+.dk2.rz-dk .pt__row--head strong, .dk2.rz-dk .pt__row .cond { color: var(--text); }
+.dk2.rz-dk .pt__row .pt__red { color: var(--red); }
+.dk2.rz-dk .pt__row small, .dk2.rz-dk .pt__row--head > span { color: var(--muted); }
+.dk2.rz-dk .pt-extras > div { background: #fff; border: 1px solid #dfe5ea; border-radius: 6px; clip-path: none; color: var(--text); }
+.dk2.rz-dk .pt-extras strong { color: var(--text); }
+.dk2.rz-dk .pt-extras > div:last-child { background: var(--navy); border-color: var(--navy); color: var(--white); }
+.dk2.rz-dk .pt-extras > div:last-child :is(strong, span, a) { color: var(--white); }
+
+/* FAQ */
+.faq-sec .faq details, .faq details { border-radius: 6px; background: var(--surface); border: 1px solid var(--edge); clip-path: none; }
+.faq-sec .faq details[open] { border-color: var(--red); box-shadow: inset 3px 0 0 var(--red); }
+.faq-sec .faq summary { color: var(--text); }
+.faq-sec .faq summary::after { border-color: var(--edge-strong); color: var(--text); border-radius: 4px; }
+.faq-sec .faq p { color: var(--muted); }
+
+/* formuláre na svetlom pozadí */
+:is(.pp-dark, .dk2.rz-dk) :is(.card, .pp__form, .dk2) { background: #fff; border: 1px solid #dfe5ea; border-radius: 8px; clip-path: none; box-shadow: 0 18px 40px rgba(11, 22, 38, 0.06); color: var(--text); }
+:is(.pp-dark, .dk2.rz-dk) .field input, :is(.pp-dark, .dk2.rz-dk) .textarea, :is(.pp-dark, .dk2.rz-dk) select { background: #f6f8fa; border: 1px solid #cfd7df; color: var(--text); border-radius: 4px; }
+:is(.pp-dark, .dk2.rz-dk) .field input:hover { border-color: #9aa7b4; }
+:is(.pp-dark, .dk2.rz-dk) .field input:focus, :is(.pp-dark, .dk2.rz-dk) .textarea:focus { background: #fff; border-color: var(--red); }
+:is(.pp-dark, .dk2.rz-dk) .field label { color: var(--text-2); }
+
+/* tlačidlá: všetky v jednom štýle (vo vete, mierne zaoblené) */
+.btn, .qb__cta { height: 52px; padding: 0 24px; gap: 10px; border-radius: 3px; clip-path: none; box-shadow: none; font-family: var(--font-archivo), sans-serif; font-style: normal; font-stretch: 100%; font-weight: 700; font-size: 16px; letter-spacing: 0; text-transform: none; }
+.btn:hover, .qb__cta:hover { box-shadow: none; }
+.btn--sm { height: 42px; padding: 0 16px; font-size: 14px; }
+.btn--lg { height: 58px; padding: 0 30px; font-size: 17px; }
+.btn--ghost { background: transparent; border: 1px solid var(--edge-strong); color: var(--text); }
+.btn--ghost:hover { background: rgba(127, 140, 155, 0.12); color: var(--text); }
+.btn__ic { width: auto; height: auto; background: none; }
+.qb__cta { display: inline-flex; align-items: center; background: var(--red); color: var(--white); }
+.qb__cta:hover { background: var(--red-hover); color: var(--white); }
+.qb__cta span { background: none; }
+.dk2 .btn { height: 52px; padding: 0 24px; border-radius: 3px; clip-path: none; font-family: var(--font-archivo), sans-serif; font-style: normal; font-weight: 700; font-size: 16px; letter-spacing: 0; text-transform: none; }
+.dk2 .btn--full { height: 56px; font-size: 17px; }
+.dk2 .btn--sm { height: 42px; padding: 0 16px; font-size: 14px; clip-path: none; }
+.dk2 .btn--ghost { background: transparent; color: var(--text); box-shadow: inset 0 0 0 1px var(--edge-strong); }
+.dk2 .btn--ghost:hover { background: rgba(127, 140, 155, 0.14); color: var(--text); }
+.dk2 .btn--danger { border-radius: 3px; }
+.dk2 .field input, .dk2 .textarea, .dk2 .field select { border-radius: 4px; }
+.dk2 .field label, .dk2 .field > label { letter-spacing: 0.06em; }
+/* text pod nadpismi výhod (Pre kluby) */
+.pp-dark p, .dk2.rz-dk p { color: var(--text-2); }
+.dk2.rz-dk + .faq-sec { background: #fff; }
+
+/* ---------- rezervácia: svetlá plocha ako „Rozpis ľadu“ na úvode, súhrn tmavomodrý ---------- */
+.rz-lite {
+  --text: #0b1626; --text-2: #2b3846; --muted: #5d6b79; --faint: #7a8794; --dim: #a3aeb9; --dim-2: #9aa6b2; --dim-3: #8794a1; --faint-2: #8b97a3;
+  --edge: #d5dce3; --edge-soft: #dfe5ea; --edge-mid: #cfd7df; --edge-strong: #c3ccd5;
+  --surface: #ffffff; --surface-2: #e9eef3; --panel: #ffffff; --panel-2: #f6f8fa; --rail: #cfd8e1;
+  background: var(--paper); color: var(--text);
+}
+.rz-lite .rz2 { padding-top: 40px; }
+.rz-lite .rz2__h > .disp { font-size: 40px; color: var(--text); position: relative; padding-left: 28px; }
+.rz-lite .rz2__h > .disp::before { content: ''; position: absolute; left: 0; top: 0.32em; width: 14px; height: 14px; border-radius: 50%; background: var(--red); }
+.rz-lite .rz2__n { display: none; }
+.rz-lite .rz2__arr { background: #fff; color: var(--text); box-shadow: inset 0 0 0 1px var(--edge); border-radius: 4px; }
+.rz-lite .rz2__arr:hover { background: var(--navy); color: #fff; }
+.rz-lite .rz2__arr.is-off { background: transparent; color: var(--dim); }
+.rz-lite .rz2__day { background: #fff; color: var(--text); box-shadow: inset 0 0 0 1px var(--edge); border-radius: 6px; clip-path: none; }
+.rz-lite .rz2__day:hover { background: #f1f4f7; color: var(--text); box-shadow: inset 0 0 0 1px var(--navy); }
+.rz-lite .rz2__day[aria-current='date'] { background: var(--navy); color: #fff; box-shadow: inset 0 -4px 0 var(--red); }
+.rz-lite .rz2__day[aria-current='date'] :is(small, span, b) { color: #fff; }
+.rz-lite .rz2__slot { background: #fff; color: var(--text); box-shadow: inset 0 0 0 1px var(--edge); border-radius: 6px; clip-path: none; }
+.rz-lite button.rz2__slot:hover:not(:disabled) { background: #f1f4f7; box-shadow: inset 0 0 0 1px var(--navy); color: var(--text); }
+.rz-lite .rz2__slot small::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: var(--green); vertical-align: 1px; }
+.rz-lite .rz2__slot.is-sel, .rz-lite button.rz2__slot.is-sel:hover { background: var(--red); color: #fff; box-shadow: 0 10px 24px rgba(227, 18, 27, 0.25); }
+.rz-lite .rz2__slot.is-sel small { color: #fff; }
+.rz-lite .rz2__slot.is-sel small::before { background: #fff; }
+.rz-lite .rz2__slot.is-off { background: repeating-linear-gradient(135deg, #e4e9ee 0 7px, #edf1f4 7px 14px); color: var(--dim-3); box-shadow: none; }
+.rz-lite .rz2__slot.is-past { background: transparent; box-shadow: inset 0 0 0 1px #e1e6eb; color: var(--dim-2); }
+.rz-lite .rz2__slot:is(.is-off, .is-past) small::before { display: none; }
+.rz-lite .rz2__slot.is-peak::before { background: var(--yellow); border-radius: 6px 6px 0 0; }
+.rz-lite .rz2__legend .is-free { background: #fff; box-shadow: inset 0 0 0 1px var(--edge-strong); }
+.rz-lite .rz2__legend .is-off { background: repeating-linear-gradient(135deg, #d9e0e6 0 3px, #eef1f4 3px 6px); }
+.rz-lite .rz2__legend .is-peak { background: #fff; box-shadow: inset 0 3px 0 var(--yellow), inset 0 0 0 1px var(--edge-strong); }
+.rz-lite .rz2__extra { background: #fff; color: var(--text); box-shadow: inset 0 0 0 1px var(--edge); border-radius: 6px; clip-path: none; }
+.rz-lite .rz2__extra.is-on { box-shadow: inset 0 0 0 2px var(--red); }
+.rz-lite .rz2__extra.is-incl { background: #f6f8fa; }
+.rz-lite .rz2__box { box-shadow: inset 0 0 0 2px var(--edge-strong); border-radius: 4px; }
+.rz-lite .rz2__box.is-green { background: rgba(31, 168, 92, 0.14); }
+.rz-lite .rz2__card { background: #fff; box-shadow: inset 0 0 0 1px var(--edge); border-radius: 8px; }
+.rz-lite .rz2__empty, .rz-lite .rz2__move { background: #fff; border-radius: 6px; }
+.rz-lite .rz2__stepper strong, .rz-lite .rz2__mbar .disp { color: inherit; }
+/* súhrn: tmavomodrá karta (ako „Najbližší voľný ľad“ na úvode) */
+.rz-lite .rz2__sum { --text: #fff; --text-2: #c9d3de; --muted: #8fa3bd; --edge: #22344f; --surface-2: #1a2e4b; --dim: #4d607a; background: var(--navy); color: #fff; box-shadow: 0 24px 50px rgba(11, 22, 38, 0.18); clip-path: none; border-radius: 8px; overflow: hidden; }
+.rz-lite .rz2__bar { background: #12233a; border-bottom: 3px solid var(--red); }
+.rz-lite .rz2__stepper button { border-radius: 4px; background: #1a2e4b; color: #fff; }
+.rz-lite .rz2__stepper button:disabled { color: #4d607a; }
+.rz-lite .rz2__qr { background: #fff; box-shadow: inset 0 0 0 1px var(--edge); border-radius: 6px; color: var(--text-2); }
+.rz-lite .rz2__qr b, .rz-lite .rz2__qr .ico { color: var(--text); }
+.rz-lite .rz2__mbar { --text: #fff; --muted: #8fa3bd; background: var(--navy); color: #fff; }
+/* údaje (2. krok) – formulár na bielej karte */
+.rz-lite .dk2, .rz-lite .form { color: var(--text); }
+.rz-lite .field input, .rz-lite .textarea, .rz-lite select { background: #f6f8fa; box-shadow: inset 0 0 0 1px #cfd7df; color: var(--text); border-radius: 4px; }
+.rz-lite .field input:focus, .rz-lite .textarea:focus { background: #fff; box-shadow: inset 0 0 0 2px var(--red); }
+.rz-lite .cal2 summary { background: #fff; color: var(--text); box-shadow: inset 0 0 0 1px var(--edge); border-radius: 4px; }
+.rz-lite .cal2[open] summary, .rz-lite .cal2 summary:hover { background: var(--navy); color: #fff; }
+@media (max-width: 620px) {
+  /* na mobile neukazujeme hodiny, ktoré už prebehli – menej posúvania */
+  .rz-lite .rz2__slot.is-past { display: none; }
+  .rz-lite .rz2__h > .disp { font-size: 32px; }
+}
+
+/* ---------- Aktuality a Fotky: svetlé pozadie, štítky ako na úvode ---------- */
+.nw-lite { --text: #0b1626; --text-2: #2b3846; --muted: #5d6b79; --edge: #d5dce3; background: var(--paper); color: var(--text); padding: 40px 0 8px; }
+.nw-lite .nw__chips a, .pg-chip { border-radius: 4px; border: 1px solid #cfd7df; background: #fff; color: var(--ink); font-weight: 700; clip-path: none; }
+.nw-lite .nw__chips a:hover, .pg-chip:hover { border-color: var(--navy); color: var(--ink); background: #fff; }
+.nw-lite .nw__chips a[aria-current='page'], .pg-chip[aria-current='page'] { background: var(--navy); border-color: var(--navy); color: #fff; }
+.pg-chip small { color: var(--muted); }
+.pg-chip[aria-current='page'] small { color: #b9c7d8; }
+.nw-lite :is(.ac, .nw__feat) { border-radius: 8px; overflow: hidden; box-shadow: 0 14px 30px rgba(11, 22, 38, 0.1); }
+.nw-lite .nw__rss a, .nw-lite .nw__pager a { color: var(--text); }
+.nw-lite { --surface: #fff; --surface-2: #eef1f4; --surface-3: #e6ebf0; --edge-soft: #dfe5ea; --red-text: #c40f17; }
+.nw-lite :is(.ac__link, .nw__feat-link) { border-radius: 8px; box-shadow: inset 0 0 0 1px var(--edge); }
+.nw-lite :is(.ac__link, .nw__feat-link):hover { box-shadow: inset 0 0 0 1px var(--navy), 0 14px 30px rgba(11, 22, 38, 0.1); }
+.nw-lite :is(.ac, .nw__feat) { box-shadow: none; }
+.nw-lite .ac__meta, .nw-lite .nw__feat-tx time { color: var(--muted); }
+.dk2 .pg-chip { border-radius: 4px; background: #fff; box-shadow: inset 0 0 0 1px #cfd7df; color: var(--ink); }
+.dk2 .pg-chip:hover { background: #fff; box-shadow: inset 0 0 0 1px var(--navy); color: var(--ink); }
+.dk2 .pg-chip[aria-current='page'] { background: var(--navy); box-shadow: none; color: #fff; }
+.dk2 .pg-chip small { color: var(--muted); }
+.nw-lite .ac__noimg { background: linear-gradient(135deg, #16294a, #0b1626); color: rgba(255, 255, 255, 0.12); }

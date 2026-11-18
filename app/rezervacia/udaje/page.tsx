@@ -78,6 +78,7 @@ export default async function UdajePage({ searchParams }: Props) {
         crumbs={[{ href: '/', label: t('Domov') }, { href: `/rezervacia?datum=${iso}&cas=${startHour}&sprchy=${sp1}`, label: t('Rezervácia') }, { label: t('Údaje') }]}
         title={old ? t('Presun {code}', { code: old.code }) : t('Dokončenie')}
       />
+      <section className="rz-lite">
       <div className="wrap rz2">
         <div className="rz2__grid">
           <div className="rz2__main dk2">
@@ -145,6 +146,7 @@ export default async function UdajePage({ searchParams }: Props) {
           </aside>
         </div>
       </div>
+      </section>
     </>
   );
 }

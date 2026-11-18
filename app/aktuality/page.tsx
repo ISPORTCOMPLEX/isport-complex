@@ -49,6 +49,7 @@ export default async function NewsPage({ searchParams }: Props) {
           <p>{t('Novinky z haly, turnaje, kempy, nábor detí a zmeny otváracích hodín.')}</p>
         </div>
       </div>
+      <section className="nw-lite">
       <div className="wrap nw__in">
         <nav className="nw__chips" aria-label={t('Kategórie aktualít')}>
           <Link href={href(null)} aria-current={cat === null ? 'page' : undefined}>
@@ -130,6 +131,7 @@ export default async function NewsPage({ searchParams }: Props) {
           <a href="/aktuality/rss.xml">{t('RSS kanál aktualít')}</a>
         </p>
       </div>
+      </section>
     </div>
   );
 }
