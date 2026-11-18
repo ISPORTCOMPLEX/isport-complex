@@ -251,6 +251,8 @@ export async function deleteAccountAction(_prev: FormState, form: FormData): Pro
     }),
     prisma.securityEvent.updateMany({ where: { userId: user.id }, data: { email: null, ip: null, userAgent: null } }),
   ]);
+  // komentáre pod článkami zmiznú spolu s účtom (tabuľka nemusí existovať, ak ešte nikto nekomentoval)
+  await prisma.articleComment.deleteMany({ where: { userId: user.id } }).catch(() => undefined);
   await logSecurity({ type: 'account-delete', ok: true, userId: user.id });
   await destroySession();
   redirect('/?stav=ucet-zmazany');

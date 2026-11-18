@@ -11,6 +11,11 @@ import { ArticleCard } from '@/components/articles/ArticleCard';
 import { Share } from '@/components/articles/Share';
 import { articleImage, fmtArticleDate, fmtShortDate, homeArticles, relatedArticles } from '@/lib/articles/queries';
 import { loadArticle } from '@/lib/articles/view';
+import { COMMENT_MAX, loadSocial, publicName } from '@/lib/articles/social';
+import { getSessionUser } from '@/lib/session';
+import { can } from '@/lib/staff';
+import { Reactions } from '@/components/articles/Reactions';
+import { Comments } from '@/components/articles/Comments';
 import { getT } from '@/lib/i18n/server';
 import { msg } from '@/lib/i18n/translate';
 
@@ -59,6 +64,8 @@ export default async function ArticlePage({ params, searchParams }: Props) {
   const cover = a.cover ? articleImage(a.cover, '2:1') : null;
   const [related, latest] = await Promise.all([relatedArticles(a.id, a.category).catch(() => []), homeArticles().catch(() => [])]);
   const rail = latest.filter((x) => x.id !== a.id).slice(0, 5);
+  const me = await getSessionUser();
+  const social = preview ? null : await loadSocial(a.id, me?.id ?? null);
   const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   if (!preview) {
@@ -140,6 +147,21 @@ export default async function ArticlePage({ params, searchParams }: Props) {
             ) : null}
             <p className="nart__upd">{tr('Aktualizované {fmtShortDate}', { fmtShortDate: fmtShortDate(a.updatedAt, tr) })}</p>
           </div>
+
+          {social?.ok ? (
+            <>
+              <Reactions articleId={a.id} likes={social.likes} dislikes={social.dislikes} mine={social.mine} />
+              <Comments
+                articleId={a.id}
+                slug={a.slug}
+                items={social.comments.map((c) => ({ ...c, date: c.date.toISOString() }))}
+                signedIn={Boolean(me)}
+                me={me ? publicName(me.firstName, me.lastName) : ''}
+                canModerate={Boolean(me && can(me.role, 'articles.write'))}
+                max={COMMENT_MAX}
+              />
+            </>
+          ) : null}
         </article>
 
         <aside className="nart__rail" aria-label={tr('Najnovšie aktuality')}>

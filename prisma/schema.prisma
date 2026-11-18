@@ -55,6 +55,7 @@ model User {
   authTokens AuthToken[]
   bookings   Booking[]
   sessions   Session[]
+  articleComments ArticleComment[]
 }
 
 // Fotky webu. Samotné súbory sú v Cloudinary – tu je len odkaz a popis.
@@ -111,10 +112,41 @@ model Article {
   updatedAt      DateTime      @updatedAt
 
   revisions ArticleRevision[]
+  reactions ArticleReaction[]
+  comments  ArticleComment[]
 
   @@index([status, publishedAt])
   @@index([status, publishAt])
   @@index([category, publishedAt])
+}
+
+// Páči sa / nepáči sa pod článkom. voter = „u:<id používateľa>“ alebo „a:<náhodné id prehliadača>“ – jeden hlas na článok.
+// Tabuľky reakcií a komentárov si web pri prvom použití vytvorí sám (lib/articles/social.ts), `prisma db push` už nič nemení.
+model ArticleReaction {
+  id        String   @id @default(cuid())
+  articleId String
+  voter     String
+  value     Int // 1 = páči sa, -1 = nepáči sa
+  createdAt DateTime @default(now())
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, voter])
+}
+
+// Komentáre pod článkami – len prihlásení používatelia s overeným e-mailom. hiddenAt = zmazaný autorom alebo redakciou.
+model ArticleComment {
+  id        String    @id @default(cuid())
+  articleId String
+  userId    String
+  body      String
+  hiddenAt  DateTime?
+  hiddenBy  String?
+  createdAt DateTime  @default(now())
+  article   Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([articleId, createdAt])
+  @@index([userId])
 }
 
 // História verzií – uloží sa pri zverejnení, ručnom uložení a pri automatickom ukladaní najviac raz za 10 minút.
