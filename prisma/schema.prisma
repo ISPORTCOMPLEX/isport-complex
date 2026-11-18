@@ -56,6 +56,7 @@ model User {
   bookings   Booking[]
   sessions   Session[]
   articleComments ArticleComment[]
+  leagueTeams     LeagueTeam[]
 }
 
 // Fotky webu. Samotné súbory sú v Cloudinary – tu je len odkaz a popis.
@@ -464,4 +465,93 @@ model PageView {
   @@index([createdAt])
   @@index([path, createdAt])
   @@index([visitor, createdAt])
+}
+
+// ───────────────────────── Súťaž tímov (hokejová minisúťaž) ─────────────────────────
+// Tabuľky si web vytvorí sám pri prvom použití (lib/league/db.ts) – rovnako ako `prisma db push`.
+// Body podľa IIHF: výhra 3, výhra po predĺžení/nájazdoch 2, prehra po predĺžení/nájazdoch 1, prehra 0.
+
+model LeagueTeam {
+  id           String    @id @default(cuid())
+  name         String
+  short        String // skratka 2–4 znaky (napr. KES)
+  city         String    @default("")
+  color        String    @default("#1f4fd8")
+  status       String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  contactName  String
+  contactEmail String
+  contactPhone String    @default("")
+  note         String    @default("")
+  userId       String?
+  approvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  players      LeaguePlayer[]
+  homeGames    LeagueGame[]   @relation("LeagueHome")
+  awayGames    LeagueGame[]   @relation("LeagueAway")
+  goals        LeagueGoal[]
+
+  @@index([status])
+}
+
+model LeaguePlayer {
+  id          String       @id @default(cuid())
+  teamId      String
+  name        String
+  number      Int?
+  position    String       @default("F") // F útočník | D obranca | G brankár
+  createdAt   DateTime     @default(now())
+  team        LeagueTeam   @relation(fields: [teamId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  goals       LeagueGoal[] @relation("LeagueScorer")
+  assists1    LeagueGoal[] @relation("LeagueAssist1")
+  assists2    LeagueGoal[] @relation("LeagueAssist2")
+  homeGoalie  LeagueGame[] @relation("LeagueHomeGoalie")
+  awayGoalie  LeagueGame[] @relation("LeagueAwayGoalie")
+
+  @@index([teamId])
+}
+
+model LeagueGame {
+  id           String        @id @default(cuid())
+  homeId       String
+  awayId       String
+  startsAt     DateTime
+  status       String        @default("SCHEDULED") // SCHEDULED | FINAL
+  homeScore    Int?
+  awayScore    Int?
+  decision     String        @default("REG") // REG | OT | SO
+  homeShots    Int?
+  awayShots    Int?
+  homeGoalieId String?
+  awayGoalieId String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  home         LeagueTeam    @relation("LeagueHome", fields: [homeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  away         LeagueTeam    @relation("LeagueAway", fields: [awayId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  homeGoalie   LeaguePlayer? @relation("LeagueHomeGoalie", fields: [homeGoalieId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  awayGoalie   LeaguePlayer? @relation("LeagueAwayGoalie", fields: [awayGoalieId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  goals        LeagueGoal[]
+
+  @@index([startsAt])
+}
+
+model LeagueGoal {
+  id        String        @id @default(cuid())
+  gameId    String
+  teamId    String
+  scorerId  String?
+  assist1Id String?
+  assist2Id String?
+  period    Int // 1–3, 4 = predĺženie
+  time      String        @default("") // mm:ss v tretine
+  kind      String        @default("EV") // EV | PP presilovka | SH oslabenie | EN prázdna bránka | PS trestné strieľanie
+  createdAt DateTime      @default(now())
+  game      LeagueGame    @relation(fields: [gameId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  team      LeagueTeam    @relation(fields: [teamId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  scorer    LeaguePlayer? @relation("LeagueScorer", fields: [scorerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  assist1   LeaguePlayer? @relation("LeagueAssist1", fields: [assist1Id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  assist2   LeaguePlayer? @relation("LeagueAssist2", fields: [assist2Id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([gameId])
 }

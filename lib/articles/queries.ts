@@ -177,3 +177,26 @@ export function fmtDuration(sec: number): string {
   const s = Math.max(0, Math.round(sec));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
+
+// Stránka Videá: všetky videá zo zverejnených článkov (nahrané aj YouTube), najnovšie hore.
+export type VideoItem =
+  | { key: string; kind: 'upload'; video: Img & { duration: number }; caption: string; slug: string; title: string; date: Date }
+  | { key: string; kind: 'youtube'; youtubeId: string; caption: string; slug: string; title: string; date: Date };
+
+export async function articleVideos(): Promise<VideoItem[]> {
+  const rows = await prisma.article.findMany({
+    where: liveWhere(),
+    orderBy: [{ publishedAt: 'desc' }, { publishAt: 'desc' }],
+    take: 120,
+    select: { slug: true, title: true, publishedAt: true, publishAt: true, createdAt: true, body: true },
+  });
+  const out: VideoItem[] = [];
+  for (const a of rows) {
+    const date = shownDate(a);
+    for (const b of normalizeBlocks(a.body)) {
+      if (b.type === 'video') out.push({ key: `${a.slug}-${b.id}`, kind: 'upload', video: b.video, caption: b.caption, slug: a.slug, title: a.title, date });
+      else if (b.type === 'youtube') out.push({ key: `${a.slug}-${b.id}`, kind: 'youtube', youtubeId: b.youtubeId, caption: b.caption, slug: a.slug, title: a.title, date });
+    }
+  }
+  return out;
+}

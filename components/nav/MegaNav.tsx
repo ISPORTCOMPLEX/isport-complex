@@ -8,11 +8,12 @@ import type { WebPhoto } from '@/lib/media';
 import type { IceToday } from '@/lib/booking/iceToday';
 import { useT } from '@/lib/i18n/client';
 
-type Panel = 'lad' | 'komplex';
+type Panel = 'lad' | 'komplex' | 'sutaz';
 export type MegaPhotos = { lad: WebPhoto | null; skyboxy: WebPhoto | null; bufet: WebPhoto | null; ihrisko: WebPhoto | null; fitness: WebPhoto | null };
 
 const ICE_PATHS = ['/ladova-plocha', '/cennik', '/rezervacia'];
 const KOMPLEX_PATHS = ['/bufet-skyboxy', '/ihrisko', '/fitness-wellness'];
+const SUTAZ_PATHS = ['/sutaz'];
 const under = (path: string, list: string[]) => list.some((p) => path === p || path.startsWith(`${p}/`));
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
 
@@ -28,7 +29,7 @@ function Photo({ p, sizes }: { p: WebPhoto | null; sizes: string }) {
   return p ? <CloudImage photo={{ ...p, alt: '' }} sizes={sizes} /> : <span className="mm__noimg" aria-hidden="true" />;
 }
 
-// Hlavné menu na počítači: Novinky · Ľadová plocha ▾ · Komplex ▾ · Pre kluby · Fotky · Kontakt.
+// Hlavné menu na počítači: Novinky · Ľadová plocha ▾ · Komplex ▾ · Pre kluby · Fotky · Videá · Súťaž ▾ (zvýraznená).
 // Ľad a Komplex rozbalia panel na celú šírku (myšou aj klávesnicou, Esc zavrie).
 export function MegaNav({ ice, photos }: { ice: IceToday; photos: MegaPhotos }) {
   const tr = useT();
@@ -71,10 +72,10 @@ export function MegaNav({ ice, photos }: { ice: IceToday; photos: MegaPhotos }) 
   const toggle = (p: Panel) => () => setOpen((cur) => (cur === p ? null : p));
   const close = () => setOpen(null);
 
-  const trigger = (p: Panel, label: string, active: boolean) => (
+  const trigger = (p: Panel, label: string, active: boolean, extra = '') => (
     <button
       type="button"
-      className={`mm__item${active ? ' is-current' : ''}${open === p ? ' is-open' : ''}`}
+      className={`mm__item${extra}${active ? ' is-current' : ''}${open === p ? ' is-open' : ''}`}
       aria-expanded={open === p}
       aria-controls={`mm-${p}`}
       onClick={toggle(p)}
@@ -101,7 +102,8 @@ export function MegaNav({ ice, photos }: { ice: IceToday; photos: MegaPhotos }) 
         {trigger('komplex', 'Komplex', under(pathname, KOMPLEX_PATHS))}
         {link('/pre-kluby', tr('Pre kluby'))}
         {link('/fotky', 'Fotky')}
-        {link('/kontakt', 'Kontakt')}
+        {link('/videa', tr('Videá'))}
+        {trigger('sutaz', tr('Súťaž'), under(pathname, SUTAZ_PATHS), ' mm__item--sutaz')}
       </nav>
 
       {open ? <div className="mm__dim" aria-hidden="true" onClick={close} /> : null}
@@ -186,6 +188,36 @@ export function MegaNav({ ice, photos }: { ice: IceToday; photos: MegaPhotos }) 
               </span>
             </Link>
           ))}
+        </div>
+      </div>
+
+      <div id="mm-sutaz" className={`mm__panel mm__panel--sutaz${open === 'sutaz' ? ' is-open' : ''}`} hidden={open !== 'sutaz'} onPointerEnter={keep} onPointerLeave={hoverLeave}>
+        <div className="wrap mm__lg">
+          <Link href="/sutaz" className="mm__lg-hero">
+            <span className="mm__lg-k">{tr('Hokejová minisúťaž')}</span>
+            <strong className="cond">{tr('Súťaž tímov')}</strong>
+            <span>{tr('Tímy, zápasy, tabuľka a štatistiky hráčov na jednom mieste.')}</span>
+          </Link>
+          <div className="mm__lg-links">
+            {[
+              { href: '/sutaz/vysledky', name: tr('Výsledky'), text: tr('Skóre a strelci odohraných zápasov') },
+              { href: '/sutaz/statistiky', name: tr('Štatistiky'), text: tr('Kanadské body, góly, gólmani') },
+              { href: '/sutaz/tabulky', name: tr('Tabuľky'), text: tr('Poradie tímov a body') },
+              { href: '/sutaz/rozpis', name: tr('Rozpis'), text: tr('Najbližšie zápasy') },
+            ].map((l) => (
+              <Link key={l.href} href={l.href} className="mm__ln">
+                <b>
+                  {l.name} <i aria-hidden="true">→</i>
+                </b>
+                <span>{l.text}</span>
+              </Link>
+            ))}
+          </div>
+          <Link href="/sutaz/registracia" className="mm__lg-reg">
+            <b>{tr('Prihlás svoj tím')}</b>
+            <span>{tr('Registrácia tímu so súpiskou online')}</span>
+            <i aria-hidden="true">→</i>
+          </Link>
         </div>
       </div>
     </div>

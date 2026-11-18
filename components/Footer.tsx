@@ -22,6 +22,8 @@ const KOMPLEX: [string, string][] = [
   ['/ihrisko', msg('Futbalové ihrisko')],
   ['/fitness-wellness', msg('Fitness a wellness')],
   ['/fotky', 'Fotky'],
+  ['/videa', msg('Videá')],
+  ['/sutaz', msg('Súťaž tímov')],
 ];
 
 // Päta: logo so sloganom, odkazy, kontakt s otváracími hodinami a právne odkazy.

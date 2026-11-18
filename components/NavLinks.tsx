@@ -15,7 +15,8 @@ export const NAV = [
   { href: '/fitness-wellness', label: msg('Fitness a wellness') },
   { href: '/bufet-skyboxy', label: msg('Bufet a skyboxy') },
   { href: '/fotky', label: msg('Fotky') },
-  { href: '/kontakt', label: msg('Kontakt') },
+  { href: '/videa', label: msg('Videá') },
+  { href: '/sutaz', label: msg('Súťaž') },
 ];
 
 function isActive(pathname: string, item: (typeof NAV)[number]) {
@@ -61,7 +62,19 @@ const MOBILE: { href: string; label: string; match: string[]; sub?: { href: stri
     ],
   },
   { href: '/fotky', label: msg('Fotky'), match: ['/fotky'] },
-  { href: '/kontakt', label: msg('Kontakt'), match: ['/kontakt'] },
+  { href: '/videa', label: msg('Videá'), match: ['/videa'] },
+  {
+    href: '/sutaz',
+    label: msg('Súťaž'),
+    match: ['/sutaz'],
+    sub: [
+      { href: '/sutaz/vysledky', label: msg('Výsledky') },
+      { href: '/sutaz/statistiky', label: msg('Štatistiky') },
+      { href: '/sutaz/tabulky', label: msg('Tabuľky') },
+      { href: '/sutaz/rozpis', label: msg('Rozpis') },
+      { href: '/sutaz/registracia', label: msg('Registrácia tímu') },
+    ],
+  },
 ];
 const inSection = (path: string, list: string[]) => list.some((p) => path === p || path.startsWith(`${p}/`));
 
@@ -106,7 +119,7 @@ export function MobileNav({ locale, locales, loggedIn = false, staff = false, ad
         <nav className="mnav__nav" aria-label={t('Mobilné menu')}>
           {MOBILE.map((m, i) => (
             <div key={m.href} className={`mnav__grp${i === open && m.sub ? ' has-sub' : ''}`}>
-              <Link href={m.href} className={`mnav__big${i === active ? ' is-active' : ''}`} aria-current={pathname === m.href ? 'page' : undefined}>
+              <Link href={m.href} className={`mnav__big${m.href === '/sutaz' ? ' mnav__big--sutaz' : ''}${i === active ? ' is-active' : ''}`} aria-current={pathname === m.href ? 'page' : undefined}>
                 {t(m.label)}
               </Link>
               {i === open && m.sub

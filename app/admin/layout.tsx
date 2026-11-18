@@ -24,6 +24,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       })
     : 0;
   const newInquiries = can(user.role, 'inquiries.manage') ? await prisma.inquiry.count({ where: { status: 'NEW' } }) : 0;
+  // odznak pri Súťaži: tímy čakajúce na schválenie (tabuľka ešte nemusí existovať)
+  const pendingTeams = can(user.role, 'league.manage') ? await prisma.leagueTeam.count({ where: { status: 'PENDING' } }).catch(() => 0) : 0;
   const B = can(user.role, 'bookings.view');
   const items: AdminNavItem[] = [
     { href: '/admin', label: t('Prehľad'), icon: 'home', group: '' },
@@ -37,6 +39,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     ...(can(user.role, 'users.view') ? ([{ href: '/admin/zakaznici', label: t('Zákazníci a kluby'), icon: 'users', group: t('Ľudia') }] as AdminNavItem[]) : []),
     ...(can(user.role, 'inquiries.manage') ? ([{ href: '/admin/dopyty', label: t('Dopyty'), icon: 'mail', group: t('Ľudia'), badge: newInquiries || undefined }] as AdminNavItem[]) : []),
     ...(can(user.role, 'articles.write') ? ([{ href: '/admin/clanky', label: t('Články'), icon: 'doc', group: 'Web', hard: true }] as AdminNavItem[]) : []),
+    ...(can(user.role, 'league.manage') ? ([{ href: '/admin/sutaz', label: t('Súťaž tímov'), icon: 'trophy', group: 'Web', badge: pendingTeams || undefined }] as AdminNavItem[]) : []),
     ...(can(user.role, 'media.manage') ? ([{ href: '/admin/fotky', label: t('Fotky'), icon: 'image', group: 'Web', hard: true }] as AdminNavItem[]) : []),
     ...(can(user.role, 'analytics.view') ? ([{ href: '/admin/analytika', label: t('Analytika'), icon: 'chart', group: t('Prehľady') }] as AdminNavItem[]) : []),
     { href: '/admin/platby', label: t('Platby a faktúry'), icon: 'card', group: t('Prehľady'), soon: true },

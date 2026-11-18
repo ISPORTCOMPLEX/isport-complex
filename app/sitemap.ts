@@ -7,7 +7,7 @@ export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = appUrl() ?? 'http://localhost:3000';
-  const pages: MetadataRoute.Sitemap = ['', '/aktuality', '/ladova-plocha', '/ihrisko', '/fitness-wellness', '/bufet-skyboxy', '/cennik', '/pre-kluby', '/kontakt', '/fotky', '/rezervacia', '/obchodne-podmienky', '/ochrana-osobnych-udajov', '/vyhlasenie-o-pristupnosti'].map((p) => ({
+  const pages: MetadataRoute.Sitemap = ['', '/aktuality', '/ladova-plocha', '/ihrisko', '/fitness-wellness', '/bufet-skyboxy', '/cennik', '/pre-kluby', '/kontakt', '/fotky', '/videa', '/sutaz', '/sutaz/vysledky', '/sutaz/statistiky', '/sutaz/tabulky', '/sutaz/rozpis', '/rezervacia', '/obchodne-podmienky', '/ochrana-osobnych-udajov', '/vyhlasenie-o-pristupnosti'].map((p) => ({
     url: `${base}${p}`,
     changeFrequency: p === '/aktuality' ? ('daily' as const) : ('weekly' as const),
     priority: p === '' ? 1 : p === '/aktuality' ? 0.8 : 0.6,

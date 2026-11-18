@@ -22,11 +22,12 @@ export type Permission =
   | 'settings.manage'
   | 'inquiries.manage'
   | 'articles.write' // písať a upravovať články (koncepty)
-  | 'articles.publish'; // zverejniť, naplánovať, stiahnuť, zmazať
+  | 'articles.publish' // zverejniť, naplánovať, stiahnuť, zmazať
+  | 'league.manage'; // súťaž tímov: schvaľovanie tímov, zápasy, výsledky
 
 const PERMS: Record<string, Permission[]> = {
-  ADMIN: ['dashboard', 'analytics.view', 'media.manage', 'users.view', 'users.manage', 'security.view', 'audit.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'settings.manage', 'inquiries.manage', 'articles.write', 'articles.publish'],
-  RECEPTION: ['dashboard', 'media.manage', 'users.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'inquiries.manage', 'articles.write'],
+  ADMIN: ['dashboard', 'analytics.view', 'media.manage', 'users.view', 'users.manage', 'security.view', 'audit.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'settings.manage', 'inquiries.manage', 'articles.write', 'articles.publish', 'league.manage'],
+  RECEPTION: ['dashboard', 'media.manage', 'users.view', 'bookings.view', 'bookings.manage', 'payments.manage', 'inquiries.manage', 'articles.write', 'league.manage'],
   ACCOUNTANT: ['dashboard', 'analytics.view', 'users.view', 'bookings.view', 'payments.manage'],
 };
 
