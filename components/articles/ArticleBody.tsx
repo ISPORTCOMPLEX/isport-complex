@@ -4,10 +4,16 @@ import { sanitizeInline, xHandle, type Block } from '@/lib/articles/blocks';
 import { articleImage, fmtDuration, videoPoster, videoSrc } from '@/lib/articles/queries';
 import { YouTube } from './YouTube';
 import { getT } from '@/lib/i18n/server';
+import { getXPost, type XPost } from '@/lib/articles/xpost';
 
 // Telo článku z blokov. Text sa pred vykreslením ešte raz očistí (aj keby sa do databázy dostalo niečo cudzie).
 export async function ArticleBody({ slug, blocks, title }: { slug: string; blocks: Block[]; title: string }) {
   const t = await getT();
+  // náhľady príspevkov z X načítame naraz (server, s vyrovnávacou pamäťou)
+  const xposts = new Map<string, XPost | null>(
+    await Promise.all(blocks.filter((b) => b.type === 'xpost').map(async (b) => [b.id, await getXPost((b as { url: string }).url)] as const)),
+  );
+  const fmtX = new Intl.DateTimeFormat(t.intl, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Bratislava' });
   let n = 0; // poradie fotky v prehliadači /aktuality/<slug>/fotky/<n>
   const viewer = (i: number) => `/aktuality/${slug}/fotky/${i}`;
   return (
@@ -87,20 +93,55 @@ export async function ArticleBody({ slug, blocks, title }: { slug: string; block
                 {b.caption ? <figcaption>{b.caption}</figcaption> : null}
               </figure>
             );
-          case 'xpost':
+          case 'xpost': {
+            const x = xposts.get(b.id) ?? null;
+            const author = x?.name || b.author;
+            const handle = x?.handle || xHandle(b.url);
+            const text = x?.text || b.text;
+            const date = x?.date ? fmtX.format(x.date) : b.date;
             return (
               <figure key={b.id} className="ab__xp">
                 <a href={b.url} target="_blank" rel="noopener noreferrer nofollow" className="ab__xp-card">
                   <span className="ab__xp-head">
-                    <span className="ab__xp-x" aria-hidden="true">𝕏</span>
+                    {x?.avatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={x.avatar} alt="" width={44} height={44} className="ab__xp-av" loading="lazy" />
+                    ) : (
+                      <span className="ab__xp-av ab__xp-av--empty" aria-hidden="true" />
+                    )}
                     <span className="ab__xp-who">
-                      {b.author ? <b>{b.author}</b> : null}
-                      <span>@{xHandle(b.url)}</span>
+                      {author ? (
+                        <b>
+                          {author}
+                          {x?.verified ? <span className="ab__xp-ver" aria-label={t('overený účet')} /> : null}
+                        </b>
+                      ) : null}
+                      <span>@{handle}</span>
+                    </span>
+                    <span className="ab__xp-x" aria-hidden="true">
+                      𝕏
                     </span>
                   </span>
-                  {b.text ? <span className="ab__xp-text">{b.text}</span> : null}
+                  {text ? <span className="ab__xp-text">{text}</span> : null}
+                  {x?.photos.length ? (
+                    <span className={`ab__xp-media ab__xp-media--${x.photos.length}`}>
+                      {x.photos.map((p) => (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img key={p.src} src={p.src} alt="" width={p.w} height={p.h} loading="lazy" />
+                      ))}
+                    </span>
+                  ) : x?.video ? (
+                    <span className="ab__xp-media ab__xp-media--1 ab__xp-media--video">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={x.video.poster} alt="" width={x.video.w} height={x.video.h} loading="lazy" />
+                      <span className="ab__xp-play" aria-hidden="true" />
+                    </span>
+                  ) : null}
                   <span className="ab__xp-foot">
-                    {b.date ? <span>{b.date}</span> : null}
+                    <span>
+                      {date ? <time dateTime={x?.date?.toISOString()}>{date}</time> : null}
+                      {x?.likes ? <span className="ab__xp-likes"> · ♥ {x.likes.toLocaleString(t.intl)}</span> : null}
+                    </span>
                     <span className="ab__xp-go">
                       {t('Zobraziť príspevok na X')} <span aria-hidden="true">→</span>
                       <span className="sr-only"> {t('(otvorí sa v novom okne)')}</span>
@@ -109,6 +150,7 @@ export async function ArticleBody({ slug, blocks, title }: { slug: string; block
                 </a>
               </figure>
             );
+          }
           case 'quote':
             return b.text ? (
               <blockquote key={b.id} className="ab__q">

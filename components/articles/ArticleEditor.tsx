@@ -453,9 +453,9 @@ function BlockEditor({ block, first, last, onChange, onMove, onRemove }: { block
             aria-label={tr('Odkaz na príspevok z X')}
             onBlur={(e) => onChange({ url: xPostUrl(e.target.value) ?? '' })}
           />
-          {block.url ? <small className="ed__muted">@{xHandle(block.url)} · {tr('na webe sa ukáže ako karta s odkazom na X')}</small> : <small className="ed__muted">{tr('Skopíruj adresu príspevku z X (Zdieľať → Kopírovať odkaz) a vlož ju sem.')}</small>}
-          <input className="adm-input" value={block.author} placeholder={tr('Meno autora (nepovinné)')} maxLength={80} aria-label={tr('Meno autora príspevku')} onChange={(e) => onChange({ author: e.target.value })} />
-          <textarea className="textarea" value={block.text} rows={3} maxLength={1200} placeholder={tr('Text príspevku (nepovinné) – skopíruj ho z X, aby sa ukázal aj v článku')} aria-label={tr('Text príspevku')} onChange={(e) => onChange({ text: e.target.value })} />
+          {block.url ? <small className="ed__muted">@{xHandle(block.url)} · {tr('na webe sa ukáže náhľad príspevku (text, fotky, autor) načítaný z X')}</small> : <small className="ed__muted">{tr('Skopíruj adresu príspevku z X (Zdieľať → Kopírovať odkaz) a vlož ju sem.')}</small>}
+          <input className="adm-input" value={block.author} placeholder={tr('Meno autora – len ak by sa náhľad z X nenačítal (nepovinné)')} maxLength={80} aria-label={tr('Meno autora príspevku')} onChange={(e) => onChange({ author: e.target.value })} />
+          <textarea className="textarea" value={block.text} rows={3} maxLength={1200} placeholder={tr('Text príspevku – záloha, ak by sa náhľad z X nenačítal (nepovinné)')} aria-label={tr('Text príspevku')} onChange={(e) => onChange({ text: e.target.value })} />
           <input className="adm-input" value={block.date} placeholder={tr('Dátum príspevku (nepovinné), napr. 18. 11. 2026')} maxLength={40} aria-label={tr('Dátum príspevku')} onChange={(e) => onChange({ date: e.target.value })} />
         </div>
       ) : null}
