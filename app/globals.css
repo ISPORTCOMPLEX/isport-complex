@@ -5402,3 +5402,55 @@ a.is__c:hover { background: #0f1c30; color: var(--white); }
   .cm__form > .cm__av { display: none; }
   .rx { padding: 16px; }
 }
+
+/* ===== v29 · Novinky na úvode podľa NHL.com (biely box: hlavný článok + 3 karty, vpravo „Hlavné správy“) ===== */
+.nw5 { padding: 80px 0 88px; }
+.nw5 .shd { color: var(--ink); }
+.nw5__box { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 24px; margin-top: 30px; padding: 24px; background: #fff; border-radius: 4px; box-shadow: 0 1px 2px rgba(11, 22, 38, 0.06); }
+.nw5__box.is-solo { grid-template-columns: minmax(0, 1fr); }
+.nw5__img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.nw5 a:hover .nw5__img { transform: scale(1.03); }
+.nw5__lead { position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden; background: var(--navy); color: #fff; }
+.nw5__lead :is(picture, .ac__noimg) { position: absolute; inset: 0; }
+.nw5__ov { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(5, 12, 24, 0.9) 0%, rgba(5, 12, 24, 0.55) 28%, rgba(5, 12, 24, 0) 55%); }
+.nw5__ltx { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 24px; }
+.nw5__lt { font-family: var(--font-archivo), system-ui, sans-serif; font-weight: 800; font-size: clamp(22px, 2.2vw, 30px); line-height: 1.15; letter-spacing: -0.01em; color: #fff; text-wrap: balance; }
+.nw5__lp { max-width: 720px; font-size: 16px; line-height: 1.45; color: rgba(255, 255, 255, 0.86); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nw5__lead:hover .nw5__lt { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 2px; }
+.nw5__cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 24px 0 0; padding: 0; list-style: none; }
+.nw5__card { display: flex; flex-direction: column; gap: 10px; color: var(--ink); }
+.nw5__cim { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; background: var(--navy); }
+.nw5__cim :is(picture, .ac__noimg) { position: absolute; inset: 0; }
+.nw5__ct { font-family: var(--font-archivo), system-ui, sans-serif; font-weight: 800; font-size: 18px; line-height: 1.25; color: var(--ink); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.nw5__card:hover .nw5__ct { color: var(--red); }
+.nw5__meta { font-size: 13px; color: var(--muted); }
+.nw5__k { font-weight: 700; color: var(--red); }
+.nw5__k.is-blue { color: var(--blue); }
+.nw5__k.is-yellow { color: #a87a00; }
+.nw5__k.is-ink { color: var(--ink-2); }
+.nw5__side { min-width: 0; }
+.nw5__sh { margin: 0 0 6px; font-family: var(--font-archivo), system-ui, sans-serif; font-weight: 700; font-size: 26px; line-height: 1.2; color: var(--ink); }
+.nw5__list { list-style: none; margin: 0; padding: 0; }
+.nw5__list li { border-bottom: 1px solid #e3e8ed; }
+.nw5__list a { display: block; padding: 11px 0; font-size: 15px; line-height: 1.4; color: var(--ink); }
+.nw5__list a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.nw5__vid { display: inline-grid; place-items: center; width: 18px; height: 18px; margin-right: 8px; border-radius: 50%; background: var(--red); color: #fff; font-size: 8px; vertical-align: 1px; }
+.nw5__all { display: inline-flex; gap: 6px; margin-top: 16px; font-weight: 700; font-size: 14px; color: var(--ink); }
+.nw5__all:hover { color: var(--red); }
+.nw5__empty { margin: 30px 0 0; color: var(--muted); }
+@media (max-width: 1100px) {
+  .nw5__box { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 700px) {
+  .nw5 { padding: 56px 0 64px; }
+  .nw5__box { margin-left: calc(-1 * var(--gutter)); margin-right: calc(-1 * var(--gutter)); padding: 16px; border-radius: 0; }
+  .nw5__ltx { padding: 16px; }
+  .nw5__lt { font-size: 21px; }
+  .nw5__lp { display: none; }
+  .nw5__cards { grid-template-columns: minmax(0, 1fr); gap: 0; margin-top: 8px; }
+  .nw5__cards li { border-bottom: 1px solid #e3e8ed; }
+  .nw5__card { display: grid; grid-template-columns: 112px minmax(0, 1fr); grid-template-rows: auto 1fr; column-gap: 14px; row-gap: 6px; padding: 14px 0; }
+  .nw5__cim { grid-row: 1 / 3; }
+  .nw5__ct { font-size: 16px; }
+  .nw5__sh { margin-top: 12px; font-size: 22px; }
+}
