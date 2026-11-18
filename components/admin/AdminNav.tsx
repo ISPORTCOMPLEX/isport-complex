@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useT } from '@/lib/i18n/client';
 
 // hard: odkaz s plným načítaním stránky (Fotky potrebujú vlastnú CSP na nahrávanie, ktorú prechod v rámci appky neprinesie)
 export type AdminNavItem = { href: string; label: string; icon: IconName; group: string; soon?: boolean; badge?: number; hard?: boolean };
@@ -32,11 +33,12 @@ function Icon({ name }: { name: IconName }) {
 }
 
 export function AdminNav({ items }: { items: AdminNavItem[] }) {
+  const t = useT();
   const pathname = usePathname() ?? '/admin';
   const active = (href: string) => (href === '/admin' ? pathname === '/admin' : pathname === href || pathname.startsWith(`${href}/`));
   const groups = [...new Set(items.map((i) => i.group))];
   return (
-    <nav aria-label="Administrácia" className="adm__nav">
+    <nav aria-label={t('Administrácia')} className="adm__nav">
       {groups.map((g) => (
         <div key={g} className="adm__group">
           {g ? <span className="adm__group-title">{g}</span> : null}
@@ -44,10 +46,10 @@ export function AdminNav({ items }: { items: AdminNavItem[] }) {
             .filter((i) => i.group === g)
             .map((i) =>
               i.soon ? (
-                <span key={i.href} className="adm__link adm__link--soon" title="Pripravujeme">
+                <span key={i.href} className="adm__link adm__link--soon" title={t('Pripravujeme')}>
                   <Icon name={i.icon} />
                   {i.label}
-                  <em>čoskoro</em>
+                  <em>{t('čoskoro')}</em>
                 </span>
               ) : i.hard ? (
                 <a key={i.href} href={i.href} className="adm__link" aria-current={active(i.href) ? 'page' : undefined}>

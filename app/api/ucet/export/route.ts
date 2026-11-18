@@ -4,15 +4,17 @@ import { hitLimit } from '@/lib/rateLimit';
 import { getRequestInfo } from '@/lib/requestInfo';
 import { logSecurity } from '@/lib/securityLog';
 import { isCrossSite } from '@/lib/sameSite';
+import { getT } from '@/lib/i18n/server';
 
 // Export osobných údajov (GDPR čl. 15 a 20). Bez hesiel, tajomstiev 2FA a interných príznakov.
 export async function GET(req: Request) {
+  const t = await getT();
   if (isCrossSite(req)) return new Response('Forbidden', { status: 403 });
   const session = await getSessionUser();
-  if (!session) return new Response('Neprihlásený', { status: 401 });
+  if (!session) return new Response(t('Neprihlásený'), { status: 401 });
 
   const limit = await hitLimit(`export:${session.id}`, 5, 60 * 60);
-  if (!limit.ok) return new Response('Príliš veľa požiadaviek, skús to neskôr.', { status: 429, headers: { 'Retry-After': String(limit.retryAfterSec) } });
+  if (!limit.ok) return new Response(t('Príliš veľa požiadaviek, skús to neskôr.'), { status: 429, headers: { 'Retry-After': String(limit.retryAfterSec) } });
 
   const user = await prisma.user.findUnique({
     where: { id: session.id },

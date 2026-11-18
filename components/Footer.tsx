@@ -5,18 +5,22 @@ import { appUrl } from '@/lib/requestInfo';
 import { StoreBadge } from '@/components/StoreBadge';
 import { OpenNow } from '@/components/OpenNow';
 import { mapLinks } from '@/lib/maps';
+import { getLocale } from '@/lib/i18n/server';
+import { LOCALES, LOCALE_NAMES } from '@/lib/i18n/config';
+import { getT } from '@/lib/i18n/server';
+import { msg } from '@/lib/i18n/translate';
 
 const LAD: [string, string][] = [
-  ['/rezervacia', 'Rezervácia'],
-  ['/cennik', 'Cenník a storno'],
-  ['/pre-kluby', 'Pre kluby'],
-  ['/ucet', 'Môj účet'],
+  ['/rezervacia', msg('Rezervácia')],
+  ['/cennik', msg('Cenník a storno')],
+  ['/pre-kluby', msg('Pre kluby')],
+  ['/ucet', msg('Môj účet')],
 ];
 const KOMPLEX: [string, string][] = [
   ['/aktuality', 'Novinky'],
-  ['/bufet-skyboxy', 'Bufet a skyboxy'],
-  ['/ihrisko', 'Futbalové ihrisko'],
-  ['/fitness-wellness', 'Fitness a wellness'],
+  ['/bufet-skyboxy', msg('Bufet a skyboxy')],
+  ['/ihrisko', msg('Futbalové ihrisko')],
+  ['/fitness-wellness', msg('Fitness a wellness')],
   ['/fotky', 'Fotky'],
 ];
 
@@ -24,7 +28,8 @@ const KOMPLEX: [string, string][] = [
 // Na mobile je kontakt hore ako karta (Zavolať, Navigovať, hodiny) a odkazy v rozbaľovacích skupinách.
 // Chýbajúce údaje (telefón, e-mail, IČO) sa nezobrazujú.
 export async function Footer() {
-  const site = await getSite();
+  const tr = await getT();
+  const [site, locale] = await Promise.all([getSite(), getLocale()]);
   const c = site.company;
   const { ios, android } = site.apps;
   // blok s aplikáciou len ak je aspoň jeden odkaz do obchodu
@@ -35,12 +40,12 @@ export async function Footer() {
       <>
         {site.social.facebook ? (
           <a href={site.social.facebook} target="_blank" rel="noopener noreferrer">
-            Facebook<span className="sr-only"> (otvorí sa v novom okne)</span>
+            {tr('Facebook')}<span className="sr-only"> {' '}{tr('(otvorí sa v novom okne)')}</span>
           </a>
         ) : null}
         {site.social.instagram ? (
           <a href={site.social.instagram} target="_blank" rel="noopener noreferrer">
-            Instagram<span className="sr-only"> (otvorí sa v novom okne)</span>
+            {tr('Instagram')}<span className="sr-only"> {' '}{tr('(otvorí sa v novom okne)')}</span>
           </a>
         ) : null}
       </>
@@ -51,29 +56,29 @@ export async function Footer() {
       <div className="ft2__line" aria-hidden="true" />
       <div className="wrap ft2__in">
         <div className="ft2__top">
-          <Link href="/" className="ft2__logo" aria-label="I-SPORT COMPLEX, domov">
+          <Link href="/" className="ft2__logo" aria-label={tr('I-SPORT COMPLEX, domov')}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/logo-slogan-na-tmave.svg" alt="I-SPORT COMPLEX – šport, zábava, komunita" width={260} height={196} />
+            <img src="/brand/logo-slogan-na-tmave.svg" alt={tr('I-SPORT COMPLEX – šport, zábava, komunita')} width={260} height={196} />
           </Link>
           <div className="ft2__cols">
-            <nav aria-label="Ľad" className="ft2__col">
-              <h2 className="wide-display">Ľad</h2>
+            <nav aria-label={tr('Ľad')} className="ft2__col">
+              <h2 className="wide-display">{tr('Ľad')}</h2>
               {LAD.map(([h, t]) => (
                 <Link key={h} href={h}>
-                  {t}
+                  {tr(t)}
                 </Link>
               ))}
             </nav>
-            <nav aria-label="Komplex" className="ft2__col">
-              <h2 className="wide-display">Komplex</h2>
+            <nav aria-label={tr('Komplex')} className="ft2__col">
+              <h2 className="wide-display">{tr('Komplex')}</h2>
               {KOMPLEX.map(([h, t]) => (
                 <Link key={h} href={h}>
-                  {t}
+                  {tr(t)}
                 </Link>
               ))}
             </nav>
             <div className="ft2__col ft2__contact">
-              <h2 className="wide-display">Kontakt</h2>
+              <h2 className="wide-display">{tr('Kontakt')}</h2>
               <span className="ft2__addr">
                 {site.hall.street}
                 <br />
@@ -85,14 +90,14 @@ export async function Footer() {
                 <dl className="ft2__hours">
                   {hours.map((h) => (
                     <div key={h.days}>
-                      <dt>{h.days}</dt>
+                      <dt>{tr(h.days)}</dt>
                       <dd>{h.time}</dd>
                     </div>
                   ))}
                 </dl>
               ) : null}
               <OpenNow hours={site.hours} />
-              <Link href="/kontakt">Napísať nám</Link>
+              <Link href="/kontakt">{tr('Napísať nám')}</Link>
               {social}
             </div>
           </div>
@@ -100,7 +105,7 @@ export async function Footer() {
         {/* mobil: kontakt hore ako karta, odkazy v rozbaľovacích skupinách */}
         <div className="ft2__m">
           <div className="ft2__card">
-            <h2 className="wide-display">Kontakt</h2>
+            <h2 className="wide-display">{tr('Kontakt')}</h2>
             <p className="ft2__maddr">
               {site.hall.street}
               <br />
@@ -109,11 +114,11 @@ export async function Footer() {
             <div className="ft2__mbtns">
               {site.phone ? (
                 <a href={`tel:${site.phone.replace(/\s/g, '')}`} className="sbtn sbtn--md">
-                  Zavolať
+                  {tr('Zavolať')}
                 </a>
               ) : null}
               <a href={links.directions} target="_blank" rel="noopener noreferrer" className={`sbtn sbtn--md${site.phone ? ' sbtn--ghost' : ''}`}>
-                Navigovať<span className="sr-only"> (otvorí sa v novom okne)</span>
+                {tr('Navigovať')}<span className="sr-only"> {' '}{tr('(otvorí sa v novom okne)')}</span>
               </a>
             </div>
             {site.email ? (
@@ -125,7 +130,7 @@ export async function Footer() {
               <dl className="ft2__hours">
                 {hours.map((h) => (
                   <div key={h.days}>
-                    <dt>{h.days}</dt>
+                    <dt>{tr(h.days)}</dt>
                     <dd>{h.time}</dd>
                   </div>
                 ))}
@@ -134,25 +139,25 @@ export async function Footer() {
             <OpenNow hours={site.hours} />
           </div>
           <details className="ft2__acc">
-            <summary>Ľad</summary>
+            <summary>{tr('Ľad')}</summary>
             {LAD.map(([h, t]) => (
               <Link key={h} href={h}>
-                {t}
+                {tr(t)}
               </Link>
             ))}
           </details>
           <details className="ft2__acc">
-            <summary>Komplex</summary>
+            <summary>{tr('Komplex')}</summary>
             {KOMPLEX.map(([h, t]) => (
               <Link key={h} href={h}>
-                {t}
+                {tr(t)}
               </Link>
             ))}
           </details>
           <details className="ft2__acc">
-            <summary>Kontakt a správa</summary>
-            <Link href="/kontakt">Napísať nám</Link>
-            <Link href="/ucet">Môj účet</Link>
+            <summary>{tr('Kontakt a správa')}</summary>
+            <Link href="/kontakt">{tr('Napísať nám')}</Link>
+            <Link href="/ucet">{tr('Môj účet')}</Link>
           </details>
           {social ? <div className="ft2__soc">{social}</div> : null}
         </div>
@@ -162,8 +167,8 @@ export async function Footer() {
               <div className="app2__dev">
                 <div className="app2__scr">
                   <span className="app2__bar">I-SPORT</span>
-                  <span className="app2__t">Tvoj ľad</span>
-                  <span className="app2__r">vstupenka v mobile</span>
+                  <span className="app2__t">{tr('Tvoj ľad')}</span>
+                  <span className="app2__r">{tr('vstupenka v mobile')}</span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {appQr ? <img src={appQr} alt="" width={110} height={110} className="app2__q" /> : null}
                 </div>
@@ -171,9 +176,9 @@ export async function Footer() {
             </div>
             <div className="app2__tx">
               <h2 id="app2-t" className="app2__h">
-                I-SPORT v mobile
+                {tr('I-SPORT v mobile')}
               </h2>
-              <p>Rezervácia ľadu na pár ťuknutí, vstupenka s QR kódom aj bez signálu a upozornenie pred tréningom.</p>
+              <p>{tr('Rezervácia ľadu na pár ťuknutí, vstupenka s QR kódom aj bez signálu a upozornenie pred tréningom.')}</p>
             </div>
             <div className="app2__side">
               <div className="app2__badges">
@@ -183,11 +188,11 @@ export async function Footer() {
               {appQr ? (
                 <div className="app2__qr">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={appQr} alt="QR kód na stiahnutie aplikácie" width={96} height={96} />
+                  <img src={appQr} alt={tr('QR kód na stiahnutie aplikácie')} width={96} height={96} />
                   <span>
-                    Naskenuj
+                    {tr('Naskenuj')}
                     <br />
-                    mobilom
+                    {tr('mobilom')}
                   </span>
                 </div>
               ) : null}
@@ -199,14 +204,21 @@ export async function Footer() {
           <span>
             © {new Date().getFullYear()} {c.name}
             {c.street ? ` · ${c.street}, ${c.city.replace(/\s*–.*$/, '')}` : ''}
-            {c.ico ? ` · IČO ${c.ico}` : ''}
-            {c.dic ? ` · DIČ ${c.dic}` : ''}
+            {c.ico ? ` · ${tr('IČO')} ${c.ico}` : ''}
+            {c.dic ? ` · ${tr('DIČ')} ${c.dic}` : ''}
           </span>
           <span className="ft2__legal">
-            <Link href="/obchodne-podmienky">Obchodné podmienky</Link>
-            <Link href="/ochrana-osobnych-udajov">Ochrana osobných údajov</Link>
-            <Link href="/vyhlasenie-o-pristupnosti">Prístupnosť</Link>
+            <Link href="/obchodne-podmienky">{tr('Obchodné podmienky')}</Link>
+            <Link href="/ochrana-osobnych-udajov">{tr('Ochrana osobných údajov')}</Link>
+            <Link href="/vyhlasenie-o-pristupnosti">{tr('Prístupnosť')}</Link>
           </span>
+          <nav className="ft2__lang" aria-label={tr('Jazyk webu')}>
+            {LOCALES.map((l) => (
+              <a key={l} href={`?lang=${l}`} hrefLang={l} lang={l} rel="nofollow" aria-current={l === locale ? 'true' : undefined}>
+                {LOCALE_NAMES[l]}
+              </a>
+            ))}
+          </nav>
         </div>
       </div>
     </footer>

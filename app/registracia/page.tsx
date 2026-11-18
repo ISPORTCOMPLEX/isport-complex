@@ -5,22 +5,27 @@ import { RegisterForm } from '@/components/auth/RegisterForm';
 import { createCaptcha } from '@/lib/captcha';
 import { createFormStamp } from '@/lib/formGuard';
 import { getSessionUser } from '@/lib/session';
+import { getT } from '@/lib/i18n/server';
 
-export const metadata: Metadata = { title: 'Registrácia', robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Registrácia'), robots: { index: false } };
+}
 
 export default async function RegistraciaPage() {
+  const t = await getT();
   if (await getSessionUser()) redirect('/ucet');
   return (
     <AuthShell
-      kicker="Nový účet"
+      kicker={t('Nový účet')}
       title={
         <>
-          Vstúp
+          {t('Vstúp')}
           <br />
-          <span className="red">na ľad</span>
+          <span className="red">{t('na ľad')}</span>
         </>
       }
-      word="ĽAD"
+      word={t('ĽAD')}
     >
       <RegisterForm captcha={createCaptcha()} stamp={createFormStamp()} />
     </AuthShell>

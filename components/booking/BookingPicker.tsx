@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useRef, useState } from 'react';
 import { Icon } from '@/components/Icon';
 import { EmptyState, ZamboniArt } from '@/components/EmptyArt';
-import type { DayOption } from '@/lib/dates';
+import { weekdaysShort, type DayOption } from '@/lib/dates';
+import { useT } from '@/lib/i18n/client';
 
 type Slot = { hour: number; free: boolean; bookable: boolean; price: number };
 type WeekDay = DayOption & { free: number };
@@ -33,9 +34,6 @@ type Props = {
 
 const pad = (h: number) => `${String(h).padStart(2, '0')}:00`;
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
-const hoursWord = (n: number) => (n === 1 ? 'hodina' : n <= 4 ? 'hodiny' : 'hodín');
-const freeWord = (n: number) => (n === 1 ? 'voľná' : n >= 2 && n <= 4 ? 'voľné' : 'voľných');
-const WD = ['Po', 'Ut', 'St', 'Št', 'Pi', 'So', 'Ne'];
 
 function Check({ size = 18, color = '#fff' }: { size?: number; color?: string }) {
   return (
@@ -47,6 +45,8 @@ function Check({ size = 18, color = '#fff' }: { size?: number; color?: string })
 
 
 export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, isToday, dayLong, dayLongYear, slots, initialHour, initialShowers, maxHours, showersEnabled, showerPrice, cancelFreeHours, presun = null }: Props) {
+  const tr = useT();
+  const WD = weekdaysShort(tr.intl);
   const ok = (s: Slot | undefined) => Boolean(s && s.free && s.bookable);
   const router = useRouter();
   // jemná vibrácia pri výbere (Android; iPhone vibráciu z webu nepodporuje)
@@ -94,8 +94,8 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
   }, [slots]);
   const isSel = (h: number) => valid && h >= start! && h < start! + hours;
   const dayHref = (d: string) => `/rezervacia?datum=${d}&sprchy=${sp}${tail}`;
-  const when = `${isToday ? 'Dnes · ' : ''}${dayLongYear}`;
-  const range = valid ? `${pad(start!)} – ${pad(start! + hours)}` : 'Vyber čas';
+  const when = `${isToday ? tr('Dnes · ') : ''}${dayLongYear}`;
+  const range = valid ? `${pad(start!)} – ${pad(start! + hours)}` : tr('Vyber čas');
 
   // kalendár po mesiacoch (pondelok prvý)
   const months = useMemo(() => {
@@ -115,12 +115,12 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
         <section className="rz2__step" aria-labelledby="rz-s1">
           <div className="rz2__row">
             <h2 id="rz-s1" className="rz2__h">
-              <span className="disp">Deň</span>
+              <span className="disp">{tr('Deň')}</span>
             </h2>
             <div className="rz2__nav">
               <span className="disp rz2__month">{month}</span>
               {prevWeek ? (
-                <Link href={prevWeek} className="rz2__arr" aria-label="Predchádzajúci týždeň" scroll={false}>
+                <Link href={prevWeek} className="rz2__arr" aria-label={tr('Predchádzajúci týždeň')} scroll={false}>
                   <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="3" />
                   </svg>
@@ -133,7 +133,7 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
                 </span>
               )}
               {nextWeek ? (
-                <Link href={nextWeek} className="rz2__arr" aria-label="Ďalší týždeň" scroll={false}>
+                <Link href={nextWeek} className="rz2__arr" aria-label={tr('Ďalší týždeň')} scroll={false}>
                   <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="3" />
                   </svg>
@@ -151,7 +151,7 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
                     <rect x="3" y="5" width="18" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" />
                     <path d="M3 10h18M8 3v4M16 3v4" fill="none" stroke="currentColor" strokeWidth="2.2" />
                   </svg>
-                  Kalendár
+                  {tr('Kalendár')}
                 </summary>
                 <div className="cal2__pop">
                   {months.map((m) => (
@@ -178,7 +178,7 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
           </div>
           <nav
             className="rz2__days"
-            aria-label="Deň"
+            aria-label={tr('Deň')}
             onTouchStart={(e) => {
               const t = e.touches[0];
               swipe.current = t ? { x: t.clientX, y: t.clientY } : null;
@@ -193,19 +193,19 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
             }}
           >
             {week.map((d) => (
-              <Link key={d.iso} href={dayHref(d.iso)} className="rz2__day" aria-current={d.iso === iso ? 'date' : undefined} aria-label={`${d.label}, ${d.free} ${freeWord(d.free)}`} scroll={false}>
+              <Link key={d.iso} href={dayHref(d.iso)} className="rz2__day" aria-current={d.iso === iso ? 'date' : undefined} aria-label={`${d.label}, ${tr.n(d.free, '{n} voľná|{n} voľné|{n} voľných')}`} scroll={false}>
                 <small>{d.short}</small>
                 <b className="disp">{d.num}</b>
                 <span>
-                  {d.free} <span className="rz2__long">{freeWord(d.free)}</span>
-                  <span className="rz2__short">voľ.</span>
+                  {d.free} <span className="rz2__long">{tr.n(d.free, 'voľná|voľné|voľných')}</span>
+                  <span className="rz2__short">{tr('voľ.')}</span>
                 </span>
               </Link>
             ))}
           </nav>
           <p className="rz2__swipe" aria-hidden="true">
             <i />
-            Potiahni prstom pre ďalší deň
+            {tr('Potiahni prstom pre ďalší deň')}
           </p>
         </section>
 
@@ -213,32 +213,32 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
         <section className="rz2__step" aria-labelledby="rz-s2">
           <div className="rz2__row">
             <h2 id="rz-s2" className="rz2__h">
-              <span className="disp">Čas</span>
-              <span className="rz2__hday">{isToday ? `dnes, ${dayLong}` : dayLong}</span>
+              <span className="disp">{tr('Čas')}</span>
+              <span className="rz2__hday">{isToday ? tr('dnes, {dayLong}', { dayLong }) : dayLong}</span>
             </h2>
             <div className="rz2__legend" aria-hidden="true">
               <span>
                 <i className="is-free" />
-                Voľné
+                {tr('Voľné')}
               </span>
               <span>
                 <i className="is-sel" />
-                Tvoj výber
+                {tr('Tvoj výber')}
               </span>
               <span>
                 <i className="is-off" />
-                Obsadené
+                {tr('Obsadené')}
               </span>
               {peakFrom !== null ? (
                 <span>
                   <i className="is-peak" />
-                  Večerná cena
+                  {tr('Večerná cena')}
                 </span>
               ) : null}
             </div>
           </div>
           {anyFree ? null : (
-            <EmptyState art={<ZamboniArt />} title="Na tento deň je ľad plný" text={nextFree ? `Rolba už upravuje plochu pre ďalších. Najbližší deň s voľným časom je ${nextFree.label.toLowerCase()}.` : 'Rolba už upravuje plochu pre ďalších. Skús iný deň v kalendári.'}>
+            <EmptyState art={<ZamboniArt />} title={tr('Na tento deň je ľad plný')} text={nextFree ? tr('Rolba už upravuje plochu pre ďalších. Najbližší deň s voľným časom je {toLowerCase}.', { toLowerCase: nextFree.label.toLowerCase() }) : tr('Rolba už upravuje plochu pre ďalších. Skús iný deň v kalendári.')}>
               {nextFree ? (
                 <Link href={dayHref(nextFree.iso)} className="sbtn sbtn--md" scroll={false}>
                   {nextFree.label}
@@ -246,7 +246,7 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
               ) : null}
             </EmptyState>
           )}
-          <div className="rz2__slots" role="group" aria-label="Začiatok">
+          <div className="rz2__slots" role="group" aria-label={tr('Začiatok')}>
             {slots.map((s) => {
               const free = ok(s);
               const sel = isSel(s.hour);
@@ -254,7 +254,7 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
                 return (
                   <div key={s.hour} className={`rz2__slot ${s.bookable ? 'is-off' : 'is-past'}`}>
                     <span className="disp">{pad(s.hour)}</span>
-                    <small>{!s.bookable ? (isToday ? 'Prebehlo' : 'Nedostupné') : 'Obsadené'}</small>
+                    <small>{!s.bookable ? (isToday ? tr('Prebehlo') : tr('Nedostupné')) : tr('Obsadené')}</small>
                   </div>
                 );
               return (
@@ -271,7 +271,7 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
                   }}
                 >
                   <span className="disp">{pad(s.hour)}</span>
-                  <small>{sel ? 'Vybraté' : eur(s.price)}</small>
+                  <small>{sel ? tr('Vybraté') : eur(s.price)}</small>
                   {sel ? (
                     <span className="rz2__tick">
                       <Check />
@@ -287,21 +287,20 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
         <section className="rz2__step" aria-labelledby="rz-s3">
           <h2 id="rz-s3" className="rz2__h">
             <span className="disp">
-              <span className="rz2__mtitle">Dĺžka a </span>
-              <span className="rz2__dtitle">D</span>
-              <span className="rz2__mtitle">d</span>oplnky
+              <span className="rz2__mtitle">{tr('Dĺžka a doplnky')}</span>
+              <span className="rz2__dtitle">{tr('Doplnky')}</span>
             </span>
           </h2>
           <div className="rz2__mlen">
-            <span>Dĺžka</span>
+            <span>{tr('Dĺžka')}</span>
             <div className="rz2__stepper">
-              <button type="button" aria-label="Skrátiť o hodinu" disabled={!valid || hours <= 1} onClick={() => setCount(Math.max(1, hours - 1))}>
+              <button type="button" aria-label={tr('Skrátiť o hodinu')} disabled={!valid || hours <= 1} onClick={() => setCount(Math.max(1, hours - 1))}>
                 −
               </button>
               <strong className="disp">
-                {hours} {hoursWord(hours)}
+                {tr.n(hours, '{n} hodina|{n} hodiny|{n} hodín')}
               </strong>
-              <button type="button" aria-label="Predĺžiť o hodinu" disabled={!valid || hours >= possible} onClick={() => setCount(Math.min(possible, hours + 1))}>
+              <button type="button" aria-label={tr('Predĺžiť o hodinu')} disabled={!valid || hours >= possible} onClick={() => setCount(Math.min(possible, hours + 1))}>
                 +
               </button>
             </div>
@@ -311,8 +310,8 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
               <button type="button" className={`rz2__extra${showers ? ' is-on' : ''}`} aria-pressed={showers} onClick={() => setShowers((v) => !v)}>
                 <span className="rz2__box">{showers ? <Check /> : null}</span>
                 <span className="rz2__ex">
-                  <b>Sprchy po tréningu</b>
-                  <span>Jednorazovo pre celý tím</span>
+                  <b>{tr('Sprchy po tréningu')}</b>
+                  <span>{tr('Jednorazovo pre celý tím')}</span>
                 </span>
                 <span className="disp rz2__exp">+{eur(showerPrice)}</span>
               </button>
@@ -322,25 +321,25 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
                 <Check color="#2FCB75" />
               </span>
               <span className="rz2__ex">
-                <b>Šatňa a úprava ľadu</b>
-                <span>Pri každom prenájme</span>
+                <b>{tr('Šatňa a úprava ľadu')}</b>
+                <span>{tr('Pri každom prenájme')}</span>
               </span>
-              <span className="disp rz2__exp is-green">V cene</span>
+              <span className="disp rz2__exp is-green">{tr('V cene')}</span>
             </div>
           </div>
           <p className="rz2__mnote">
             <Icon name="qr" size={30} />
-            Storno zdarma do {cancelFreeHours} h. QR kód dostaneš hneď po rezervácii.
+            {tr('Storno zdarma do {cancelFreeHours} h. QR kód dostaneš hneď po rezervácii.', { cancelFreeHours })} 
           </p>
         </section>
       </div>
 
       {/* SÚHRN – prilepený vpravo */}
-      <aside className="rz2__aside" aria-label="Súhrn rezervácie">
+      <aside className="rz2__aside" aria-label={tr('Súhrn rezervácie')}>
         <div className="rz2__sum">
           <div className="rz2__bar">
-            <span className="wide-display">Tvoja rezervácia</span>
-            <span>KROK 1 / 3</span>
+            <span className="wide-display">{tr('Tvoja rezervácia')}</span>
+            <span>{tr('KROK {n} / 3', { n: 1 })}</span>
           </div>
           <div className="rz2__body">
             <span className="rz2__when">
@@ -348,61 +347,61 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
               <span className="disp rz2__range">{range}</span>
             </span>
             <div className="rz2__len">
-              <span>Dĺžka</span>
+              <span>{tr('Dĺžka')}</span>
               <div className="rz2__stepper">
-                <button type="button" aria-label="Skrátiť o hodinu" disabled={!valid || hours <= 1} onClick={() => setCount(Math.max(1, hours - 1))}>
+                <button type="button" aria-label={tr('Skrátiť o hodinu')} disabled={!valid || hours <= 1} onClick={() => setCount(Math.max(1, hours - 1))}>
                   −
                 </button>
                 <strong className="disp">
-                  {hours} {hoursWord(hours)}
+                  {tr.n(hours, '{n} hodina|{n} hodiny|{n} hodín')}
                 </strong>
-                <button type="button" aria-label="Predĺžiť o hodinu" disabled={!valid || hours >= possible} onClick={() => setCount(Math.min(possible, hours + 1))}>
+                <button type="button" aria-label={tr('Predĺžiť o hodinu')} disabled={!valid || hours >= possible} onClick={() => setCount(Math.min(possible, hours + 1))}>
                   +
                 </button>
               </div>
             </div>
             <div className="rz2__rows">
               <span>
-                <span>Celá ľadová plocha{valid ? ` · ${hours} h` : ''}</span>
+                <span>{tr('Celá ľadová plocha')}{valid ? tr(' · {hours} h', { hours }) : ''}</span>
                 <b>{valid ? eur(ice) : '—'}</b>
               </span>
               <span>
-                <span>Šatňa a úprava ľadu</span>
-                <b className="is-green">v cene</b>
+                <span>{tr('Šatňa a úprava ľadu')}</span>
+                <b className="is-green">{tr('v cene')}</b>
               </span>
               {showersEnabled ? (
                 <span>
-                  <span>Sprchy</span>
-                  <b>{showers ? eur(showerPrice) : 'bez spŕch'}</b>
+                  <span>{tr('Sprchy')}</span>
+                  <b>{showers ? eur(showerPrice) : tr('bez spŕch')}</b>
                 </span>
               ) : null}
             </div>
             <div className="rz2__total" aria-live="polite" aria-atomic="true">
               <span>
-                <b>Spolu</b>
-                <small>vrátane DPH</small>
+                <b>{tr('Spolu')}</b>
+                <small>{tr('vrátane DPH')}</small>
               </span>
               <span className="disp">{valid ? eur(ice + extra) : '—'}</span>
             </div>
             {next ? (
               <Link href={next} className="sbtn sbtn--block sbtn--lg">
-                Pokračovať na údaje
+                {tr('Pokračovať na údaje')}
                 <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="3" />
                 </svg>
               </Link>
             ) : (
               <span className="sbtn sbtn--block sbtn--lg is-off" aria-disabled="true">
-                Najprv vyber čas
+                {tr('Najprv vyber čas')}
               </span>
             )}
-            <span className="rz2__fine">Platíš na recepcii alebo prevodom.</span>
+            <span className="rz2__fine">{tr('Platíš na recepcii alebo prevodom.')}</span>
           </div>
         </div>
         <p className="rz2__qr">
           <Icon name="qr" size={36} />
           <span>
-            Po rezervácii dostaneš <b>QR kód</b>. Na recepcii ho ukážeš a šatňa je pripravená.
+            {tr('Po rezervácii dostaneš')}{' '}<b>{tr('QR kód')}</b>{tr('. Na recepcii ho ukážeš a šatňa je pripravená.')}
           </span>
         </p>
       </aside>
@@ -415,17 +414,17 @@ export function BookingPicker({ week, prevWeek, nextWeek, month, calendar, iso, 
             <span className="disp">{range}</span>
           </span>
           <span className="rz2__mtot">
-            <small>Spolu s DPH</small>
+            <small>{tr('Spolu s DPH')}</small>
             <span className="disp">{valid ? eur(ice + extra) : '—'}</span>
           </span>
         </div>
         {next ? (
           <Link href={next} className="sbtn sbtn--block">
-            Pokračovať na údaje
+            {tr('Pokračovať na údaje')}
           </Link>
         ) : (
           <span className="sbtn sbtn--block is-off" aria-disabled="true">
-            Najprv vyber čas
+            {tr('Najprv vyber čas')}
           </span>
         )}
       </div>

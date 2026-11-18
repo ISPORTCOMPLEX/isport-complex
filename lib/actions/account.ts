@@ -15,11 +15,13 @@ import { encrypt, decrypt } from '@/lib/crypto';
 import { generateBackupCodes, generateSecret, otpauthUri, verifyTotp } from '@/lib/totp';
 import { checkSecondFactor } from '@/lib/secondFactor';
 import { emailEnabled, sendSecurityNoticeEmail } from '@/lib/email';
+import { getT } from '@/lib/i18n/server';
+import { msg } from '@/lib/i18n/translate';
 
 async function notice(user: { email: string; firstName: string }, what: string) {
   if (!emailEnabled()) return;
   try {
-    await sendSecurityNoticeEmail(user.email, user.firstName, what, `${await getBaseUrl()}/ucet/zabezpecenie`);
+    await sendSecurityNoticeEmail(await getT(), user.email, user.firstName, what, `${await getBaseUrl()}/ucet/zabezpecenie`);
   } catch (err) {
     console.error('[email:security-notice]', err);
   }
@@ -36,12 +38,13 @@ async function me() {
 
 async function sensitiveLimit(userId: string): Promise<string | null> {
   const r = await hitLimit(`acct:sensitive:${userId}`, 10, 15 * 60);
-  return r.ok ? null : `Príliš veľa pokusov. Skús to znova o ${minutes(r.retryAfterSec)} min.`;
+  return r.ok ? null : (await getT())('Príliš veľa pokusov. Skús to znova o {minutes} min.', { minutes: minutes(r.retryAfterSec) });
 }
 
 // ───────────────────────── Profil ─────────────────────────
 
 export async function updateProfileAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const user = await me();
   const values = {
     firstName: str(form, 'firstName', 60),
@@ -50,25 +53,26 @@ export async function updateProfileAction(_prev: FormState, form: FormData): Pro
     marketing: checked(form, 'marketing') ? 'on' : '',
   };
   const errors: Record<string, string> = {};
-  if (!isName(values.firstName)) errors.firstName = 'Zadaj meno.';
-  if (!isName(values.lastName)) errors.lastName = 'Zadaj priezvisko.';
-  if (!isPhone(values.phone)) errors.phone = 'Zadaj telefón v tvare +421 9xx xxx xxx.';
-  if (Object.keys(errors).length) return { error: 'Skontroluj označené polia.', errors, values };
+  if (!isName(values.firstName)) errors.firstName = t('Zadaj meno.');
+  if (!isName(values.lastName)) errors.lastName = t('Zadaj priezvisko.');
+  if (!isPhone(values.phone)) errors.phone = t('Zadaj telefón v tvare +421 9xx xxx xxx.');
+  if (Object.keys(errors).length) return { error: t('Skontroluj označené polia.'), errors, values };
 
   const limit = await hitLimit(`acct:profile:${user.id}`, 20, 15 * 60);
-  if (!limit.ok) return { error: `Príliš veľa zmien. Skús to znova o ${minutes(limit.retryAfterSec)} min.`, values };
+  if (!limit.ok) return { error: t('Príliš veľa zmien. Skús to znova o {minutes} min.', { minutes: minutes(limit.retryAfterSec) }), values };
 
   await prisma.user.update({
     where: { id: user.id },
     data: { firstName: values.firstName, lastName: values.lastName, phone: values.phone || null, marketingOptIn: values.marketing === 'on' },
   });
   revalidatePath('/ucet', 'layout');
-  return { success: 'Údaje sú uložené.', values };
+  return { success: t('Údaje sú uložené.'), values };
 }
 
 // ───────────────────────── Heslo ─────────────────────────
 
 export async function changePasswordAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const user = await me();
   const { ip, userAgent } = await getRequestInfo();
   const limited = await sensitiveLimit(user.id);
@@ -78,26 +82,27 @@ export async function changePasswordAction(_prev: FormState, form: FormData): Pr
   const next = raw(form, 'password', 200);
   if (!(await verifyPassword(current, user.passwordHash))) {
     await logSecurity({ type: 'password-change', ok: false, reason: 'bad-current', userId: user.id, ip, userAgent });
-    return { error: 'Súčasné heslo nie je správne.', errors: { current: 'Súčasné heslo nie je správne.' } };
+    return { error: t('Súčasné heslo nie je správne.'), errors: { current: t('Súčasné heslo nie je správne.') } };
   }
   const problem = await passwordProblemStrong(next, { email: user.email, names: [user.firstName, user.lastName] });
-  if (problem) return { error: problem, errors: { password: problem } };
-  if (next !== raw(form, 'password2', 200)) return { error: 'Heslá sa nezhodujú.', errors: { password2: 'Heslá sa nezhodujú.' } };
-  if (await verifyPassword(next, user.passwordHash)) return { error: 'Nové heslo musí byť iné ako súčasné.', errors: { password: 'Nové heslo musí byť iné ako súčasné.' } };
+  if (problem) return { error: t(problem), errors: { password: t(problem) } };
+  if (next !== raw(form, 'password2', 200)) return { error: t('Heslá sa nezhodujú.'), errors: { password2: t('Heslá sa nezhodujú.') } };
+  if (await verifyPassword(next, user.passwordHash)) return { error: t('Nové heslo musí byť iné ako súčasné.'), errors: { password: t('Nové heslo musí byť iné ako súčasné.') } };
 
   await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(next), passwordChangedAt: new Date() } });
   // Ostatné zariadenia sa odhlásia, toto dostane novú reláciu.
   await createSession(user.id);
   await logSecurity({ type: 'password-change', ok: true, userId: user.id, email: user.email, ip, userAgent });
-  await notice(user, 'heslo bolo zmenené');
-  return { success: 'Heslo je zmenené. Na ostatných zariadeniach sme ťa odhlásili.' };
+  await notice(user, msg('heslo bolo zmenené'));
+  return { success: t('Heslo je zmenené. Na ostatných zariadeniach sme ťa odhlásili.') };
 }
 
 // ───────────────────────── Dvojstupňové overenie (2FA) ─────────────────────────
 
 export async function startTwoFactorAction(_prev: FormState): Promise<FormState> {
+  const t = await getT();
   const user = await me();
-  if (user.twoFactorEnabledAt) return { error: 'Dvojstupňové overenie už máš zapnuté.' };
+  if (user.twoFactorEnabledAt) return { error: t('Dvojstupňové overenie už máš zapnuté.') };
   const limited = await sensitiveLimit(user.id);
   if (limited) return { error: limited };
 
@@ -108,11 +113,12 @@ export async function startTwoFactorAction(_prev: FormState): Promise<FormState>
 }
 
 export async function confirmTwoFactorAction(prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const user = await me();
   const { ip, userAgent } = await getRequestInfo();
   const keep = { qr: prev.qr, secret: prev.secret };
-  if (user.twoFactorEnabledAt) return { error: 'Dvojstupňové overenie už máš zapnuté.' };
-  if (!user.twoFactorSecretEnc) return { error: 'Začni nastavenie znova.' };
+  if (user.twoFactorEnabledAt) return { error: t('Dvojstupňové overenie už máš zapnuté.') };
+  if (!user.twoFactorSecretEnc) return { error: t('Začni nastavenie znova.') };
   const limited = await sensitiveLimit(user.id);
   if (limited) return { ...keep, error: limited };
 
@@ -120,12 +126,12 @@ export async function confirmTwoFactorAction(prev: FormState, form: FormData): P
   try {
     secret = decrypt(user.twoFactorSecretEnc);
   } catch {
-    return { error: 'Začni nastavenie znova.' };
+    return { error: t('Začni nastavenie znova.') };
   }
   const step = verifyTotp(secret, str(form, 'code', 20), null);
   if (step === null) {
     await logSecurity({ type: '2fa-change', ok: false, reason: 'bad-code-enable', userId: user.id, ip, userAgent });
-    return { ...keep, error: 'Kód nesedí. Skontroluj čas v telefóne a zadaj aktuálny kód.' };
+    return { ...keep, error: t('Kód nesedí. Skontroluj čas v telefóne a zadaj aktuálny kód.') };
   }
   const { codes, hashes } = generateBackupCodes();
   await prisma.user.update({
@@ -134,47 +140,49 @@ export async function confirmTwoFactorAction(prev: FormState, form: FormData): P
   });
   await logSecurity({ type: '2fa-change', ok: true, reason: 'enabled', userId: user.id, email: user.email, ip, userAgent });
   // Bez revalidácie – záložné kódy musia ostať na obrazovke, kým si ich používateľ neuloží.
-  return { backupCodes: codes, success: 'Dvojstupňové overenie je zapnuté.' };
+  return { backupCodes: codes, success: t('Dvojstupňové overenie je zapnuté.') };
 }
 
 export async function disableTwoFactorAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const user = await me();
   const { ip, userAgent } = await getRequestInfo();
-  if (!user.twoFactorEnabledAt) return { error: 'Dvojstupňové overenie nie je zapnuté.' };
+  if (!user.twoFactorEnabledAt) return { error: t('Dvojstupňové overenie nie je zapnuté.') };
   const limited = await sensitiveLimit(user.id);
   if (limited) return { error: limited };
 
   if (!(await verifyPassword(raw(form, 'password', 200), user.passwordHash))) {
     await logSecurity({ type: '2fa-change', ok: false, reason: 'bad-password-disable', userId: user.id, ip, userAgent });
-    return { error: 'Heslo nie je správne.', errors: { password: 'Heslo nie je správne.' } };
+    return { error: t('Heslo nie je správne.'), errors: { password: t('Heslo nie je správne.') } };
   }
   if (!(await checkSecondFactor(user, str(form, 'code', 20)))) {
     await logSecurity({ type: '2fa-change', ok: false, reason: 'bad-code-disable', userId: user.id, ip, userAgent });
-    return { error: 'Kód nie je správny.', errors: { code: 'Kód nie je správny.' } };
+    return { error: t('Kód nie je správny.'), errors: { code: t('Kód nie je správny.') } };
   }
   await prisma.user.update({
     where: { id: user.id },
     data: { twoFactorEnabledAt: null, twoFactorSecretEnc: null, twoFactorLastStep: null, twoFactorBackupHashes: [] },
   });
   await logSecurity({ type: '2fa-change', ok: true, reason: 'disabled', userId: user.id, email: user.email, ip, userAgent });
-  await notice(user, 'dvojstupňové overenie bolo vypnuté');
+  await notice(user, msg('dvojstupňové overenie bolo vypnuté'));
   revalidatePath('/ucet', 'layout');
-  return { success: 'Dvojstupňové overenie je vypnuté.' };
+  return { success: t('Dvojstupňové overenie je vypnuté.') };
 }
 
 export async function regenerateBackupCodesAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const user = await me();
   const { ip, userAgent } = await getRequestInfo();
-  if (!user.twoFactorEnabledAt) return { error: 'Dvojstupňové overenie nie je zapnuté.' };
+  if (!user.twoFactorEnabledAt) return { error: t('Dvojstupňové overenie nie je zapnuté.') };
   const limited = await sensitiveLimit(user.id);
   if (limited) return { error: limited };
   if (!(await verifyPassword(raw(form, 'password', 200), user.passwordHash))) {
-    return { error: 'Heslo nie je správne.', errors: { password: 'Heslo nie je správne.' } };
+    return { error: t('Heslo nie je správne.'), errors: { password: t('Heslo nie je správne.') } };
   }
   const { codes, hashes } = generateBackupCodes();
   await prisma.user.update({ where: { id: user.id }, data: { twoFactorBackupHashes: hashes } });
   await logSecurity({ type: '2fa-change', ok: true, reason: 'backup-regenerated', userId: user.id, ip, userAgent });
-  return { backupCodes: codes, success: 'Nové záložné kódy sú vytvorené. Staré prestali platiť.' };
+  return { backupCodes: codes, success: t('Nové záložné kódy sú vytvorené. Staré prestali platiť.') };
 }
 
 // ───────────────────────── Relácie ─────────────────────────
@@ -192,20 +200,24 @@ export async function logoutOthersAction(): Promise<void> {
 // ───────────────────────── Zmazanie účtu ─────────────────────────
 
 export async function deleteAccountAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const user = await me();
   const { ip, userAgent } = await getRequestInfo();
   const limited = await sensitiveLimit(user.id);
   if (limited) return { error: limited };
 
-  if (str(form, 'confirm', 20).toUpperCase() !== 'ZMAZAŤ') {
-    return { error: 'Pre potvrdenie napíš ZMAZAŤ.', errors: { confirm: 'Napíš ZMAZAŤ.' } };
+  // potvrdzovacie slovo v jazyku návštevníka (ZMAZAŤ / DELETE / LÖSCHEN …); slovenské platí vždy
+  const word = t('ZMAZAŤ');
+  const typed = str(form, 'confirm', 20).toUpperCase();
+  if (typed !== 'ZMAZAŤ' && typed !== word.toUpperCase()) {
+    return { error: t('Pre potvrdenie napíš {word}.', { word }), errors: { confirm: t('Napíš {word}.', { word }) } };
   }
   if (!(await verifyPassword(raw(form, 'password', 200), user.passwordHash))) {
     await logSecurity({ type: 'account-delete', ok: false, reason: 'bad-password', userId: user.id, ip, userAgent });
-    return { error: 'Heslo nie je správne.', errors: { password: 'Heslo nie je správne.' } };
+    return { error: t('Heslo nie je správne.'), errors: { password: t('Heslo nie je správne.') } };
   }
   if (user.twoFactorEnabledAt && !(await checkSecondFactor(user, str(form, 'code', 20)))) {
-    return { error: 'Kód z aplikácie nie je správny.', errors: { code: 'Kód nie je správny.' } };
+    return { error: t('Kód z aplikácie nie je správny.'), errors: { code: t('Kód nie je správny.') } };
   }
 
   // Anonymizácia: osobné údaje sa odstránia, záznam ostane kvôli účtovníctvu rezervácií.
@@ -216,16 +228,16 @@ export async function deleteAccountAction(_prev: FormState, form: FormData): Pro
     prisma.bookingSlot.deleteMany({ where: { bookingId: { in: future.map((f) => f.id) } } }),
     prisma.booking.updateMany({
       where: { id: { in: future.map((f) => f.id) } },
-      data: { status: 'CANCELLED', cancelledAt: now, cancelledBy: 'customer', cancelReason: 'Zmazanie účtu' },
+      data: { status: 'CANCELLED', cancelledAt: now, cancelledBy: 'customer', cancelReason: t('Zmazanie účtu') },
     }),
-    prisma.booking.updateMany({ where: { userId: user.id }, data: { contactName: 'Zmazaný používateľ', contactPhone: '', note: null } }),
+    prisma.booking.updateMany({ where: { userId: user.id }, data: { contactName: t('Zmazaný používateľ'), contactPhone: '', note: null } }),
     prisma.authToken.deleteMany({ where: { userId: user.id } }),
     prisma.user.update({
       where: { id: user.id },
       data: {
         email: `zmazany+${user.id}@deleted.invalid`,
-        firstName: 'Zmazaný',
-        lastName: 'používateľ',
+        firstName: t('Zmazaný'),
+        lastName: t('používateľ'),
         phone: null,
         passwordHash: null,
         marketingOptIn: false,

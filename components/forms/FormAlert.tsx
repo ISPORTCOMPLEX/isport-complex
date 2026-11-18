@@ -1,3 +1,5 @@
+'use client';
+
 export function FormAlert({ error, success }: { error?: string; success?: string }) {
   if (error) {
     return (

@@ -8,21 +8,26 @@ import { LocationSection } from '@/components/location/LocationSection';
 import { Icon } from '@/components/Icon';
 import { AreaArt } from '@/components/home/AreaArt';
 import { OpenNow } from '@/components/OpenNow';
+import { getT } from '@/lib/i18n/server';
 
-export const metadata: Metadata = { title: 'Kontakt', description: 'Kontakt, adresa a otváracie hodiny I-SPORT COMPLEX, Jarmočná 2627/10, Košice – Juh.' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Kontakt'), description: t('Kontakt, adresa a otváracie hodiny I-SPORT COMPLEX, Jarmočná 2627/10, Košice – Juh.') };
+}
 
 export default async function KontaktPage() {
+  const t = await getT();
   const site = await getSite();
   const c = site.company;
   return (
     <>
       <RzBand
         art={<AreaArt />}
-        crumbs={[{ href: '/', label: 'Komplex' }, { label: 'Kontakt' }]}
-        title="Kontakt"
+        crumbs={[{ href: '/', label: t('Komplex') }, { label: t('Kontakt') }]}
+        title={t('Kontakt')}
         lead={
           <p>
-            {orTbd(site.hall.street)}, {site.hall.city}. Napíš nám, zavolaj alebo sa zastav na recepcii.
+            {t('{orTbd}, {city}. Napíš nám, zavolaj alebo sa zastav na recepcii.', { orTbd: orTbd(site.hall.street), city: site.hall.city })}
           </p>
         }
       />
@@ -35,7 +40,7 @@ export default async function KontaktPage() {
                   <div className="vx__item">
                     <span>
                       <Icon name="telefon" size={18} />
-                      Telefón
+                      {t('Telefón')}
                     </span>
                     <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a>
                   </div>
@@ -44,7 +49,7 @@ export default async function KontaktPage() {
                   <div className="vx__item">
                     <span>
                       <Icon name="email" size={18} />
-                      E-mail
+                      {t('E-mail')}
                     </span>
                     <a href={`mailto:${site.email}`}>{site.email}</a>
                   </div>
@@ -54,18 +59,18 @@ export default async function KontaktPage() {
             <div className="vx__item">
               <span>
                 <Icon name="adresa" size={18} />
-                Adresa
+                {t('Adresa')}
               </span>
               <strong>
                 {orTbd(site.hall.street)}, {site.hall.city}
               </strong>
               <a href="#mapa" className="ulink u-mt8-15">
-                Ukázať na mape
+                {t('Ukázať na mape')}
               </a>
             </div>
             {site.hours.some((h) => h.time.trim()) ? (
               <div>
-                <h2 className="v3-label">Otváracie hodiny</h2>
+                <h2 className="v3-label">{t('Otváracie hodiny')}</h2>
                 <dl className="vx__hours">
                   {site.hours
                     .filter((h) => h.time.trim())
@@ -80,7 +85,7 @@ export default async function KontaktPage() {
               </div>
             ) : null}
             <div>
-              <h2 className="v3-label">Prevádzkovateľ</h2>
+              <h2 className="v3-label">{t('Prevádzkovateľ')}</h2>
               <dl className="vx__hours">
                 <div>
                   <dt>{c.name}</dt>
@@ -90,19 +95,19 @@ export default async function KontaktPage() {
                 </div>
                 {c.ico ? (
                   <div>
-                    <dt>IČO</dt>
+                    <dt>{t('IČO')}</dt>
                     <dd>{c.ico}</dd>
                   </div>
                 ) : null}
                 {c.dic ? (
                   <div>
-                    <dt>DIČ</dt>
+                    <dt>{t('DIČ')}</dt>
                     <dd>{c.dic}</dd>
                   </div>
                 ) : null}
                 {c.icDph ? (
                   <div>
-                    <dt>IČ DPH</dt>
+                    <dt>{t('IČ DPH')}</dt>
                     <dd>{c.icDph}</dd>
                   </div>
                 ) : null}
@@ -115,7 +120,7 @@ export default async function KontaktPage() {
           </div>
         </div>
       </section>
-      <LocationSection site={site} title="Ako sa k nám dostanete" lead="" />
+      <LocationSection site={site} title={t('Ako sa k nám dostanete')} lead="" />
     </>
   );
 }

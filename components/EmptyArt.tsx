@@ -1,3 +1,5 @@
+'use client';
+
 // Malé ilustrácie v štýle areálu pre prázdne stavy a chybové stránky (čisté SVG, bez inline štýlov).
 
 export function ZamboniArt() {

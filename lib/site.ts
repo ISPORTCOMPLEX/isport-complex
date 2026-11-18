@@ -1,3 +1,4 @@
+import { msg } from '@/lib/i18n/translate';
 // Všetky údaje o firme a hale na jednom mieste.
 // Prázdny reťazec alebo null = na webe sa zobrazí „Doplníme“.
 // Ceny a otváracie hodiny sa vo fáze 5 presunú do administrácie.
@@ -57,9 +58,10 @@ export const site: Site = {
   },
 
   hours: [
-    { days: 'Pondelok – Piatok', time: '' },
-    { days: 'Sobota', time: '' },
-    { days: 'Nedeľa', time: '' },
+    // názvy dní sú kľúče prekladu (na webe cez t(h.days))
+    { days: msg('Pondelok – Piatok'), time: '' },
+    { days: msg('Sobota'), time: '' },
+    { days: msg('Nedeľa'), time: '' },
   ],
 
   // Ceny v eurách s DPH za 60 minút. null = „Doplníme“.

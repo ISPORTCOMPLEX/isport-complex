@@ -5,8 +5,12 @@ import { can, requireStaff } from '@/lib/staff';
 import { cloudName } from '@/lib/cloudinary';
 import { normalizeBlocks, normalizeCover } from '@/lib/articles/blocks';
 import { ArticleEditor } from '@/components/articles/ArticleEditor';
+import { getT } from '@/lib/i18n/server';
 
-export const metadata: Metadata = { title: 'Úprava článku' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Úprava článku') };
+}
 
 type Props = { params: Promise<{ id: string }> };
 

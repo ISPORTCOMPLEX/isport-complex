@@ -9,8 +9,10 @@ import { CaptchaField, GuardFields } from '@/components/forms/Guard';
 import { FormAlert } from '@/components/forms/FormAlert';
 import { SubmitButton } from '@/components/forms/SubmitButton';
 import { DevLink } from '@/components/forms/DevLink';
+import { useT } from '@/lib/i18n/client';
 
 export function RegisterForm({ captcha, stamp }: { captcha: CaptchaData; stamp: string }) {
+  const t = useT();
   const [state, action] = useActionState(registerAction, EMPTY);
   const v = state.values ?? {};
   const e = state.errors ?? {};
@@ -21,22 +23,22 @@ export function RegisterForm({ captcha, stamp }: { captcha: CaptchaData; stamp: 
         <div className="auth__done-ic" aria-hidden="true">✉</div>
         {state.manual ? (
           <>
-            <h2 className="h-card">Registrácia prijatá</h2>
+            <h2 className="h-card">{t('Registrácia prijatá')}</h2>
             <p>
-              Účet pre <strong>{v.email}</strong> čaká na aktiváciu. Kým spustíme e-maily, aktivuje ho recepcia – zvyčajne do 24 hodín. Ak sa ponáhľaš, zavolaj nám.
+              {t('Účet pre')}{' '}<strong>{v.email}</strong> {' '}{t('čaká na aktiváciu. Kým spustíme e-maily, aktivuje ho recepcia – zvyčajne do 24 hodín. Ak sa ponáhľaš, zavolaj nám.')}
             </p>
           </>
         ) : (
           <>
-            <h2 className="h-card">Skontroluj si e-mail</h2>
+            <h2 className="h-card">{t('Skontroluj si e-mail')}</h2>
             <p>
-              Na adresu <strong>{v.email}</strong> sme poslali odkaz na overenie. Platí 24 hodín. Ak e-mail nevidíš, pozri priečinok Spam alebo Reklamy.
+              {t('Na adresu')}{' '}<strong>{v.email}</strong> {' '}{t('sme poslali odkaz na overenie. Platí 24 hodín. Ak e-mail nevidíš, pozri priečinok Spam alebo Reklamy.')}
             </p>
           </>
         )}
         <DevLink href={state.devLink} />
         <Link href="/prihlasenie" className="btn btn--ghost btn--full">
-          Prejsť na prihlásenie
+          {t('Prejsť na prihlásenie')}
         </Link>
       </div>
     );
@@ -44,40 +46,43 @@ export function RegisterForm({ captcha, stamp }: { captcha: CaptchaData; stamp: 
 
   return (
     <form action={action} className="form" noValidate>
-      <h2 className="h-card">Vytvoriť účet</h2>
+      <h2 className="h-card">{t('Vytvoriť účet')}</h2>
       <FormAlert error={state.error} />
       <GuardFields stamp={stamp} />
       <div className="form__row">
-        <Field label="Meno" name="firstName" autoComplete="given-name" defaultValue={v.firstName} error={e.firstName} required maxLength={60} />
-        <Field label="Priezvisko" name="lastName" autoComplete="family-name" defaultValue={v.lastName} error={e.lastName} required maxLength={60} />
+        <Field label={t('Meno')} name="firstName" autoComplete="given-name" defaultValue={v.firstName} error={e.firstName} required maxLength={60} />
+        <Field label={t('Priezvisko')} name="lastName" autoComplete="family-name" defaultValue={v.lastName} error={e.lastName} required maxLength={60} />
       </div>
-      <Field label="E-mail" name="email" type="email" autoComplete="email" inputMode="email" defaultValue={v.email} error={e.email} required maxLength={254} />
-      <Field label="Telefón" name="phone" type="tel" autoComplete="tel" inputMode="tel" defaultValue={v.phone} error={e.phone} optional placeholder="+421 9xx xxx xxx" maxLength={30} />
-      <Field label="Heslo" name="password" type="password" autoComplete="new-password" error={e.password} hint="Aspoň 8 znakov, malé a veľké písmeno a číslica." required />
-      <Field label="Heslo znova" name="password2" type="password" autoComplete="new-password" error={e.password2} required />
+      <Field label={t('E-mail')} name="email" type="email" autoComplete="email" inputMode="email" defaultValue={v.email} error={e.email} required maxLength={254} />
+      <Field label={t('Telefón')} name="phone" type="tel" autoComplete="tel" inputMode="tel" defaultValue={v.phone} error={e.phone} optional placeholder={t('+421 9xx xxx xxx')} maxLength={30} />
+      <Field label={t('Heslo')} name="password" type="password" autoComplete="new-password" error={e.password} hint={t('Aspoň 8 znakov, malé a veľké písmeno a číslica.')} required />
+      <Field label={t('Heslo znova')} name="password2" type="password" autoComplete="new-password" error={e.password2} required />
       <CaptchaField captcha={state.captcha ?? captcha} error={e.captcha} />
       <div className="form__checks">
         <Check name="age" error={e.age}>
-          Mám aspoň 16 rokov.
+          {t('Mám aspoň 16 rokov.')}
         </Check>
         <Check name="terms" error={e.terms}>
-          Súhlasím s{' '}
+          {t('Súhlasím s')}{' '}
+          
           <Link href="/obchodne-podmienky" target="_blank" className="link-red">
-            obchodnými podmienkami<span className="sr-only"> (otvorí sa v novom okne)</span>
-          </Link>{' '}
-          a beriem na vedomie{' '}
+            {t('obchodnými podmienkami')}<span className="sr-only"> {' '}{t('(otvorí sa v novom okne)')}</span>
+          </Link>{' '}{t('a beriem na vedomie')}{' '}
+          
+          
           <Link href="/ochrana-osobnych-udajov" target="_blank" className="link-red">
-            ochranu osobných údajov<span className="sr-only"> (otvorí sa v novom okne)</span>
+            {t('ochranu osobných údajov')}<span className="sr-only"> {' '}{t('(otvorí sa v novom okne)')}</span>
           </Link>
           .
         </Check>
-        <Check name="marketing">Chcem dostávať novinky a akcie e-mailom (nepovinné, kedykoľvek sa dá zrušiť).</Check>
+        <Check name="marketing">{t('Chcem dostávať novinky a akcie e-mailom (nepovinné, kedykoľvek sa dá zrušiť).')}</Check>
       </div>
-      <SubmitButton>Zaregistrovať sa</SubmitButton>
+      <SubmitButton>{t('Zaregistrovať sa')}</SubmitButton>
       <p className="auth__foot">
-        Už máš účet?{' '}
+        {t('Už máš účet?')}{' '}
+        
         <Link href="/prihlasenie" className="link-red">
-          Prihlás sa
+          {t('Prihlás sa')}
         </Link>
       </p>
     </form>

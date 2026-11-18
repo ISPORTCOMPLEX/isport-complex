@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, useState } from 'react';
+import { useT } from '@/lib/i18n/client';
 
 type Props = {
   label: string;
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export function Field({ label, name, type = 'text', defaultValue, error, hint, optional, aside, ...rest }: Props) {
+  const t = useT();
   const id = useId();
   const [show, setShow] = useState(false);
   const isPassword = type === 'password';
@@ -29,7 +31,7 @@ export function Field({ label, name, type = 'text', defaultValue, error, hint, o
       <div className="field__top">
         <label htmlFor={id}>
           {label}
-          {optional ? <span className="field__opt"> (nepovinné)</span> : null}
+          {optional ? <span className="field__opt"> {' '}{t('(nepovinné)')}</span> : null}
         </label>
         {aside}
       </div>
@@ -44,8 +46,8 @@ export function Field({ label, name, type = 'text', defaultValue, error, hint, o
           {...rest}
         />
         {isPassword ? (
-          <button type="button" className="field__toggle" onClick={() => setShow((s) => !s)} aria-label={show ? 'Skryť heslo' : 'Zobraziť heslo'}>
-            {show ? 'Skryť' : 'Zobraziť'}
+          <button type="button" className="field__toggle" onClick={() => setShow((s) => !s)} aria-label={show ? t('Skryť heslo') : t('Zobraziť heslo')}>
+            {show ? t('Skryť') : t('Zobraziť')}
           </button>
         ) : null}
       </div>

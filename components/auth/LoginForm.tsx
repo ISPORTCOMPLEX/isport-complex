@@ -9,8 +9,10 @@ import { CaptchaField, GuardFields } from '@/components/forms/Guard';
 import { FormAlert } from '@/components/forms/FormAlert';
 import { SubmitButton } from '@/components/forms/SubmitButton';
 import { DevLink } from '@/components/forms/DevLink';
+import { useT } from '@/lib/i18n/client';
 
 export function LoginForm({ stamp, next, notice, captcha = null }: { stamp: string; next: string; notice?: string; captcha?: CaptchaData | null }) {
+  const t = useT();
   const [state, action] = useActionState(loginAction, EMPTY);
   const v = state.values ?? {};
   const cap = state.captcha ?? captcha;
@@ -18,35 +20,37 @@ export function LoginForm({ stamp, next, notice, captcha = null }: { stamp: stri
     <div className="form-stack">
       <form action={action} className="form" noValidate>
         <div className="au2__head">
-          <h2 className="h-card">Prihlásenie</h2>
+          <h2 className="h-card">{t('Prihlásenie')}</h2>
           <p className="au2__sub">
-            Nemáš účet?{' '}
+            {t('Nemáš účet?')}{' '}
+            
             <Link href="/registracia" className="link-red">
-              Zaregistruj sa zadarmo
+              {t('Zaregistruj sa zadarmo')}
             </Link>
           </p>
         </div>
         <FormAlert error={state.error} success={state.error ? undefined : notice} />
         <GuardFields stamp={stamp} />
         <input type="hidden" name="next" value={next} />
-        <Field label="E-mail" name="email" type="email" autoComplete="email" inputMode="email" defaultValue={v.email} required maxLength={254} />
+        <Field label={t('E-mail')} name="email" type="email" autoComplete="email" inputMode="email" defaultValue={v.email} required maxLength={254} />
         <Field
-          label="Heslo"
+          label={t('Heslo')}
           name="password"
           type="password"
           autoComplete="current-password"
           required
           aside={
             <Link href="/zabudnute-heslo" className="link-red field__aside">
-              Zabudnuté heslo?
+              {t('Zabudnuté heslo?')}
             </Link>
           }
         />
         {cap ? <CaptchaField captcha={cap} error={state.errors?.captcha} /> : null}
-        <SubmitButton>Prihlásiť sa</SubmitButton>
+        <SubmitButton>{t('Prihlásiť sa')}</SubmitButton>
         <p className="au2__legal">
-          Prihlásením súhlasíš s <Link href="/obchodne-podmienky">obchodnými podmienkami</Link>. Údaje spracúvame podľa{' '}
-          <Link href="/ochrana-osobnych-udajov">zásad ochrany osobných údajov</Link>.
+          {t('Prihlásením súhlasíš s')}{' '}<Link href="/obchodne-podmienky">{t('obchodnými podmienkami')}</Link>{t('. Údaje spracúvame podľa')}{' '}
+          
+          <Link href="/ochrana-osobnych-udajov">{t('zásad ochrany osobných údajov')}</Link>.
         </p>
       </form>
       {state.unverifiedEmail ? <ResendVerification email={state.unverifiedEmail} /> : null}
@@ -55,14 +59,15 @@ export function LoginForm({ stamp, next, notice, captcha = null }: { stamp: stri
 }
 
 function ResendVerification({ email }: { email: string }) {
+  const t = useT();
   const [state, action] = useActionState(resendVerificationAction, EMPTY);
   return (
     <form action={action} className="form form--sub">
       <input type="hidden" name="email" value={email} />
-      <p className="muted">Odkaz na overenie neprišiel alebo vypršal?</p>
+      <p className="muted">{t('Odkaz na overenie neprišiel alebo vypršal?')}</p>
       <FormAlert error={state.error} success={state.success} />
       <DevLink href={state.devLink} />
-      <SubmitButton variant="ghost">Poslať nový odkaz</SubmitButton>
+      <SubmitButton variant="ghost">{t('Poslať nový odkaz')}</SubmitButton>
     </form>
   );
 }

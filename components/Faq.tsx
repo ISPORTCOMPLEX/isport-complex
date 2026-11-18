@@ -1,14 +1,16 @@
 import { JsonLd } from '@/components/JsonLd';
+import { getT } from '@/lib/i18n/server';
 
 // Časté otázky: rozbaľovacie odpovede bez JavaScriptu + údaje FAQPage pre Google.
 export type FaqItem = [question: string, answer: string];
 
-export function Faq({ items, title = 'Časté otázky', id = 'otazky' }: { items: FaqItem[]; title?: string; id?: string }) {
+export async function Faq({ items, title, id = 'otazky' }: { items: FaqItem[]; title?: string; id?: string }) {
   if (!items.length) return null;
+  const t = await getT();
   return (
     <section className="wrap faq" id={id} aria-labelledby={`${id}-t`}>
       <h2 id={`${id}-t`} className="disp sec-title">
-        {title}
+        {title ?? t('Časté otázky')}
       </h2>
       <div className="faq__list">
         {items.map(([q, a]) => (

@@ -7,6 +7,7 @@ import { hitLimit } from '@/lib/rateLimit';
 import { getRequestInfo } from '@/lib/requestInfo';
 import { cloudinaryConfig, destroyResource, getResource, uploadParams, verifyUploadSignature, MAX_BYTES } from '@/lib/cloudinary';
 import { isSlot, slotAlt } from '@/lib/media';
+import { getT } from '@/lib/i18n/server';
 
 // Správa fotiek. Súbor ide z prehliadača priamo do Cloudinary; sem prídu len podpísané údaje o ňom.
 
@@ -24,14 +25,15 @@ function refresh() {
 export type SignResult = { ok: true; url: string; fields: Record<string, string | number>; maxBytes: number } | { ok: false; error: string };
 
 export async function signUploadAction(slot: string): Promise<SignResult> {
+  const t = await getT();
   const me = await requireStaff('media.manage');
   const cfg = cloudinaryConfig();
-  if (!cfg) return { ok: false, error: 'Cloudinary nie je nastavené (chýbajú premenné CLOUDINARY_* na serveri).' };
-  if (!isSlot(slot)) return { ok: false, error: 'Neznáma časť webu.' };
+  if (!cfg) return { ok: false, error: t('Cloudinary nie je nastavené (chýbajú premenné CLOUDINARY_* na serveri).') };
+  if (!isSlot(slot)) return { ok: false, error: t('Neznáma časť webu.') };
   const limit = await hitLimit(`media:sign:${me.id}`, 120, 60 * 60);
-  if (!limit.ok) return { ok: false, error: 'Príliš veľa nahrávaní za hodinu. Skús to neskôr.' };
+  if (!limit.ok) return { ok: false, error: t('Príliš veľa nahrávaní za hodinu. Skús to neskôr.') };
   const count = await prisma.photo.count({ where: { slot } });
-  if (count >= PER_SLOT) return { ok: false, error: `Pri tejto časti je už ${PER_SLOT} fotiek. Najprv niektoré zmaž.` };
+  if (count >= PER_SLOT) return { ok: false, error: t('Pri tejto časti je už {PER_SLOT} fotiek. Najprv niektoré zmaž.', { PER_SLOT }) };
   const { url, fields } = uploadParams(cfg, slot);
   return { ok: true, url, fields, maxBytes: MAX_BYTES };
 }
@@ -39,23 +41,24 @@ export async function signUploadAction(slot: string): Promise<SignResult> {
 export type SaveResult = { ok: true } | { ok: false; error: string };
 
 export async function savePhotoAction(input: { slot: string; publicId: string; version: number; signature: string; alt?: string }): Promise<SaveResult> {
+  const t = await getT();
   const me = await requireStaff('media.manage');
   const cfg = cloudinaryConfig();
-  if (!cfg) return { ok: false, error: 'Cloudinary nie je nastavené.' };
+  if (!cfg) return { ok: false, error: t('Cloudinary nie je nastavené.') };
   const slot = String(input?.slot ?? '');
   const publicId = String(input?.publicId ?? '').slice(0, 300);
   const version = Number(input?.version);
   const signature = String(input?.signature ?? '').slice(0, 100);
-  if (!isSlot(slot) || !/^[\w/.-]+$/.test(publicId) || !Number.isInteger(version) || !/^[a-f0-9]{40}$/.test(signature)) return { ok: false, error: 'Neplatné údaje o fotke.' };
+  if (!isSlot(slot) || !/^[\w/.-]+$/.test(publicId) || !Number.isInteger(version) || !/^[a-f0-9]{40}$/.test(signature)) return { ok: false, error: t('Neplatné údaje o fotke.') };
   // 1) podpis odpovede z Cloudinary – fotku nahral náš podpísaný formulár, nie niekto iný
-  if (!verifyUploadSignature(cfg, publicId, version, signature)) return { ok: false, error: 'Podpis fotky nesedí.' };
+  if (!verifyUploadSignature(cfg, publicId, version, signature)) return { ok: false, error: t('Podpis fotky nesedí.') };
   // 2) skutočné údaje priamo z Cloudinary
   const r = await getResource(cfg, publicId);
-  if (!r || r.public_id !== publicId) return { ok: false, error: 'Fotka sa v Cloudinary nenašla.' };
+  if (!r || r.public_id !== publicId) return { ok: false, error: t('Fotka sa v Cloudinary nenašla.') };
   const inFolder = r.public_id.startsWith(`isport/${slot}/`) || r.asset_folder === `isport/${slot}`;
   if (!inFolder || r.bytes > MAX_BYTES) {
     await destroyResource(cfg, publicId);
-    return { ok: false, error: 'Fotka nespĺňa pravidlá a bola odstránená.' };
+    return { ok: false, error: t('Fotka nespĺňa pravidlá a bola odstránená.') };
   }
   const max = await prisma.photo.aggregate({ where: { slot }, _max: { sort: true } });
   await prisma.photo.upsert({

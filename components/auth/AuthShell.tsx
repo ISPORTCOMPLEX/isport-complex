@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { LogoLockup } from '@/components/Logo';
 import { getSite } from '@/lib/siteSettings';
+import { getT } from '@/lib/i18n/server';
+import { msg } from '@/lib/i18n/translate';
 
 const POINTS: [string, string][] = [
-  ['Rezervácia na pár klikov', 'Tvoje údaje sú predvyplnené.'],
-  ['Všetky rezervácie a QR kódy', 'Presun, zrušenie a história na jednom mieste.'],
-  ['Chránený účet', 'Šifrované spojenie a dvojstupňové overenie.'],
+  [msg('Rezervácia na pár klikov'), msg('Tvoje údaje sú predvyplnené.')],
+  [msg('Všetky rezervácie a QR kódy'), msg('Presun, zrušenie a história na jednom mieste.')],
+  [msg('Chránený účet'), msg('Šifrované spojenie a dvojstupňové overenie.')],
 ];
 
 // Prihlásenie, registrácia, obnova hesla, 2FA: vľavo ľad s nadpisom a výhodami, vpravo formulár.
@@ -22,6 +24,7 @@ export async function AuthShell({
   children: React.ReactNode;
   aside?: React.ReactNode;
 }) {
+  const tr = await getT();
   const site = await getSite();
   return (
     <section className="au2">
@@ -29,7 +32,7 @@ export async function AuthShell({
         <span className="wide-display au2__word" aria-hidden="true">
           {word}
         </span>
-        <Link href="/" className="au2__logo" aria-label="I-SPORT COMPLEX, domov">
+        <Link href="/" className="au2__logo" aria-label={tr('I-SPORT COMPLEX, domov')}>
           <LogoLockup height={44} title="I-SPORT COMPLEX" />
         </Link>
         <div className="au2__mid">
@@ -41,8 +44,8 @@ export async function AuthShell({
               {POINTS.map(([t, d]) => (
                 <li key={t}>
                   <span>
-                    <b>{t}</b>
-                    <span>{d}</span>
+                    <b>{tr(t)}</b>
+                    <span>{tr(d)}</span>
                   </span>
                 </li>
               ))}

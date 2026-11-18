@@ -12,6 +12,7 @@ import { hitLimit } from '@/lib/rateLimit';
 import { str } from '@/lib/validate';
 import { revokeAllSessions } from '@/lib/session';
 import type { FormState } from '@/lib/formState';
+import { getT, MAIL_SK_EN } from '@/lib/i18n/server';
 
 // Zásahy administrátora do účtov. Každý zásah: kontrola oprávnenia, ochrana pred zásahom do vlastného účtu,
 // zápis do záznamu zmien (kto, čo, komu, odkiaľ).
@@ -21,7 +22,7 @@ const ROLES: Role[] = ['CUSTOMER', 'CLUB_MANAGER', 'RECEPTION', 'ACCOUNTANT', 'A
 async function target(form: FormData) {
   const actor = await requireStaff('users.manage');
   const limit = await hitLimit(`admin:act:${actor.id}`, 60, 10 * 60);
-  if (!limit.ok) throw new Error('Príliš veľa zásahov za krátky čas.');
+  if (!limit.ok) throw new Error((await getT())('Príliš veľa zásahov za krátky čas.'));
   const id = str(form, 'userId', 40);
   const user = await prisma.user.findUnique({ where: { id } });
   if (!user || user.deletedAt) redirect('/admin/zakaznici');
@@ -86,7 +87,7 @@ export async function adminSendReset(form: FormData): Promise<void> {
   const token = await createAuthToken(user.id, 'RESET_PASSWORD');
   const base = await getBaseUrl();
   try {
-    await sendResetEmail(user.email, user.firstName, `${base}/obnova-hesla?token=${token}`);
+    await sendResetEmail(MAIL_SK_EN(), user.email, user.firstName, `${base}/obnova-hesla?token=${token}`);
   } catch (err) {
     console.error('[admin:reset-email]', err);
     back(user.id, 'email-chyba');
@@ -125,14 +126,15 @@ export async function adminSetRole(form: FormData): Promise<void> {
 // Jednorazový odkaz na nové heslo, ktorý personál odovzdá zákazníkovi inak než e-mailom (SMS, osobne).
 // Použiť len po overení totožnosti. Platí 1 hodinu, zobrazí sa iba raz a zapíše sa do záznamu zmien.
 export async function adminResetLinkAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const actor = await requireStaff('users.manage');
   const id = str(form, 'userId', 40);
   const user = await prisma.user.findUnique({ where: { id } });
-  if (!user || user.deletedAt) return { error: 'Účet neexistuje.' };
-  if (user.bannedAt) return { error: 'Zablokovanému účtu sa odkaz nevytvára.' };
-  if (user.id === actor.id) return { error: 'Vlastné heslo si zmeň v Môj účet → Zabezpečenie.' };
+  if (!user || user.deletedAt) return { error: t('Účet neexistuje.') };
+  if (user.bannedAt) return { error: t('Zablokovanému účtu sa odkaz nevytvára.') };
+  if (user.id === actor.id) return { error: t('Vlastné heslo si zmeň v Môj účet → Zabezpečenie.') };
   const token = await createAuthToken(user.id, 'RESET_PASSWORD');
   const base = await getBaseUrl();
   await audit(actor.id, 'user.reset-link', user.id, { email: user.email });
-  return { success: 'Odkaz je vytvorený. Platí 1 hodinu a dá sa použiť raz. Pošli ho zákazníkovi SMS-kou alebo cez WhatsApp.', values: { link: `${base}/obnova-hesla?token=${token}` } };
+  return { success: t('Odkaz je vytvorený. Platí 1 hodinu a dá sa použiť raz. Pošli ho zákazníkovi SMS-kou alebo cez WhatsApp.'), values: { link: `${base}/obnova-hesla?token=${token}` } };
 }

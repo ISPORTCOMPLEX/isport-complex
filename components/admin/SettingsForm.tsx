@@ -6,6 +6,7 @@ import { EMPTY } from '@/lib/formState';
 import { Check, Field } from '@/components/forms/Field';
 import { FormAlert } from '@/components/forms/FormAlert';
 import { SubmitButton } from '@/components/forms/SubmitButton';
+import { useT } from '@/lib/i18n/client';
 
 type S = {
   prices: { full: { offPeak: number; peak: number; weekend: number } };
@@ -23,6 +24,7 @@ type S = {
 };
 
 export function SettingsForm({ s }: { s: S }) {
+  const t = useT();
   const [state, action] = useActionState(adminSaveSettings, EMPTY);
   const e = state.errors ?? {};
   const n = (v: number) => String(v);
@@ -31,44 +33,44 @@ export function SettingsForm({ s }: { s: S }) {
       <FormAlert error={state.error} success={state.success} />
       <section className="adm-panel">
         <div className="adm-panel__head">
-          <h2>Cenník ľadu</h2>
+          <h2>{t('Cenník ľadu')}</h2>
         </div>
         <div className="adm-price-grid">
           <span />
-          <strong>Mimo špičky</strong>
-          <strong>Špička (Po – Pi)</strong>
-          <strong>Víkend</strong>
-          <strong>Celá plocha</strong>
-          <Field label="Celá – mimo špičky (€)" name="fullOff" inputMode="numeric" defaultValue={n(s.prices.full.offPeak)} error={e.fullOff} />
-          <Field label="Celá – špička (€)" name="fullPeak" inputMode="numeric" defaultValue={n(s.prices.full.peak)} error={e.fullPeak} />
-          <Field label="Celá – víkend (€)" name="fullWeekend" inputMode="numeric" defaultValue={n(s.prices.full.weekend)} error={e.fullWeekend} />
+          <strong>{t('Mimo špičky')}</strong>
+          <strong>{t('Špička (Po – Pi)')}</strong>
+          <strong>{t('Víkend')}</strong>
+          <strong>{t('Celá plocha')}</strong>
+          <Field label={t('Celá – mimo špičky (€)')} name="fullOff" inputMode="numeric" defaultValue={n(s.prices.full.offPeak)} error={e.fullOff} />
+          <Field label={t('Celá – špička (€)')} name="fullPeak" inputMode="numeric" defaultValue={n(s.prices.full.peak)} error={e.fullPeak} />
+          <Field label={t('Celá – víkend (€)')} name="fullWeekend" inputMode="numeric" defaultValue={n(s.prices.full.weekend)} error={e.fullWeekend} />
         </div>
       </section>
 
       <section className="adm-panel">
         <div className="adm-panel__head">
-          <h2>Čas a pravidlá</h2>
+          <h2>{t('Čas a pravidlá')}</h2>
         </div>
         <div className="adm-settings-grid">
-          <Field label="Cena spŕch (€ za rezerváciu)" name="showerPrice" inputMode="numeric" defaultValue={n(s.showerPrice)} error={e.showerPrice} hint="Šatňa je v cene prenájmu" />
-          <Field label="Ľad od (hodina)" name="openHour" inputMode="numeric" defaultValue={n(s.openHour)} error={e.openHour} hint="napr. 6 = od 6:00" />
-          <Field label="Ľad do (hodina)" name="closeHour" inputMode="numeric" defaultValue={n(s.closeHour)} error={e.closeHour} hint="napr. 23 = posledná hodina 22:00 – 23:00" />
-          <Field label="Špička od (hodina)" name="peakFromHour" inputMode="numeric" defaultValue={n(s.peakFromHour)} error={e.peakFromHour} hint="v pracovné dni" />
-          <Field label="Najviac hodín v rezervácii" name="maxHours" inputMode="numeric" defaultValue={n(s.maxHours)} error={e.maxHours} />
-          <Field label="Najviac nadchádzajúcich rezervácií na účet" name="maxActive" inputMode="numeric" defaultValue={n(s.maxActive)} error={e.maxActive} hint="Ochrana pred zablokovaním kalendára" />
-          <Field label="Rezervácia dopredu (dni)" name="maxDaysAhead" inputMode="numeric" defaultValue={n(s.maxDaysAhead)} error={e.maxDaysAhead} />
-          <Field label="Najneskôr pred začiatkom (min)" name="leadMinutes" inputMode="numeric" defaultValue={n(s.leadMinutes)} error={e.leadMinutes} />
-          <Field label="Bezplatné zrušenie (hodín vopred)" name="cancelFreeHours" inputMode="numeric" defaultValue={n(s.cancelFreeHours)} error={e.cancelFreeHours} />
+          <Field label={t('Cena spŕch (€ za rezerváciu)')} name="showerPrice" inputMode="numeric" defaultValue={n(s.showerPrice)} error={e.showerPrice} hint={t('Šatňa je v cene prenájmu')} />
+          <Field label={t('Ľad od (hodina)')} name="openHour" inputMode="numeric" defaultValue={n(s.openHour)} error={e.openHour} hint={t('napr. 6 = od 6:00')} />
+          <Field label={t('Ľad do (hodina)')} name="closeHour" inputMode="numeric" defaultValue={n(s.closeHour)} error={e.closeHour} hint={t('napr. 23 = posledná hodina 22:00 – 23:00')} />
+          <Field label={t('Špička od (hodina)')} name="peakFromHour" inputMode="numeric" defaultValue={n(s.peakFromHour)} error={e.peakFromHour} hint={t('v pracovné dni')} />
+          <Field label={t('Najviac hodín v rezervácii')} name="maxHours" inputMode="numeric" defaultValue={n(s.maxHours)} error={e.maxHours} />
+          <Field label={t('Najviac nadchádzajúcich rezervácií na účet')} name="maxActive" inputMode="numeric" defaultValue={n(s.maxActive)} error={e.maxActive} hint={t('Ochrana pred zablokovaním kalendára')} />
+          <Field label={t('Rezervácia dopredu (dni)')} name="maxDaysAhead" inputMode="numeric" defaultValue={n(s.maxDaysAhead)} error={e.maxDaysAhead} />
+          <Field label={t('Najneskôr pred začiatkom (min)')} name="leadMinutes" inputMode="numeric" defaultValue={n(s.leadMinutes)} error={e.leadMinutes} />
+          <Field label={t('Bezplatné zrušenie (hodín vopred)')} name="cancelFreeHours" inputMode="numeric" defaultValue={n(s.cancelFreeHours)} error={e.cancelFreeHours} />
         </div>
         <Check name="showersEnabled" defaultChecked={s.showersEnabled}>
-          Ponúkať sprchy pri rezervácii
+          {t('Ponúkať sprchy pri rezervácii')}
         </Check>
         <Check name="temporary" defaultChecked={s.temporary}>
-          Hodnoty sú zatiaľ orientačné (na webe sa zobrazí upozornenie)
+          {t('Hodnoty sú zatiaľ orientačné (na webe sa zobrazí upozornenie)')}
         </Check>
       </section>
       <div>
-        <SubmitButton full={false}>Uložiť nastavenia</SubmitButton>
+        <SubmitButton full={false}>{t('Uložiť nastavenia')}</SubmitButton>
       </div>
     </form>
   );

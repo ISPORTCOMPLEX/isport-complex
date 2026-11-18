@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
+import { useT } from '@/lib/i18n/client';
 
 // Jemné objavovanie sekcií pri posúvaní a „načítanie“ čísel v páse štatistík.
 // Triedy pridáva až skript – bez JavaScriptu (a pre vyhľadávače) je obsah normálne viditeľný.
@@ -24,6 +25,7 @@ function countUp(el: Element) {
 }
 
 export function ScrollReveal() {
+  const tr = useT();
   const pathname = usePathname();
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;

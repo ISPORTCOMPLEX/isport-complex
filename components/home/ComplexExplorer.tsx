@@ -9,6 +9,8 @@ import { ComplexSky } from '@/components/home/ComplexSky';
 import { ComplexWeather } from '@/components/home/ComplexWeather';
 import { Areal3D, supports3D } from '@/components/home/Areal3D';
 import { CLEAR, moonPhaseName, scene, weatherLabel, type Weather } from '@/lib/sky';
+import '@/lib/skyLabels';
+import { useT } from '@/lib/i18n/client';
 
 // Interaktívny areál: hala 1 (ľad, skyboxy, bufet), ihrisko medzi halami, hala 2 (posilňovňa, wellness).
 // Ilustrácia stále jemne žije; prejdenie myšou časť zvýrazní a rozpohybuje. Klik (ťuknutie) plynulo priblíži kameru
@@ -54,6 +56,7 @@ function target(z: Zone, wide: boolean): VB {
 }
 
 export function ComplexExplorer({ zones, now: initialNow, weather = CLEAR }: { zones: ZoneInfo[]; now: number; weather?: Weather }) {
+  const tr = useT();
   // čas zo servera pri prvom vykreslení (rovnaký výsledok pri hydratácii), potom každú minútu podľa hodín návštevníka
   const [now, setNow] = useState(initialNow);
   useEffect(() => {
@@ -163,12 +166,12 @@ export function ComplexExplorer({ zones, now: initialNow, weather = CLEAR }: { z
   return (
     <div className={`cxe${open ? ' is-zoomed' : ''}${is3d ? ' is-3d' : ''}${is3d && live3d ? ' is-3d-live' : ''}`}>
       {can3d ? (
-        <div className="cxe__mode" role="group" aria-label="Zobrazenie areálu">
+        <div className="cxe__mode" role="group" aria-label={tr('Zobrazenie areálu')}>
           <button type="button" aria-pressed={mode === '3d'} onClick={() => pickMode('3d')}>
             3D
           </button>
           <button type="button" aria-pressed={mode === '2d'} onClick={() => pickMode('2d')}>
-            Ilustrácia
+            {tr('Ilustrácia')}
           </button>
         </div>
       ) : null}
@@ -193,7 +196,7 @@ export function ComplexExplorer({ zones, now: initialNow, weather = CLEAR }: { z
           <svg
             viewBox={`${vb.x.toFixed(1)} ${vb.y.toFixed(1)} ${vb.w.toFixed(1)} ${vb.h.toFixed(1)}`}
             role="img"
-            aria-label="Areál I-SPORT COMPLEX: hala 1 s ľadovou plochou, skyboxmi a bufetom, medzi halami futbalové ihrisko, hala 2 s posilňovňou a wellness"
+            aria-label={tr('Areál I-SPORT COMPLEX: hala 1 s ľadovou plochou, skyboxmi a bufetom, medzi halami futbalové ihrisko, hala 2 s posilňovňou a wellness')}
             preserveAspectRatio="xMidYMid slice"
           >
             <ComplexArt sky={<ComplexSky s={sky} w={weather} />} front={<ComplexWeather s={sky} w={weather} />} />
@@ -233,7 +236,7 @@ export function ComplexExplorer({ zones, now: initialNow, weather = CLEAR }: { z
               >
                 <span className="cxe__tip">
                   <strong>{z.name}</strong>
-                  <span className={z.soon ? 'is-soon' : undefined}>{z.soon ? 'Pripravujeme' : z.hall}</span>
+                  <span className={z.soon ? 'is-soon' : undefined}>{z.soon ? tr('Pripravujeme') : z.hall}</span>
                 </span>
               </button>
             ))}
@@ -242,14 +245,15 @@ export function ComplexExplorer({ zones, now: initialNow, weather = CLEAR }: { z
             <p className="cxe__wx">
               <span className="cxe__wx-t">{Math.round(weather.temp)} °C</span>
               <span>
-                Teraz v Košiciach · {weatherLabel(weather)}
-                {sky.phase !== 'day' && sky.moon.visible ? ` · ${moonPhaseName(sky.moon.phase)}` : ''}
+                {tr('Teraz v Košiciach · {weatherLabel}', { weatherLabel: tr(weatherLabel(weather)) })}
+                
+                {sky.phase !== 'day' && sky.moon.visible ? ` · ${tr(moonPhaseName(sky.moon.phase))}` : ''}
               </span>
             </p>
           ) : null}
           <p className="cxe__hint" aria-hidden="true">
-            <span className="cxe__hint-m">{is3d && live3d ? 'Ťahaním areál otočíš, klikni na miesto – priblížime ho a ukážeme fotky' : 'Klikni na miesto v areáli – priblížime ho a ukážeme fotky'}</span>
-            <span className="cxe__hint-t">Ťukni na miesto v areáli</span>
+            <span className="cxe__hint-m">{is3d && live3d ? tr('Ťahaním areál otočíš, klikni na miesto – priblížime ho a ukážeme fotky') : tr('Klikni na miesto v areáli – priblížime ho a ukážeme fotky')}</span>
+            <span className="cxe__hint-t">{tr('Ťukni na miesto v areáli')}</span>
           </p>
         </div>
 
@@ -260,7 +264,7 @@ export function ComplexExplorer({ zones, now: initialNow, weather = CLEAR }: { z
               <div className="cxe__ph">
                 <span className="cxe__hall">
                   {info.hall}
-                  {info.soon ? <span className="cxe__soon">Pripravujeme</span> : null}
+                  {info.soon ? <span className="cxe__soon">{tr('Pripravujeme')}</span> : null}
                 </span>
                 <h3 className="disp cxe__name">{info.name}</h3>
                 <p className="cxe__text">{info.text}</p>
@@ -269,7 +273,7 @@ export function ComplexExplorer({ zones, now: initialNow, weather = CLEAR }: { z
                 <ul className="cxe__photos">
                   {info.photos.slice(0, 5).map((p, i) => (
                     <li key={p.id} className={i === 0 ? 'is-first' : undefined}>
-                      <Link href={`/fotky/${p.id}`} aria-label={`Otvoriť fotku: ${p.alt}`}>
+                      <Link href={`/fotky/${p.id}`} aria-label={tr('Otvoriť fotku: {alt}', { alt: p.alt })}>
                         <CloudImage photo={p} sizes={i === 0 ? '440px' : '110px'} />
                         {i === 4 && info.photos.length > 5 ? <span className="cxe__more">+{info.photos.length - 5}</span> : null}
                       </Link>
@@ -277,14 +281,14 @@ export function ComplexExplorer({ zones, now: initialNow, weather = CLEAR }: { z
                   ))}
                 </ul>
               ) : (
-                <p className="cxe__nophoto">{info.soon ? 'Fotky interiéru pridáme pred otvorením.' : 'Fotky interiéru čoskoro pridáme.'}</p>
+                <p className="cxe__nophoto">{info.soon ? tr('Fotky interiéru pridáme pred otvorením.') : tr('Fotky interiéru čoskoro pridáme.')}</p>
               )}
               <div className="cxe__acts">
                 <Link href={info.href} className="sbtn sbtn--md">
                   {info.cta}
                 </Link>
                 <button ref={back} type="button" className="sbtn sbtn--md sbtn--ghost" onClick={zoomOut}>
-                  Celý areál
+                  {tr('Celý areál')}
                 </button>
               </div>
             </>
@@ -307,7 +311,7 @@ export function ComplexExplorer({ zones, now: initialNow, weather = CLEAR }: { z
               onClick={(e) => (open === z.zone ? zoomOut() : zoomTo(z.zone, e.currentTarget))}
             >
               <strong>{z.name}</strong>
-              <span className={z.soon ? 'is-soon' : undefined}>{z.soon ? 'Pripravujeme' : z.hall}</span>
+              <span className={z.soon ? 'is-soon' : undefined}>{z.soon ? tr('Pripravujeme') : z.hall}</span>
             </button>
           </li>
         ))}

@@ -11,14 +11,17 @@ import { ArticleCard } from '@/components/articles/ArticleCard';
 import { Share } from '@/components/articles/Share';
 import { articleImage, fmtArticleDate, fmtShortDate, relatedArticles } from '@/lib/articles/queries';
 import { loadArticle } from '@/lib/articles/view';
+import { getT } from '@/lib/i18n/server';
+import { msg } from '@/lib/i18n/translate';
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ nahlad?: string }> };
 
-const STATUS: Record<string, string> = { DRAFT: 'koncept', SCHEDULED: 'naplánovaný', ARCHIVED: 'stiahnutý', PUBLISHED: 'zverejnený' };
+const STATUS: Record<string, string> = { DRAFT: msg('koncept'), SCHEDULED: msg('naplánovaný'), ARCHIVED: msg('stiahnutý'), PUBLISHED: msg('zverejnený') };
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  const tr = await getT();
   const r = await loadArticle((await params).slug, (await searchParams).nahlad === '1');
-  if (!r) return { title: 'Článok sa nenašiel' };
+  if (!r) return { title: tr('Článok sa nenašiel') };
   const { a } = r;
   const og = a.cover ? articleImage(a.cover, '2:1') : null;
   const title = a.seoTitle || a.title;
@@ -44,6 +47,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 }
 
 export default async function ArticlePage({ params, searchParams }: Props) {
+  const tr = await getT();
   const r = await loadArticle((await params).slug, (await searchParams).nahlad === '1');
   if (!r) notFound();
   const { a, preview } = r;
@@ -69,7 +73,7 @@ export default async function ArticlePage({ params, searchParams }: Props) {
     dateModified: a.updatedAt.toISOString(),
     image: cover ? [`${base}${cover.src}`] : undefined,
     author: { '@type': 'Organization', name: a.authorName },
-    publisher: { '@type': 'Organization', name: 'I-SPORT COMPLEX s.r.o.', logo: { '@type': 'ImageObject', url: `${base}/icon.svg` } },
+    publisher: { '@type': 'Organization', name: tr('I-SPORT COMPLEX s.r.o.'), logo: { '@type': 'ImageObject', url: `${base}/icon.svg` } },
     mainEntityOfPage: url,
     articleSection: a.categoryLabel,
     keywords: a.tags.join(', ') || undefined,
@@ -79,24 +83,24 @@ export default async function ArticlePage({ params, searchParams }: Props) {
     <div className="ar">
       {preview ? (
         <div className="ar__preview" role="status">
-          Náhľad – článok je {STATUS[a.status] ?? a.status}, návštevníci ho {a.status === 'PUBLISHED' ? 'vidia' : 'zatiaľ nevidia'}.
+          {tr('Náhľad – článok je')}{' '}{STATUS[a.status] ? tr(STATUS[a.status]) : a.status}{tr(', návštevníci ho')}{' '}{a.status === 'PUBLISHED' ? tr('vidia') : tr('zatiaľ nevidia')}.
         </div>
       ) : null}
       <div className="wrap ar__wrap">
-        <nav className="ar__crumbs" aria-label="Omrvinková navigácia">
-          <Link href="/">Komplex</Link>
+        <nav className="ar__crumbs" aria-label={tr('Omrvinková navigácia')}>
+          <Link href="/">{tr('Komplex')}</Link>
           <span aria-hidden="true">/</span>
-          <Link href="/aktuality">Aktuality</Link>
+          <Link href="/aktuality">{tr('Aktuality')}</Link>
           <span aria-hidden="true">/</span>
-          <Link href={`/aktuality?kategoria=${a.category}`}>{a.categoryLabel}</Link>
+          <Link href={`/aktuality?kategoria=${a.category}`}>{tr(a.categoryLabel)}</Link>
         </nav>
         <header className="ar__head">
           <p className="ar__kick">
             <Link href={`/aktuality?kategoria=${a.category}`} className="ac__cat">
-              {a.categoryLabel}
+              {tr(a.categoryLabel)}
             </Link>
             <span className="ac__meta">
-              <time dateTime={a.date.toISOString()}>{fmtArticleDate(a.date)}</time> · {a.readMinutes} min čítania
+              <time dateTime={a.date.toISOString()}>{fmtArticleDate(a.date, tr)}</time> {' '}{tr('· {readMinutes} min čítania', { readMinutes: a.readMinutes })} 
             </span>
           </p>
           <h1 className="cond ar__h1">{a.title}</h1>
@@ -107,7 +111,7 @@ export default async function ArticlePage({ params, searchParams }: Props) {
               <img src="/icon.svg" alt="" width={44} height={44} />
               <div>
                 <b>{a.authorName}</b>
-                <span>Aktualizované {fmtShortDate(a.updatedAt)}</span>
+                <span>{tr('Aktualizované {fmtShortDate}', { fmtShortDate: fmtShortDate(a.updatedAt, tr) })}</span>
               </div>
             </div>
             <Share url={url} title={a.title} />
@@ -125,7 +129,7 @@ export default async function ArticlePage({ params, searchParams }: Props) {
       <article className="ar__body" aria-label={a.title}>
         <ArticleBody slug={a.slug} blocks={a.blocks} title={a.title} />
         {a.tags.length ? (
-          <ul className="ar__tags" aria-label="Štítky">
+          <ul className="ar__tags" aria-label={tr('Štítky')}>
             {a.tags.map((t) => (
               <li key={t}>#{t}</li>
             ))}
@@ -138,10 +142,10 @@ export default async function ArticlePage({ params, searchParams }: Props) {
           <div className="wrap">
             <div className="ar__rel-h">
               <h2 id="ar-rel" className="cond">
-                Ďalšie aktuality
+                {tr('Ďalšie aktuality')}
               </h2>
               <Link href="/aktuality" className="nw__more">
-                Všetky aktuality <span aria-hidden="true">→</span>
+                {tr('Všetky aktuality')}{' '}<span aria-hidden="true">→</span>
               </Link>
             </div>
             <div className="nw__grid">

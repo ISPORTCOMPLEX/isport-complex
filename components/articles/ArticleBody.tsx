@@ -3,9 +3,11 @@ import { CloudImage } from '@/components/CloudImage';
 import { sanitizeInline, type Block } from '@/lib/articles/blocks';
 import { articleImage, fmtDuration, videoPoster, videoSrc } from '@/lib/articles/queries';
 import { YouTube } from './YouTube';
+import { getT } from '@/lib/i18n/server';
 
 // Telo článku z blokov. Text sa pred vykreslením ešte raz očistí (aj keby sa do databázy dostalo niečo cudzie).
-export function ArticleBody({ slug, blocks, title }: { slug: string; blocks: Block[]; title: string }) {
+export async function ArticleBody({ slug, blocks, title }: { slug: string; blocks: Block[]; title: string }) {
+  const t = await getT();
   let n = 0; // poradie fotky v prehliadači /aktuality/<slug>/fotky/<n>
   const viewer = (i: number) => `/aktuality/${slug}/fotky/${i}`;
   return (
@@ -26,7 +28,7 @@ export function ArticleBody({ slug, blocks, title }: { slug: string; blocks: Blo
             if (!p) return null;
             return (
               <figure key={b.id} className="ab__fig">
-                <Link href={viewer(i)} className="ab__zoom" aria-label={`Zväčšiť fotku${b.alt ? `: ${b.alt}` : ''}`}>
+                <Link href={viewer(i)} className="ab__zoom" aria-label={t('Zväčšiť fotku{v}', { v: b.alt ? `: ${b.alt}` : '' })}>
                   <CloudImage photo={{ ...p, alt: b.alt }} sizes="(max-width: 800px) 100vw, 760px" />
                 </Link>
                 {b.caption ? <figcaption>{b.caption}</figcaption> : null}
@@ -46,7 +48,7 @@ export function ArticleBody({ slug, blocks, title }: { slug: string; blocks: Blo
                     if (!p) return null;
                     return (
                       <li key={im.publicId}>
-                        <Link href={viewer(start + k)} aria-label={`Fotka ${k + 1} z ${b.images.length}${im.alt ? `: ${im.alt}` : ''}`}>
+                        <Link href={viewer(start + k)} aria-label={t('Fotka {v} z {length}{v2}', { v: k + 1, length: b.images.length, v2: im.alt ? `: ${im.alt}` : '' })}>
                           <CloudImage photo={{ ...p, alt: im.alt }} sizes="(max-width: 800px) 50vw, 380px" />
                           {k === shown.length - 1 && more > 0 ? (
                             <span className="ab__more" aria-hidden="true">
@@ -60,7 +62,7 @@ export function ArticleBody({ slug, blocks, title }: { slug: string; blocks: Blo
                 </ul>
                 <figcaption>
                   {b.caption ? `${b.caption} · ` : ''}
-                  <Link href={viewer(start)}>Galéria · {b.images.length} fotiek</Link>
+                  <Link href={viewer(start)}>{t('Galéria · {length} fotiek', { length: b.images.length })} </Link>
                 </figcaption>
               </figure>
             );
@@ -73,7 +75,7 @@ export function ArticleBody({ slug, blocks, title }: { slug: string; blocks: Blo
                   <figcaption>
                     {b.caption}
                     {b.caption && b.video.duration ? ' · ' : ''}
-                    {b.video.duration ? `Video ${fmtDuration(b.video.duration)}` : ''}
+                    {b.video.duration ? t('Video {fmtDuration}', { fmtDuration: fmtDuration(b.video.duration) }) : ''}
                   </figcaption>
                 ) : null}
               </figure>
@@ -102,7 +104,7 @@ export function ArticleBody({ slug, blocks, title }: { slug: string; blocks: Blo
                 ) : (
                   <a href={b.href} className="btn" target="_blank" rel="noopener noreferrer nofollow">
                     {b.label} <span aria-hidden="true">↗</span>
-                    <span className="sr-only"> (otvorí sa v novom okne)</span>
+                    <span className="sr-only"> {' '}{t('(otvorí sa v novom okne)')}</span>
                   </a>
                 )}
               </p>

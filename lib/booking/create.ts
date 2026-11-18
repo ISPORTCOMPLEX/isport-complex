@@ -7,6 +7,8 @@ import type { BookingSettings } from './settings';
 import { iceCents, showerCents } from './pricing';
 import { hallTime } from './time';
 import { inWindow } from './availability';
+import { getT } from '@/lib/i18n/server';
+import type { T } from '@/lib/i18n/translate';
 
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -38,16 +40,17 @@ export type CreateInput = {
 
 export type CreateResult = { ok: true; code: string; id: string } | { ok: false; error: string };
 
-export function validateSlot(s: BookingSettings, iso: string, startHour: number, hours: number, now = new Date(), staff = false): string | null {
-  if (!Number.isInteger(startHour) || !Number.isInteger(hours) || hours < 1 || hours > (staff ? 12 : s.maxHours)) return `Rezervácia môže mať 1 až ${staff ? 12 : s.maxHours} hodiny.`;
-  if (startHour < s.openHour || startHour + hours > s.closeHour) return 'Vybraný čas je mimo otváracích hodín.';
+// Vracia text chyby v jazyku t (alebo null, ak sa čas dá rezervovať).
+export function validateSlot(s: BookingSettings, iso: string, startHour: number, hours: number, t: T, now = new Date(), staff = false): string | null {
+  if (!Number.isInteger(startHour) || !Number.isInteger(hours) || hours < 1 || hours > (staff ? 12 : s.maxHours)) return t('Rezervácia môže mať 1 až {max} hodiny.', { max: staff ? 12 : s.maxHours });
+  if (startHour < s.openHour || startHour + hours > s.closeHour) return t('Vybraný čas je mimo otváracích hodín.');
   if (staff) {
     // Recepcia môže rezervovať aj prebiehajúcu hodinu (zákazník prišiel bez rezervácie) a ďaleko dopredu.
-    if (hallTime(iso, startHour + hours).getTime() <= now.getTime()) return 'Tento čas už uplynul.';
+    if (hallTime(iso, startHour + hours).getTime() <= now.getTime()) return t('Tento čas už uplynul.');
     return null;
   }
-  if (!inWindow(s, iso, now)) return `Rezervovať sa dá najviac ${s.maxDaysAhead} dní dopredu.`;
-  if (hallTime(iso, startHour).getTime() < now.getTime() + s.leadMinutes * 60 * 1000) return 'Tento čas sa už nedá rezervovať.';
+  if (!inWindow(s, iso, now)) return t('Rezervovať sa dá najviac {days} dní dopredu.', { days: s.maxDaysAhead });
+  if (hallTime(iso, startHour).getTime() < now.getTime() + s.leadMinutes * 60 * 1000) return t('Tento čas sa už nedá rezervovať.');
   return null;
 }
 
@@ -58,7 +61,8 @@ function isUniqueViolation(e: unknown): boolean {
 // Vytvorí rezerváciu. Obsadenie hodín zabezpečuje unikátny index v databáze –
 // keď niekto iný ten istý čas zaberie o zlomok sekundy skôr, dostaneme chybu a nič sa neuloží.
 export async function createBooking(s: BookingSettings, input: CreateInput): Promise<CreateResult> {
-  const problem = validateSlot(s, input.iso, input.startHour, input.hours, new Date(), input.staff ?? false);
+  const t = await getT();
+  const problem = validateSlot(s, input.iso, input.startHour, input.hours, t, new Date(), input.staff ?? false);
   if (problem) return { ok: false, error: problem };
 
   const starts: Date[] = [];
@@ -106,7 +110,7 @@ export async function createBooking(s: BookingSettings, input: CreateInput): Pro
       break; // čas je obsadený
     }
   }
-  return { ok: false, error: 'Vybraný čas medzitým niekto obsadil. Vyber si iný termín.' };
+  return { ok: false, error: t('Vybraný čas medzitým niekto obsadil. Vyber si iný termín.') };
 }
 
 // Zrušenie: uvoľní hodiny (zmaže sloty) a označí rezerváciu ako zrušenú.

@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useT } from '@/lib/i18n/client';
 
 const KEY = 'isp-map-ok';
 
 // Mapa Google sa načíta až po kliknutí (GDPR – dovtedy Google nič neukladá). Súhlas si prehliadač zapamätá.
 // Pred načítaním: ilustračný náhľad s našou značkou a jedna lišta „Načítať mapu“ dole.
 export function LocationMap({ embed, address }: { embed: string; address: string }) {
+  const t = useT();
   const [on, setOn] = useState(false);
   useEffect(() => {
     try {
@@ -26,7 +28,7 @@ export function LocationMap({ embed, address }: { embed: string; address: string
   return (
     <div className="loc2__map">
       {on ? (
-        <iframe className="loc2__iframe" src={embed} title={`Mapa: ${address}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
+        <iframe className="loc2__iframe" src={embed} title={t('Mapa: {address}', { address })} loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
       ) : (
         <>
           <svg className="loc2__art" viewBox="0 0 800 520" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -48,8 +50,8 @@ export function LocationMap({ embed, address }: { embed: string; address: string
           <span className="wide-display loc2__label" aria-hidden="true">
             I-SPORT COMPLEX
           </span>
-          <button type="button" className="loc2__load" onClick={load} title="Mapa od Google sa načíta až po kliknutí – dovtedy Google neukladá žiadne cookies.">
-            Načítať Google mapu
+          <button type="button" className="loc2__load" onClick={load} title={t('Mapa od Google sa načíta až po kliknutí – dovtedy Google neukladá žiadne cookies.')}>
+            {t('Načítať Google mapu')}
           </button>
         </>
       )}

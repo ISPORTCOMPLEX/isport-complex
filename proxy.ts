@@ -1,9 +1,21 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { buildCsp, securityHeaders } from './lib/securityHeaders';
+import { isLocale, LOCALE_COOKIE } from './lib/i18n/config';
 
 // Next.js 16: proxy.ts (predtým middleware.ts).
 // Každá stránka dostane jednorazový nonce, spustí sa len skript, ktorý ho nesie.
 export function proxy(request: NextRequest) {
+  // Prepínač jazykov: ?lang=en → zapamätáme voľbu (cookie na rok) a vrátime na tú istú adresu bez parametra.
+  const lang = request.nextUrl.searchParams.get('lang');
+  if (lang !== null) {
+    const clean = request.nextUrl.clone();
+    clean.searchParams.delete('lang');
+    const res = NextResponse.redirect(clean, 303);
+    if (isLocale(lang)) res.cookies.set(LOCALE_COOKIE, lang, { path: '/', maxAge: 365 * 86400, sameSite: 'lax', secure: request.nextUrl.protocol === 'https:', httpOnly: false });
+    for (const h of securityHeaders) res.headers.set(h.key, h.value);
+    return res;
+  }
+
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
 
   // Administrácia sa bez prihlásenia tvári ako neexistujúca stránka (404) – skenery a boti ju nenájdu.

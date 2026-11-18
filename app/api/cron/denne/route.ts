@@ -5,6 +5,7 @@ import { getBaseUrl } from '@/lib/requestInfo';
 import { bookingRows } from '@/lib/booking/format';
 import { addDays, hallTime, todayIso } from '@/lib/booking/time';
 import { sendBookingReminderEmail } from '@/lib/email';
+import { MAIL_SK_EN } from '@/lib/i18n/server';
 import { sweepExpiredHolds } from '@/lib/payments/service';
 
 // Denná údržba (Vercel Cron, 1× denne): pripomienky na zajtrajšie rezervácie,
@@ -32,7 +33,7 @@ export async function GET(req: Request) {
     const to = b.user && !b.user.deletedAt ? b.user.email : b.guestEmail;
     if (!to) continue;
     try {
-      await sendBookingReminderEmail(to, b.user?.firstName ?? b.contactName.split(' ')[0], b.user ? `${base}/rezervacia/${b.code}` : `${base}/rezervacia`, bookingRows(b));
+      await sendBookingReminderEmail(MAIL_SK_EN(), to, b.user?.firstName ?? b.contactName.split(' ')[0], b.user ? `${base}/rezervacia/${b.code}` : `${base}/rezervacia`, (m) => bookingRows(b, m));
       await prisma.booking.update({ where: { id: b.id }, data: { reminderSentAt: new Date() } });
       reminders++;
     } catch (err) {

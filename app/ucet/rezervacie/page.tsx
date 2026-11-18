@@ -5,10 +5,15 @@ import { requireUser } from '@/lib/session';
 import { AREA_LABEL, PAYMENT_LABEL, STATUS_LABEL } from '@/lib/booking/format';
 import { euros, fmtDayShort, fmtRange } from '@/lib/booking/time';
 import { CalendarArt, EmptyState } from '@/components/EmptyArt';
+import { getT } from '@/lib/i18n/server';
 
-export const metadata: Metadata = { title: 'Moje rezervácie' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Moje rezervácie') };
+}
 
 export default async function MojeRezervacie() {
+  const t = await getT();
   const user = await requireUser('/ucet/rezervacie');
   const now = new Date();
   const [upcoming, past] = await Promise.all([
@@ -23,20 +28,20 @@ export default async function MojeRezervacie() {
   return (
     <div className="acct__stack">
       <header className="acct__head">
-        <h1 className="display acct__title">Moje rezervácie</h1>
+        <h1 className="display acct__title">{t('Moje rezervácie')}</h1>
       </header>
 
       <div className="card acct__panel">
         <div className="tfa__head u-w100">
-          <h2 className="h-card">Nadchádzajúce</h2>
+          <h2 className="h-card">{t('Nadchádzajúce')}</h2>
           <Link href="/rezervacia" className="btn btn--sm">
-            Nová rezervácia
+            {t('Nová rezervácia')}
           </Link>
         </div>
         {upcoming.length === 0 ? (
-          <EmptyState art={<CalendarArt />} title="Zatiaľ žiadne rezervácie" text="Prvú hodinu na ľade si vyberieš za minútu. Potvrdenie s QR kódom uvidíš tu.">
+          <EmptyState art={<CalendarArt />} title={t('Zatiaľ žiadne rezervácie')} text={t('Prvú hodinu na ľade si vyberieš za minútu. Potvrdenie s QR kódom uvidíš tu.')}>
             <Link href="/rezervacia" className="sbtn sbtn--md">
-              Rezervovať ľad
+              {t('Rezervovať ľad')}
             </Link>
           </EmptyState>
         ) : (
@@ -45,13 +50,13 @@ export default async function MojeRezervacie() {
               <li key={b.id}>
                 <Link href={`/rezervacia/${b.code}`} className="bk-row">
                   <span className="bk-row__date">
-                    <strong>{fmtDayShort(b.startsAt)}</strong>
+                    <strong>{fmtDayShort(b.startsAt, t)}</strong>
                     <span className="num">{fmtRange(b.startsAt, b.endsAt)}</span>
                   </span>
                   <span className="bk-row__mid">
-                    <strong>{AREA_LABEL[b.area]}</strong>
+                    <strong>{t(AREA_LABEL[b.area])}</strong>
                     <small>
-                      {b.code} · {PAYMENT_LABEL[b.paymentStatus]}
+                      {b.code} · {t(PAYMENT_LABEL[b.paymentStatus])}
                     </small>
                   </span>
                   <span className="bk-row__price num">{euros(b.priceCents)}</span>
@@ -63,22 +68,22 @@ export default async function MojeRezervacie() {
       </div>
 
       <div className="card acct__panel">
-        <h2 className="h-card">História</h2>
+        <h2 className="h-card">{t('História')}</h2>
         {past.length === 0 ? (
-          <p className="muted">Zatiaľ žiadne.</p>
+          <p className="muted">{t('Zatiaľ žiadne.')}</p>
         ) : (
           <ul className="bk-list bk-list--past">
             {past.map((b) => (
               <li key={b.id}>
                 <Link href={`/rezervacia/${b.code}`} className="bk-row">
                   <span className="bk-row__date">
-                    <strong>{fmtDayShort(b.startsAt)}</strong>
+                    <strong>{fmtDayShort(b.startsAt, t)}</strong>
                     <span className="num">{fmtRange(b.startsAt, b.endsAt)}</span>
                   </span>
                   <span className="bk-row__mid">
-                    <strong>{AREA_LABEL[b.area]}</strong>
+                    <strong>{t(AREA_LABEL[b.area])}</strong>
                     <small>
-                      {b.code} · {b.status === 'CONFIRMED' ? 'Odohraná' : STATUS_LABEL[b.status]}
+                      {b.code} · {b.status === 'CONFIRMED' ? t('Odohraná') : t(STATUS_LABEL[b.status])}
                     </small>
                   </span>
                   <span className="bk-row__price num">{euros(b.priceCents)}</span>

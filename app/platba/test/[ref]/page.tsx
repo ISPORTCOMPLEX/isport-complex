@@ -6,13 +6,18 @@ import { requireUser } from '@/lib/session';
 import { euros, fmtDayLong, fmtRange } from '@/lib/booking/time';
 import { mockPayAction } from '@/lib/actions/mockPayment';
 import { RzBand } from '@/components/booking/RzBand';
+import { getT } from '@/lib/i18n/server';
 
-export const metadata: Metadata = { title: 'Testovacia platba', robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Testovacia platba'), robots: { index: false } };
+}
 
 type Props = { params: Promise<{ ref: string }> };
 
 // Náhrada platobnej stránky brány pri vývoji. Na produkcii neexistuje (404).
 export default async function MockCheckout({ params }: Props) {
+  const t = await getT();
   if (getProvider()?.id !== 'mock') notFound();
   const { ref } = await params;
   const user = await requireUser(`/platba/test/${ref}`);
@@ -22,26 +27,26 @@ export default async function MockCheckout({ params }: Props) {
 
   return (
     <>
-      <RzBand crumbs={[{ href: '/', label: 'Domov' }, { href: `/rezervacia/${p.booking.code}`, label: p.booking.code }]} step="Testovací režim · žiadne skutočné peniaze" title="Platba kartou" />
+      <RzBand crumbs={[{ href: '/', label: t('Domov') }, { href: `/rezervacia/${p.booking.code}`, label: p.booking.code }]} step={t('Testovací režim · žiadne skutočné peniaze')} title={t('Platba kartou')} />
       <section className="dk2 rz-dk">
         <div className="wrap rz-narrow">
           <div className="rz-card">
             <p className="alert alert--error" role="note">
-              Toto je testovacia brána. Na ostrom webe tu bude platobná stránka Stripe s kartou, Apple Pay a Google Pay.
+              {t('Toto je testovacia brána. Na ostrom webe tu bude platobná stránka Stripe s kartou, Apple Pay a Google Pay.')}
             </p>
             <dl className="rez__dl">
               <div>
-                <dt>Rezervácia</dt>
+                <dt>{t('Rezervácia')}</dt>
                 <dd>{p.booking.code}</dd>
               </div>
               <div>
-                <dt>Termín</dt>
+                <dt>{t('Termín')}</dt>
                 <dd>
-                  {fmtDayLong(p.booking.startsAt)}, {fmtRange(p.booking.startsAt, p.booking.endsAt)}
+                  {fmtDayLong(p.booking.startsAt, t)}, {fmtRange(p.booking.startsAt, p.booking.endsAt)}
                 </dd>
               </div>
               <div>
-                <dt>Suma</dt>
+                <dt>{t('Suma')}</dt>
                 <dd>{euros(p.amountCents)}</dd>
               </div>
             </dl>
@@ -51,12 +56,12 @@ export default async function MockCheckout({ params }: Props) {
                   <form key={o} action={mockPayAction}>
                     <input type="hidden" name="ref" value={ref} />
                     <input type="hidden" name="outcome" value={o} />
-                    <button className={o === 'pay' ? 'btn btn--sm' : 'btn btn--sm btn--ghost'}>{o === 'pay' ? 'Zaplatiť (test)' : o === 'fail' ? 'Platba zlyhá' : 'Späť bez platby'}</button>
+                    <button className={o === 'pay' ? 'btn btn--sm' : 'btn btn--sm btn--ghost'}>{o === 'pay' ? t('Zaplatiť (test)') : o === 'fail' ? t('Platba zlyhá') : t('Späť bez platby')}</button>
                   </form>
                 ))}
               </div>
             ) : (
-              <p className="rz-lead">Táto platobná relácia už je uzavretá.</p>
+              <p className="rz-lead">{t('Táto platobná relácia už je uzavretá.')}</p>
             )}
           </div>
         </div>

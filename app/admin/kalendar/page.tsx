@@ -8,20 +8,26 @@ import { AdmHead, Panel, Stat } from '@/components/admin/ui';
 import { FormAlert } from '@/components/forms/FormAlert';
 import { adminCreateBlock, adminDeleteBlock } from '@/lib/actions/adminBooking';
 import { Dyn } from '@/components/Dyn';
+import { getT } from '@/lib/i18n/server';
+import { msg } from '@/lib/i18n/translate';
 
-export const metadata: Metadata = { title: 'Kalendár ľadu' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Kalendár ľadu') };
+}
 
 const NOTICE: Record<string, { ok: boolean; text: string }> = {
-  'blok-ok': { ok: true, text: 'Čas je zablokovaný.' },
-  'blok-zmazany': { ok: true, text: 'Blokovanie je zrušené, čas je opäť voľný.' },
-  'blok-obsadene': { ok: false, text: 'V tomto čase už je rezervácia alebo iné blokovanie. Najprv ju zruš alebo zvoľ iný čas.' },
-  'blok-chyba': { ok: false, text: 'Skontroluj dátum a čas blokovania.' },
+  'blok-ok': { ok: true, text: msg('Čas je zablokovaný.') },
+  'blok-zmazany': { ok: true, text: msg('Blokovanie je zrušené, čas je opäť voľný.') },
+  'blok-obsadene': { ok: false, text: msg('V tomto čase už je rezervácia alebo iné blokovanie. Najprv ju zruš alebo zvoľ iný čas.') },
+  'blok-chyba': { ok: false, text: msg('Skontroluj dátum a čas blokovania.') },
 };
 
 type Props = { searchParams: Promise<{ datum?: string | string[]; stav?: string | string[] }> };
 const one = (v: string | string[] | undefined) => (typeof v === 'string' ? v : '');
 
 export default async function KalendarPage({ searchParams }: Props) {
+  const t = await getT();
   const me = await requireStaff('bookings.view', '/admin/kalendar');
   const sp = await searchParams;
   const iso = isIsoDate(one(sp.datum)) ? one(sp.datum) : todayIso();
@@ -55,30 +61,30 @@ export default async function KalendarPage({ searchParams }: Props) {
   const totalHalfHours = close - open;
   const usedHalfHours = bookings.reduce((sum, b) => sum + b.hours, 0);
   const revenue = bookings.reduce((sum, b) => sum + b.priceCents, 0);
-  const notice = NOTICE[one(sp.stav)];
+  const notice = NOTICE[one(sp.stav)] ? { ...NOTICE[one(sp.stav)], text: t(NOTICE[one(sp.stav)].text) } : undefined;
   const hours = Array.from({ length: close - open }, (_, i) => open + i);
 
   return (
     <div className="adm__stack">
-      <AdmHead title="Kalendár ľadu" sub={fmtDayLong(hallTime(iso, 12))}>
-        <nav className="adm-daynav" aria-label="Deň">
-          <Link href={`/admin/kalendar?datum=${addDays(iso, -1)}`}>← Predošlý</Link>
-          <Link href="/admin/kalendar">Dnes</Link>
-          <Link href={`/admin/kalendar?datum=${addDays(iso, 1)}`}>Ďalší →</Link>
+      <AdmHead title={t('Kalendár ľadu')} sub={fmtDayLong(hallTime(iso, 12), t)}>
+        <nav className="adm-daynav" aria-label={t('Deň')}>
+          <Link href={`/admin/kalendar?datum=${addDays(iso, -1)}`}>{t('← Predošlý')}</Link>
+          <Link href="/admin/kalendar">{t('Dnes')}</Link>
+          <Link href={`/admin/kalendar?datum=${addDays(iso, 1)}`}>{t('Ďalší →')}</Link>
         </nav>
         <form action="/admin/kalendar" className="adm-inline-form u-mt0">
-          <input type="date" name="datum" defaultValue={iso} className="adm-input" aria-label="Dátum" />
-          <button className="btn btn--sm btn--ghost">Zobraziť</button>
+          <input type="date" name="datum" defaultValue={iso} className="adm-input" aria-label={t('Dátum')} />
+          <button className="btn btn--sm btn--ghost">{t('Zobraziť')}</button>
         </form>
       </AdmHead>
 
       {notice ? <FormAlert error={notice.ok ? undefined : notice.text} success={notice.ok ? notice.text : undefined} /> : null}
 
       <div className="adm-stats">
-        <Stat label="Rezervácie" value={bookings.length} />
-        <Stat label="Obsadenosť" value={`${totalHalfHours ? Math.round((usedHalfHours / totalHalfHours) * 100) : 0} %`} note={`${open}:00 – ${close}:00`} />
-        <Stat label="Hodnota rezervácií" value={euros(revenue)} />
-        <Stat label="Blokované" value={blocks.length} note="údržba, úprava ľadu" />
+        <Stat label={t('Rezervácie')} value={bookings.length} />
+        <Stat label={t('Obsadenosť')} value={`${totalHalfHours ? Math.round((usedHalfHours / totalHalfHours) * 100) : 0} %`} note={`${open}:00 – ${close}:00`} />
+        <Stat label={t('Hodnota rezervácií')} value={euros(revenue)} />
+        <Stat label={t('Blokované')} value={blocks.length} note={t('údržba, úprava ľadu')} />
       </div>
 
       <Panel>
@@ -86,7 +92,7 @@ export default async function KalendarPage({ searchParams }: Props) {
           <Dyn className="cal" css={{ 'grid-template-rows': `44px repeat(${close - open}, 64px)` }}>
             <div className="cal__head u-g11" />
             <div className="cal__head u-g21">
-              Ľadová plocha
+              {t('Ľadová plocha')}
             </div>
             {hours.map((h, i) => (
               <Dyn key={`t${h}`} className="cal__time" css={{ 'grid-column': '1', 'grid-row': String(i + 2) }}>
@@ -109,8 +115,8 @@ export default async function KalendarPage({ searchParams }: Props) {
                     <form action={adminDeleteBlock}>
                       <input type="hidden" name="blockId" value={bl.id} />
                       <input type="hidden" name="datum" value={iso} />
-                      <button className="cal__x" aria-label={`Zrušiť blokovanie ${bl.reason}`}>
-                        Zrušiť
+                      <button className="cal__x" aria-label={t('Zrušiť blokovanie {reason}', { reason: bl.reason })}>
+                        {t('Zrušiť')}
                       </button>
                     </form>
                   ) : null}
@@ -126,9 +132,9 @@ export default async function KalendarPage({ searchParams }: Props) {
                   <strong>{b.teamName || b.contactName}</strong>
                   <small>
                     {pad2(r.a)} – {pad2(r.b)} · {b.code}
-                    {b.showers ? ' · sprchy' : ''}
+                    {b.showers ? t(' · sprchy') : ''}
                   </small>
-                  <small>{b.status === 'NO_SHOW' ? 'Neprišiel' : b.checkedInAt ? 'Na ľade / prišiel' : b.paymentStatus === 'PAID' ? 'Zaplatená' : 'Nezaplatená'}</small>
+                  <small>{b.status === 'NO_SHOW' ? t('Neprišiel') : b.checkedInAt ? t('Na ľade / prišiel') : b.paymentStatus === 'PAID' ? t('Zaplatená') : t('Nezaplatená')}</small>
                 </Dyn>
               );
             })}
@@ -137,29 +143,29 @@ export default async function KalendarPage({ searchParams }: Props) {
         <div className="cal__legend">
           <span>
             <i className="cal__sw cal__sw--unpaid" />
-            Nezaplatená
+            {t('Nezaplatená')}
           </span>
           <span>
             <i className="cal__sw cal__sw--paid" />
-            Zaplatená
+            {t('Zaplatená')}
           </span>
           <span>
             <i className="cal__sw cal__sw--in" />
-            Prišiel
+            {t('Prišiel')}
           </span>
           <span>
             <i className="cal__sw cal__sw--block" />
-            Blokované
+            {t('Blokované')}
           </span>
         </div>
       </Panel>
 
       {manage ? (
-        <Panel title="Zablokovať čas">
+        <Panel title={t('Zablokovať čas')}>
           <form action={adminCreateBlock} className="adm-inline-form u-mt0">
             <input type="hidden" name="datum" value={iso} />
             <label className="adm-label u-f120">
-              Od
+              {t('Od')}
               <select name="od" className="adm-select" defaultValue={String(open)}>
                 {hours.map((h) => (
                   <option key={h} value={h}>
@@ -169,7 +175,7 @@ export default async function KalendarPage({ searchParams }: Props) {
               </select>
             </label>
             <label className="adm-label u-f120">
-              Do
+              {t('Do')}
               <select name="do" className="adm-select" defaultValue={String(open + 1)}>
                 {hours.map((h) => (
                   <option key={h} value={h + 1}>
@@ -180,12 +186,12 @@ export default async function KalendarPage({ searchParams }: Props) {
             </label>
             <input type="hidden" name="plocha" value="FULL" />
             <label className="adm-label">
-              Dôvod
-              <input name="reason" className="adm-input" maxLength={200} placeholder="napr. úprava ľadu, údržba rolby, turnaj" required />
+              {t('Dôvod')}
+              <input name="reason" className="adm-input" maxLength={200} placeholder={t('napr. úprava ľadu, údržba rolby, turnaj')} required />
             </label>
-            <button className="btn btn--sm">Zablokovať</button>
+            <button className="btn btn--sm">{t('Zablokovať')}</button>
           </form>
-          <p className="muted adm-note">Blokovaný čas si zákazníci nemôžu rezervovať. Ak je v ňom už rezervácia, najprv ju treba zrušiť.</p>
+          <p className="muted adm-note">{t('Blokovaný čas si zákazníci nemôžu rezervovať. Ak je v ňom už rezervácia, najprv ju treba zrušiť.')}</p>
         </Panel>
       ) : null}
     </div>

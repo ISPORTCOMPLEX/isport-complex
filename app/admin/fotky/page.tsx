@@ -6,12 +6,17 @@ import { SLOTS, toWebPhoto } from '@/lib/media';
 import { deletePhotoAction, deletePhotosAction, updatePhotoAction } from '@/lib/actions/media';
 import { AdmHead, Empty, Panel } from '@/components/admin/ui';
 import { MediaUploader } from '@/components/admin/MediaUploader';
+import { getT } from '@/lib/i18n/server';
 
-export const metadata: Metadata = { title: 'Fotky' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Fotky') };
+}
 
 const kb = (b: number) => (b > 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1).replace('.', ',')} MB` : `${Math.round(b / 1024)} kB`);
 
 export default async function FotkyPage() {
+  const t = await getT();
   await requireStaff('media.manage');
   const ready = Boolean(cloudinaryConfig());
   const rows = await prisma.photo.findMany({ orderBy: [{ slot: 'asc' }, { sort: 'asc' }, { createdAt: 'asc' }] });
@@ -19,12 +24,12 @@ export default async function FotkyPage() {
 
   return (
     <div className="adm__stack">
-      <AdmHead title="Fotky" sub={`${rows.length} fotiek · ${kb(total)} v úložisku · návštevníci ich vidia len cez adresu webu`} />
+      <AdmHead title={t('Fotky')} sub={t.n(rows.length, '{n} fotka|{n} fotky|{n} fotiek') + ' · ' + t('{kb} v úložisku · návštevníci ich vidia len cez adresu webu', { kb: kb(total) })} />
 
       {!ready ? (
-        <Panel title="Cloudinary ešte nie je pripojené">
+        <Panel title={t('Cloudinary ešte nie je pripojené')}>
           <p className="adm-note">
-            Na Verceli doplň premenné <code>CLOUDINARY_CLOUD_NAME</code>, <code>CLOUDINARY_API_KEY</code> a <code>CLOUDINARY_API_SECRET</code> (Cloudinary → Settings → API Keys) a sprav Redeploy. Potom tu pôjde nahrávať.
+            {t('Na Verceli doplň premenné')}{' '}<code>CLOUDINARY_CLOUD_NAME</code>, <code>CLOUDINARY_API_KEY</code> {' '}{t('a')}{' '}<code>CLOUDINARY_API_SECRET</code> {' '}{t('(Cloudinary → Settings → API Keys) a sprav Redeploy. Potom tu pôjde nahrávať.')}
           </p>
         </Panel>
       ) : null}
@@ -32,11 +37,11 @@ export default async function FotkyPage() {
       {SLOTS.map((slot) => {
         const list = rows.filter((r) => r.slot === slot.key);
         return (
-          <Panel key={slot.key} title={`${slot.label} (${list.length})`}>
-            <p className="adm-note muted">Zobrazí sa: {slot.where}. Prvá fotka je hlavná, ďalšie idú do galérie.</p>
-            {ready ? <MediaUploader slot={slot.key} label={slot.label} /> : null}
+          <Panel key={slot.key} title={`${t(slot.label)} (${list.length})`}>
+            <p className="adm-note muted">{t('Zobrazí sa: {where}. Prvá fotka je hlavná, ďalšie idú do galérie.', { where: t(slot.where) })}</p>
+            {ready ? <MediaUploader slot={slot.key} label={t(slot.label)} /> : null}
             {list.length === 0 ? (
-              <Empty>Zatiaľ bez fotiek – na webe je sivý zástupca.</Empty>
+              <Empty>{t('Zatiaľ bez fotiek – na webe je sivý zástupca.')}</Empty>
             ) : (
               <ul className="md-grid">
                 {list.map((r, i) => {
@@ -46,21 +51,21 @@ export default async function FotkyPage() {
                       <div className="md-thumb">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         {w ? <img src={w.thumb} alt={r.alt} loading="lazy" draggable={false} /> : null}
-                        {i === 0 ? <span className="md-badge">Hlavná</span> : null}
+                        {i === 0 ? <span className="md-badge">{t('Hlavná')}</span> : null}
                         <label className="md-pick">
                           <input type="checkbox" name="ids" value={r.id} form={`del-${slot.key}`} />
-                          <span className="sr-only">Označiť fotku na zmazanie</span>
+                          <span className="sr-only">{t('Označiť fotku na zmazanie')}</span>
                         </label>
                       </div>
                       <form action={updatePhotoAction} className="md-alt">
                         <input type="hidden" name="id" value={r.id} />
                         <input type="hidden" name="op" value="alt" />
                         <label className="sr-only" htmlFor={`alt-${r.id}`}>
-                          Popis fotky
+                          {t('Popis fotky')}
                         </label>
-                        <input id={`alt-${r.id}`} name="alt" defaultValue={r.alt} maxLength={200} placeholder="Popis (čo je na fotke)" className="adm-input" />
+                        <input id={`alt-${r.id}`} name="alt" defaultValue={r.alt} maxLength={200} placeholder={t('Popis (čo je na fotke)')} className="adm-input" />
                         <button type="submit" className="btn btn--sm btn--ghost">
-                          Uložiť
+                          {t('Uložiť')}
                         </button>
                       </form>
                       <div className="md-meta">
@@ -71,10 +76,10 @@ export default async function FotkyPage() {
                           {i > 0 ? (
                             <form action={updatePhotoAction}>
                               <input type="hidden" name="id" value={r.id} />
-                              <button name="op" value="first" className="md-btn" title="Nastaviť ako hlavnú">
+                              <button name="op" value="first" className="md-btn" title={t('Nastaviť ako hlavnú')}>
                                 ★
                               </button>
-                              <button name="op" value="up" className="md-btn" aria-label="Posunúť dopredu">
+                              <button name="op" value="up" className="md-btn" aria-label={t('Posunúť dopredu')}>
                                 ←
                               </button>
                             </form>
@@ -82,17 +87,17 @@ export default async function FotkyPage() {
                           {i < list.length - 1 ? (
                             <form action={updatePhotoAction}>
                               <input type="hidden" name="id" value={r.id} />
-                              <button name="op" value="down" className="md-btn" aria-label="Posunúť dozadu">
+                              <button name="op" value="down" className="md-btn" aria-label={t('Posunúť dozadu')}>
                                 →
                               </button>
                             </form>
                           ) : null}
                           <details className="md-del">
-                            <summary className="md-btn md-btn--red">Zmazať</summary>
+                            <summary className="md-btn md-btn--red">{t('Zmazať')}</summary>
                             <form action={deletePhotoAction}>
                               <input type="hidden" name="id" value={r.id} />
                               <button type="submit" className="btn btn--sm btn--danger">
-                                Naozaj zmazať
+                                {t('Naozaj zmazať')}
                               </button>
                             </form>
                           </details>
@@ -108,9 +113,9 @@ export default async function FotkyPage() {
                 <form id={`del-${slot.key}`} action={deletePhotosAction} className="md-bulk__form">
                   <input type="hidden" name="slot" value={slot.key} />
                   <details className="md-bulk__confirm">
-                    <summary className="btn btn--sm btn--ghost">Zmazať označené</summary>
+                    <summary className="btn btn--sm btn--ghost">{t('Zmazať označené')}</summary>
                     <button type="submit" className="btn btn--sm btn--danger">
-                      Naozaj zmazať označené fotky
+                      {t('Naozaj zmazať označené fotky')}
                     </button>
                   </details>
                 </form>
@@ -118,9 +123,10 @@ export default async function FotkyPage() {
                   <input type="hidden" name="slot" value={slot.key} />
                   <input type="hidden" name="all" value="1" />
                   <details className="md-bulk__confirm">
-                    <summary className="btn btn--sm btn--ghost">Zmazať všetky v sekcii ({list.length})</summary>
+                    <summary className="btn btn--sm btn--ghost">{t('Zmazať všetky v sekcii ({length})', { length: list.length })}</summary>
                     <button type="submit" className="btn btn--sm btn--danger">
-                      Naozaj zmazať všetkých {list.length}
+                      {t('Naozaj zmazať všetkých {length}', { length: list.length })}
+                    
                     </button>
                   </details>
                 </form>

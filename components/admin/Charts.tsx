@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Dyn } from '@/components/Dyn';
+import { useT } from '@/lib/i18n/client';
+import { weekdaysShort } from '@/lib/dates';
 
 // Jednoduché grafy administrácie (HTML/CSS, bez knižníc): jeden odtieň, tenké značky, popis pri prejdení myšou
 // a vždy aj tabuľkový pohľad pre presné čísla.
@@ -33,6 +35,7 @@ export function BarChart({
   valueLabel: string;
   height?: number;
 }) {
+  const t = useT();
   const [hover, setHover] = useState<number | null>(null);
   const max = niceMax(Math.max(...points.map((p) => p.value), 0));
   const every = Math.max(1, Math.ceil(points.length / 10));
@@ -48,7 +51,7 @@ export function BarChart({
             </Dyn>
           ))}
         </div>
-        <div className="ch__bars" role="img" aria-label={`${valueLabel} po dňoch`}>
+        <div className="ch__bars" role="img" aria-label={t('{valueLabel} po dňoch', { valueLabel })}>
           {points.map((p, i) => (
             <button
               type="button"
@@ -83,11 +86,11 @@ export function BarChart({
         ))}
       </div>
       <details className="ch__table">
-        <summary>Zobraziť ako tabuľku</summary>
+        <summary>{t('Zobraziť ako tabuľku')}</summary>
         <table className="adm-table">
           <thead>
             <tr>
-              <th>Deň</th>
+              <th>{t('Deň')}</th>
               <th className="r">{valueLabel}</th>
               {extraLabel ? <th className="r">{extraLabel}</th> : null}
             </tr>
@@ -107,15 +110,16 @@ export function BarChart({
   );
 }
 
-const DAYS = ['Po', 'Ut', 'St', 'Št', 'Pi', 'So', 'Ne'];
 
 // Teplotná mapa deň × hodina. value < 0 = mimo otváracích hodín.
 export function Heatmap({ grid, fromHour = 0, toHour = 24, percent = false, unit = '' }: { grid: number[][]; fromHour?: number; toHour?: number; percent?: boolean; unit?: string }) {
+  const t = useT();
   const [hover, setHover] = useState<{ d: number; h: number } | null>(null);
   const hours = Array.from({ length: toHour - fromHour }, (_, i) => fromHour + i);
   const max = percent ? 1 : Math.max(1, ...grid.flat());
-  const show = (v: number) => (v < 0 ? 'zatvorené' : percent ? `${Math.round(v * 100)} %` : `${fmtNum(v)}${unit ? ` ${unit}` : ''}`);
+  const show = (v: number) => (v < 0 ? t('zatvorené') : percent ? `${Math.round(v * 100)} %` : `${fmtNum(v)}${unit ? ` ${unit}` : ''}`);
   const cur = hover ? grid[hover.d][hover.h] : null;
+  const DAYS = weekdaysShort(t.intl);
   return (
     <div className="hm">
       <Dyn className="hm__grid" css={{ 'grid-template-columns': `28px repeat(${hours.length}, minmax(0, 1fr))` }} onMouseLeave={() => setHover(null)}>
@@ -157,11 +161,11 @@ export function Heatmap({ grid, fromHour = 0, toHour = 24, percent = false, unit
               · {show(cur)}
             </>
           ) : (
-            'Prejdi myšou nad políčko'
+            t('Prejdi myšou nad políčko')
           )}
         </span>
         <span className="hm__scale" aria-hidden="true">
-          menej <i /> viac
+          {t('menej')}{' '}<i /> {' '}{t('viac')}
         </span>
       </div>
     </div>

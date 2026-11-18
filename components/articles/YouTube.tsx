@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useT } from '@/lib/i18n/client';
 
 // YouTube sa načíta až po kliknutí (rýchlejšia stránka, žiadne cookies od Googlu bez súhlasu).
 // Náhľad je náš vlastný – nič sa z YouTube nesťahuje, kým návštevník neklikne.
 export function YouTube({ id, title }: { id: string; title: string }) {
+  const t = useT();
   const [on, setOn] = useState(false);
   if (on)
     return (
@@ -26,8 +28,8 @@ export function YouTube({ id, title }: { id: string; title: string }) {
         </svg>
       </span>
       <span className="yt__t">
-        <b>Prehrať video</b>
-        <small>Video sa načíta z YouTube po kliknutí</small>
+        <b>{t('Prehrať video')}</b>
+        <small>{t('Video sa načíta z YouTube po kliknutí')}</small>
       </span>
     </button>
   );

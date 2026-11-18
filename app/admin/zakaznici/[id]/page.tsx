@@ -19,29 +19,35 @@ import {
   adminUnlock,
   adminVerifyEmail,
 } from '@/lib/actions/admin';
+import { getT } from '@/lib/i18n/server';
+import { msg } from '@/lib/i18n/translate';
 
-export const metadata: Metadata = { title: 'Detail zákazníka' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Detail zákazníka') };
+}
 
 const NOTICE: Record<string, { ok: boolean; text: string }> = {
-  overeny: { ok: true, text: 'E-mail je označený ako overený.' },
-  odomknuty: { ok: true, text: 'Účet je odomknutý.' },
-  zablokovany: { ok: true, text: 'Účet je zablokovaný a zákazník bol odhlásený.' },
-  odblokovany: { ok: true, text: 'Účet je odblokovaný.' },
-  odhlaseny: { ok: true, text: 'Zákazník bol odhlásený zo všetkých zariadení.' },
-  'reset-odoslany': { ok: true, text: 'Odkaz na nastavenie nového hesla bol odoslaný e-mailom.' },
-  '2fa-zrusene': { ok: true, text: 'Dvojstupňové overenie bolo zrušené. Zákazník si ho môže nastaviť znova.' },
-  'rola-zmenena': { ok: true, text: 'Rola je zmenená. Platí od ďalšieho prihlásenia.' },
-  'nie-sebe': { ok: false, text: 'Tento zásah sa nedá urobiť na vlastnom účte.' },
-  'posledny-admin': { ok: false, text: 'Nedá sa odobrať rola poslednému administrátorovi.' },
-  'bez-zmeny': { ok: false, text: 'Účet už túto rolu má.' },
-  'zla-rola': { ok: false, text: 'Neplatná rola.' },
-  'email-chyba': { ok: false, text: 'E-mail sa nepodarilo odoslať. Skontroluj nastavenie Resend.' },
-  'zablokovany-ucet': { ok: false, text: 'Zablokovanému účtu sa obnova hesla neposiela.' },
+  overeny: { ok: true, text: msg('E-mail je označený ako overený.') },
+  odomknuty: { ok: true, text: msg('Účet je odomknutý.') },
+  zablokovany: { ok: true, text: msg('Účet je zablokovaný a zákazník bol odhlásený.') },
+  odblokovany: { ok: true, text: msg('Účet je odblokovaný.') },
+  odhlaseny: { ok: true, text: msg('Zákazník bol odhlásený zo všetkých zariadení.') },
+  'reset-odoslany': { ok: true, text: msg('Odkaz na nastavenie nového hesla bol odoslaný e-mailom.') },
+  '2fa-zrusene': { ok: true, text: msg('Dvojstupňové overenie bolo zrušené. Zákazník si ho môže nastaviť znova.') },
+  'rola-zmenena': { ok: true, text: msg('Rola je zmenená. Platí od ďalšieho prihlásenia.') },
+  'nie-sebe': { ok: false, text: msg('Tento zásah sa nedá urobiť na vlastnom účte.') },
+  'posledny-admin': { ok: false, text: msg('Nedá sa odobrať rola poslednému administrátorovi.') },
+  'bez-zmeny': { ok: false, text: msg('Účet už túto rolu má.') },
+  'zla-rola': { ok: false, text: msg('Neplatná rola.') },
+  'email-chyba': { ok: false, text: msg('E-mail sa nepodarilo odoslať. Skontroluj nastavenie Resend.') },
+  'zablokovany-ucet': { ok: false, text: msg('Zablokovanému účtu sa obnova hesla neposiela.') },
 };
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ stav?: string | string[] }> };
 
 export default async function ZakaznikDetail({ params, searchParams }: Props) {
+  const t = await getT();
   const { id } = await params;
   const me = await requireStaff('users.view', `/admin/zakaznici/${id}`);
   const sp = await searchParams;
@@ -60,74 +66,74 @@ export default async function ZakaznikDetail({ params, searchParams }: Props) {
       ? prisma.auditLog.findMany({ where: { target: user.id }, orderBy: { createdAt: 'desc' }, take: 10, include: { actor: { select: { firstName: true, lastName: true } } } })
       : Promise.resolve([]),
   ]);
-  const notice = typeof sp.stav === 'string' ? NOTICE[sp.stav] : undefined;
+  const notice = typeof sp.stav === 'string' && NOTICE[sp.stav] ? { ...NOTICE[sp.stav], text: t(NOTICE[sp.stav].text) } : undefined;
   const hidden = <input type="hidden" name="userId" value={user.id} />;
 
   return (
     <div className="adm__stack">
       <Link href="/admin/zakaznici" className="adm-back">
-        ← Zákazníci
+        {t('← Zákazníci')}
       </Link>
       <AdmHead title={`${user.firstName} ${user.lastName}`} sub={user.email}>
-        {user.bannedAt ? <Chip tone="red">Zablokovaný</Chip> : locked ? <Chip tone="warn">Zamknutý</Chip> : user.emailVerifiedAt ? <Chip tone="ok">Aktívny</Chip> : <Chip tone="warn">Neoverený</Chip>}
-        {user.role !== 'CUSTOMER' ? <Chip tone={user.role === 'ADMIN' ? 'red' : 'blue'}>{ROLE_LABEL[user.role]}</Chip> : null}
+        {user.bannedAt ? <Chip tone="red">{t('Zablokovaný')}</Chip> : locked ? <Chip tone="warn">{t('Zamknutý')}</Chip> : user.emailVerifiedAt ? <Chip tone="ok">{t('Aktívny')}</Chip> : <Chip tone="warn">{t('Neoverený')}</Chip>}
+        {user.role !== 'CUSTOMER' ? <Chip tone={user.role === 'ADMIN' ? 'red' : 'blue'}>{t(ROLE_LABEL[user.role])}</Chip> : null}
       </AdmHead>
 
       {notice ? <FormAlert error={notice.ok ? undefined : notice.text} success={notice.ok ? notice.text : undefined} /> : null}
 
       <div className="adm-grid">
-        <Panel title="Údaje">
+        <Panel title={t('Údaje')}>
           <dl className="adm-dl">
             <div>
-              <dt>Telefón</dt>
+              <dt>{t('Telefón')}</dt>
               <dd>{user.phone ?? '—'}</dd>
             </div>
             <div>
-              <dt>Rola</dt>
-              <dd>{ROLE_LABEL[user.role]}</dd>
+              <dt>{t('Rola')}</dt>
+              <dd>{t(ROLE_LABEL[user.role])}</dd>
             </div>
             <div>
-              <dt>Registrácia</dt>
-              <dd>{fmtDateTime(user.createdAt)}</dd>
+              <dt>{t('Registrácia')}</dt>
+              <dd>{fmtDateTime(user.createdAt, t)}</dd>
             </div>
             <div>
-              <dt>E-mail overený</dt>
-              <dd>{user.emailVerifiedAt ? fmtDateTime(user.emailVerifiedAt) : 'Nie'}</dd>
+              <dt>{t('E-mail overený')}</dt>
+              <dd>{user.emailVerifiedAt ? fmtDateTime(user.emailVerifiedAt, t) : t('Nie')}</dd>
             </div>
             <div>
-              <dt>Dvojstupňové overenie</dt>
-              <dd>{user.twoFactorEnabledAt ? `Zapnuté od ${fmtDate(user.twoFactorEnabledAt)}` : 'Vypnuté'}</dd>
+              <dt>{t('Dvojstupňové overenie')}</dt>
+              <dd>{user.twoFactorEnabledAt ? t('Zapnuté od {fmtDate}', { fmtDate: fmtDate(user.twoFactorEnabledAt, t) }) : t('Vypnuté')}</dd>
             </div>
             <div>
-              <dt>Súhlas s podmienkami</dt>
-              <dd>{fmtDateTime(user.termsAcceptedAt)}</dd>
+              <dt>{t('Súhlas s podmienkami')}</dt>
+              <dd>{fmtDateTime(user.termsAcceptedAt, t)}</dd>
             </div>
             <div>
-              <dt>Novinky e-mailom</dt>
-              <dd>{user.marketingOptIn ? 'Áno' : 'Nie'}</dd>
+              <dt>{t('Novinky e-mailom')}</dt>
+              <dd>{user.marketingOptIn ? t('Áno') : t('Nie')}</dd>
             </div>
             <div>
-              <dt>Heslo zmenené</dt>
-              <dd>{fmtDateTime(user.passwordChangedAt)}</dd>
+              <dt>{t('Heslo zmenené')}</dt>
+              <dd>{fmtDateTime(user.passwordChangedAt, t)}</dd>
             </div>
             {locked ? (
               <div>
-                <dt>Zamknutý do</dt>
-                <dd>{fmtDateTime(user.lockedUntil)}</dd>
+                <dt>{t('Zamknutý do')}</dt>
+                <dd>{fmtDateTime(user.lockedUntil, t)}</dd>
               </div>
             ) : null}
             {user.bannedAt ? (
               <div>
-                <dt>Zablokovaný</dt>
-                <dd>{fmtDateTime(user.bannedAt)}</dd>
+                <dt>{t('Zablokovaný')}</dt>
+                <dd>{fmtDateTime(user.bannedAt, t)}</dd>
               </div>
             ) : null}
           </dl>
         </Panel>
 
-        <Panel title="Rezervácie">
+        <Panel title={t('Rezervácie')}>
           {bookings.length === 0 ? (
-            <Empty>Zákazník zatiaľ nemá rezervácie.</Empty>
+            <Empty>{t('Zákazník zatiaľ nemá rezervácie.')}</Empty>
           ) : (
             <ul className="adm-events">
               {bookings.map((b) => (
@@ -136,11 +142,11 @@ export default async function ZakaznikDetail({ params, searchParams }: Props) {
                   <div>
                     <strong>
                       <Link href={`/admin/rezervacie/${b.id}`}>
-                        {fmtDayShort(b.startsAt)} · {fmtRange(b.startsAt, b.endsAt)}
+                        {fmtDayShort(b.startsAt, t)} · {fmtRange(b.startsAt, b.endsAt)}
                       </Link>
                     </strong>
                     <small>
-                      {b.code} · {euros(b.priceCents)} · {STATUS_LABEL[b.status]} · {PAYMENT_LABEL[b.paymentStatus]}
+                      {b.code} · {euros(b.priceCents)} · {t(STATUS_LABEL[b.status])} · {t(PAYMENT_LABEL[b.paymentStatus])}
                     </small>
                   </div>
                 </li>
@@ -151,31 +157,31 @@ export default async function ZakaznikDetail({ params, searchParams }: Props) {
       </div>
 
       {manage ? (
-        <Panel title="Zásahy do účtu">
-          {self ? <p className="muted adm-note">Toto je tvoj účet – zablokovanie, zmena roly a zrušenie 2FA tu nie sú dostupné.</p> : null}
+        <Panel title={t('Zásahy do účtu')}>
+          {self ? <p className="muted adm-note">{t('Toto je tvoj účet – zablokovanie, zmena roly a zrušenie 2FA tu nie sú dostupné.')}</p> : null}
           <div className="adm-actions">
             {!user.emailVerifiedAt ? (
               <form action={adminVerifyEmail}>
                 {hidden}
-                <button className="btn btn--sm btn--ghost">Označiť e-mail ako overený</button>
+                <button className="btn btn--sm btn--ghost">{t('Označiť e-mail ako overený')}</button>
               </form>
             ) : null}
             {locked ? (
               <form action={adminUnlock}>
                 {hidden}
-                <button className="btn btn--sm btn--ghost">Odomknúť účet</button>
+                <button className="btn btn--sm btn--ghost">{t('Odomknúť účet')}</button>
               </form>
             ) : null}
             {!user.bannedAt && emailEnabled() ? (
               <form action={adminSendReset}>
                 {hidden}
-                <button className="btn btn--sm btn--ghost">Poslať odkaz na nové heslo e-mailom</button>
+                <button className="btn btn--sm btn--ghost">{t('Poslať odkaz na nové heslo e-mailom')}</button>
               </form>
             ) : null}
             {!self ? (
               <form action={adminRevokeSessions}>
                 {hidden}
-                <button className="btn btn--sm btn--ghost">Odhlásiť zo všetkých zariadení</button>
+                <button className="btn btn--sm btn--ghost">{t('Odhlásiť zo všetkých zariadení')}</button>
               </form>
             ) : null}
           </div>
@@ -184,31 +190,31 @@ export default async function ZakaznikDetail({ params, searchParams }: Props) {
           {!self ? (
             <div className="adm-danger">
               <details className="tfa__more">
-                <summary>Zmeniť rolu</summary>
+                <summary>{t('Zmeniť rolu')}</summary>
                 <form action={adminSetRole} className="adm-inline-form">
                   {hidden}
                   <label className="sr-only" htmlFor="role">
-                    Rola
+                    {t('Rola')}
                   </label>
                   <select id="role" name="role" defaultValue={user.role} className="adm-select">
                     {Object.entries(ROLE_LABEL).map(([k, v]) => (
                       <option key={k} value={k}>
-                        {v}
+                        {t(v)}
                       </option>
                     ))}
                   </select>
-                  <button className="btn btn--sm">Uložiť rolu</button>
+                  <button className="btn btn--sm">{t('Uložiť rolu')}</button>
                 </form>
-                <p className="muted adm-note">Personál (recepcia, účtovníctvo, administrátor) musí mať zapnuté dvojstupňové overenie, inak sa do administrácie nedostane.</p>
+                <p className="muted adm-note">{t('Personál (recepcia, účtovníctvo, administrátor) musí mať zapnuté dvojstupňové overenie, inak sa do administrácie nedostane.')}</p>
               </details>
 
               {user.twoFactorEnabledAt ? (
                 <details className="tfa__more">
-                  <summary>Zrušiť dvojstupňové overenie (stratený telefón)</summary>
+                  <summary>{t('Zrušiť dvojstupňové overenie (stratený telefón)')}</summary>
                   <form action={adminResetTwoFactor} className="adm-inline-form">
                     {hidden}
-                    <p className="muted">Použi len po overení totožnosti zákazníka (osobne alebo telefonicky). Zákazník bude odhlásený.</p>
-                    <button className="btn btn--sm btn--danger">Zrušiť 2FA</button>
+                    <p className="muted">{t('Použi len po overení totožnosti zákazníka (osobne alebo telefonicky). Zákazník bude odhlásený.')}</p>
+                    <button className="btn btn--sm btn--danger">{t('Zrušiť 2FA')}</button>
                   </form>
                 </details>
               ) : null}
@@ -216,18 +222,18 @@ export default async function ZakaznikDetail({ params, searchParams }: Props) {
               {user.bannedAt ? (
                 <form action={adminUnban} className="adm-inline-form">
                   {hidden}
-                  <button className="btn btn--sm btn--ghost">Odblokovať účet</button>
+                  <button className="btn btn--sm btn--ghost">{t('Odblokovať účet')}</button>
                 </form>
               ) : (
                 <details className="tfa__more">
-                  <summary>Zablokovať účet</summary>
+                  <summary>{t('Zablokovať účet')}</summary>
                   <form action={adminBan} className="adm-inline-form">
                     {hidden}
                     <label className="adm-label">
-                      Dôvod (interná poznámka)
-                      <input name="reason" maxLength={300} className="adm-input" placeholder="napr. opakované neplatenie" />
+                      {t('Dôvod (interná poznámka)')}
+                      <input name="reason" maxLength={300} className="adm-input" placeholder={t('napr. opakované neplatenie')} />
                     </label>
-                    <button className="btn btn--sm btn--danger">Zablokovať</button>
+                    <button className="btn btn--sm btn--danger">{t('Zablokovať')}</button>
                   </form>
                 </details>
               )}
@@ -237,21 +243,21 @@ export default async function ZakaznikDetail({ params, searchParams }: Props) {
       ) : null}
 
       <div className="adm-grid">
-        <Panel title="Bezpečnostné udalosti">
+        <Panel title={t('Bezpečnostné udalosti')}>
           {events.length === 0 ? (
-            <Empty>Žiadne záznamy.</Empty>
+            <Empty>{t('Žiadne záznamy.')}</Empty>
           ) : (
             <ul className="adm-events">
               {events.map((e) => (
                 <li key={e.id}>
-                  <span className={`adm-dot ${e.ok ? 'adm-dot--ok' : 'adm-dot--bad'}`} aria-label={e.ok ? 'úspech' : 'neúspech'} />
+                  <span className={`adm-dot ${e.ok ? 'adm-dot--ok' : 'adm-dot--bad'}`} aria-label={e.ok ? t('úspech') : t('neúspech')} />
                   <div>
                     <strong>
-                      {EVENT_LABEL[e.type] ?? e.type}
-                      {e.reason ? <span className="muted"> · {reasonText(e.reason)}</span> : null}
+                      {EVENT_LABEL[e.type] ? t(EVENT_LABEL[e.type]) : e.type}
+                      {e.reason ? <span className="muted"> · {reasonText(e.reason, t)}</span> : null}
                     </strong>
                     <small>
-                      {ago(e.createdAt)} · IP {e.ip ?? '—'}
+                      {ago(e.createdAt, t)} · IP {e.ip ?? '—'}
                     </small>
                   </div>
                 </li>
@@ -260,18 +266,18 @@ export default async function ZakaznikDetail({ params, searchParams }: Props) {
           )}
         </Panel>
         {manage ? (
-          <Panel title="Zásahy personálu">
+          <Panel title={t('Zásahy personálu')}>
             {changes.length === 0 ? (
-              <Empty>Personál do účtu zatiaľ nezasahoval.</Empty>
+              <Empty>{t('Personál do účtu zatiaľ nezasahoval.')}</Empty>
             ) : (
               <ul className="adm-events">
                 {changes.map((c) => (
                   <li key={c.id}>
                     <span className="adm-dot" />
                     <div>
-                      <strong>{auditText(c.action, c.meta)}</strong>
+                      <strong>{auditText(c.action, c.meta, t)}</strong>
                       <small>
-                        {ago(c.createdAt)} · {c.actor ? `${c.actor.firstName} ${c.actor.lastName}` : 'neznámy'}
+                        {ago(c.createdAt, t)} · {c.actor ? `${c.actor.firstName} ${c.actor.lastName}` : t('neznámy')}
                       </small>
                     </div>
                   </li>

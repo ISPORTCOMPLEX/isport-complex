@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Icon, type IconName } from '@/components/Icon';
+import { getT } from '@/lib/i18n/server';
 
 // ikona k výhode podľa textu (inak fajka)
 const checkIcon = (t: string): IconName | null => (/šatň/i.test(t) ? 'satna' : /storno|zruš/i.test(t) ? 'storno' : /plocha|ľad/i.test(t) ? 'hokej' : /QR/.test(t) ? 'qr' : /sprch/i.test(t) ? 'sprchy' : null);
@@ -7,13 +8,14 @@ const checkIcon = (t: string): IconName | null => (/šatň/i.test(t) ? 'satna' :
 // Hero pás podstránok: textúra ľadu pod tmavým gradientom, omrvinky, veľký nadpis ISport Display
 // a voliteľne výhody s fajkami (rezervácia) alebo krátky úvod.
 // S `art` dostane vpravo ilustráciu areálu (podstránky častí komplexu).
-export function RzBand({ crumbs, title, lead, step, checks, art }: { crumbs: { href?: string; label: string }[]; title: React.ReactNode; lead?: React.ReactNode; step?: string; checks?: string[]; art?: React.ReactNode }) {
+export async function RzBand({ crumbs, title, lead, step, checks, art }: { crumbs: { href?: string; label: string }[]; title: React.ReactNode; lead?: React.ReactNode; step?: string; checks?: string[]; art?: React.ReactNode }) {
+  const tr = await getT();
   return (
     <section className={`band2${art ? ' band2--art' : ''}`}>
       {art}
       <span className="band2__shade" aria-hidden="true" />
       <div className="wrap band2__in">
-        <nav aria-label="Navigačná cesta" className="band2__crumbs">
+        <nav aria-label={tr('Navigačná cesta')} className="band2__crumbs">
           {crumbs.map((c, i) => (
             <span className="u-contents" key={c.label}>
               {i > 0 ? <span aria-hidden="true">/</span> : null}

@@ -1,6 +1,9 @@
 import 'server-only';
 import { promises as dns } from 'node:dns';
 import { isDisposableDomain, addDisposable, domainAndParents } from './disposable/check';
+import { msg } from '@/lib/i18n/translate';
+
+// message = slovenský kľúč prekladu (volajúci ho prekladá cez t())
 
 // Blokovanie dočasných e-mailov pri registrácii – štyri vrstvy:
 // 1. vstavaný zoznam ~100 000 domén dočasných služieb (4 komunitné zoznamy, súčasť webu – funguje aj bez internetu),
@@ -34,11 +37,11 @@ async function refresh(): Promise<void> {
 }
 
 export type EmailCheck = { ok: true } | { ok: false; message: string; reason: string };
-const BLOCKED = 'Dočasné e-mailové schránky nie sú povolené. Použi svoj bežný e-mail.';
+const BLOCKED = msg('Dočasné e-mailové schránky nie sú povolené. Použi svoj bežný e-mail.');
 
 export async function checkEmailDomain(email: string): Promise<EmailCheck> {
   const domain = email.split('@')[1]?.toLowerCase();
-  if (!domain) return { ok: false, message: 'Zadaj platný e-mail.', reason: 'no-domain' };
+  if (!domain) return { ok: false, message: msg('Zadaj platný e-mail.'), reason: 'no-domain' };
 
   await refresh();
   if (isDisposableDomain(domain)) return { ok: false, message: BLOCKED, reason: 'disposable-list' };
@@ -50,7 +53,7 @@ export async function checkEmailDomain(email: string): Promise<EmailCheck> {
     mx = [];
   }
   if (mx.length === 0) {
-    return { ok: false, message: 'Na tento e-mail sa nedá doručovať. Skontroluj, či je napísaný správne.', reason: 'no-mx' };
+    return { ok: false, message: msg('Na tento e-mail sa nedá doručovať. Skontroluj, či je napísaný správne.'), reason: 'no-mx' };
   }
   const hosts = mx.map((m) => m.exchange.toLowerCase().replace(/\.$/, ''));
   if (hosts.some((h) => DISPOSABLE_MX.some((bad) => h.includes(bad)) || domainAndParents(h).some((d) => isDisposableDomain(d)))) {

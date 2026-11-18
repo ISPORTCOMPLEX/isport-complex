@@ -1,3 +1,4 @@
+import { msg } from '@/lib/i18n/translate';
 // Bloky článku – spoločné pre editor (prehliadač) aj server. Všetko, čo príde z prehliadača,
 // prejde cez normalizeBlocks(): neznáme typy a polia sa zahodia, text sa očistí (sanitizeInline).
 
@@ -19,14 +20,14 @@ export type BlockType = Block['type'];
 export type Cover = Img & { alt: string; caption: string };
 
 export const CATEGORIES = [
-  { key: 'novinky', label: 'Novinky' },
-  { key: 'turnaje', label: 'Turnaje a zápasy' },
-  { key: 'kempy', label: 'Kempy a nábor' },
-  { key: 'oznamy', label: 'Oznamy' },
+  { key: 'novinky', label: msg('Novinky') },
+  { key: 'turnaje', label: msg('Turnaje a zápasy') },
+  { key: 'kempy', label: msg('Kempy a nábor') },
+  { key: 'oznamy', label: msg('Oznamy') },
 ] as const;
 export type CategoryKey = (typeof CATEGORIES)[number]['key'];
 export const isCategory = (v: string): v is CategoryKey => CATEGORIES.some((c) => c.key === v);
-export const categoryLabel = (v: string) => CATEGORIES.find((c) => c.key === v)?.label ?? 'Novinky';
+export const categoryLabel = (v: string) => CATEGORIES.find((c) => c.key === v)?.label ?? msg('Novinky');
 
 const MAX_BLOCKS = 200;
 const str = (v: unknown, max: number) => (typeof v === 'string' ? v.slice(0, max) : '');

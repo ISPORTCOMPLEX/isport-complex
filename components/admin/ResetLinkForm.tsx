@@ -5,19 +5,21 @@ import { adminResetLinkAction } from '@/lib/actions/admin';
 import { EMPTY } from '@/lib/formState';
 import { FormAlert } from '@/components/forms/FormAlert';
 import { SubmitButton } from '@/components/forms/SubmitButton';
+import { useT } from '@/lib/i18n/client';
 
 export function ResetLinkForm({ userId }: { userId: string }) {
+  const t = useT();
   const [state, action] = useActionState(adminResetLinkAction, EMPTY);
   const [copied, setCopied] = useState(false);
   const link = state.values?.link;
   return (
     <details className="tfa__more">
-      <summary>Vytvoriť odkaz na nové heslo (bez e-mailu)</summary>
+      <summary>{t('Vytvoriť odkaz na nové heslo (bez e-mailu)')}</summary>
       <form action={action} className="adm-inline-form">
         <input type="hidden" name="userId" value={userId} />
-        <p className="muted">Len po overení totožnosti zákazníka (osobne alebo telefonicky). Odkaz pošli SMS-kou, nikdy ho nezverejňuj.</p>
+        <p className="muted">{t('Len po overení totožnosti zákazníka (osobne alebo telefonicky). Odkaz pošli SMS-kou, nikdy ho nezverejňuj.')}</p>
         <SubmitButton variant="ghost" full={false}>
-          Vytvoriť odkaz
+          {t('Vytvoriť odkaz')}
         </SubmitButton>
       </form>
       <FormAlert error={state.error} success={state.success} />
@@ -32,7 +34,7 @@ export function ResetLinkForm({ userId }: { userId: string }) {
               navigator.clipboard?.writeText(link).then(() => setCopied(true));
             }}
           >
-            {copied ? 'Skopírované' : 'Kopírovať odkaz'}
+            {copied ? t('Skopírované') : t('Kopírovať odkaz')}
           </button>
         </div>
       ) : null}

@@ -2,17 +2,18 @@ import 'server-only';
 import { cache } from 'react';
 import { prisma } from './prisma';
 import { cloudName, photoPath, IMG_WIDTHS, PANO_WIDTH } from './cloudinary';
+import { msg } from '@/lib/i18n/translate';
 
 // Miesta na webe, kam sa dajú nahrať fotky.
 export const SLOTS = [
-  { key: 'komplex', label: 'Celý komplex', where: 'úvod, budova zvonka' },
-  { key: 'ladova-plocha', label: 'Ľadová plocha', where: 'stránka Ľadová plocha' },
-  { key: 'skyboxy', label: 'Skyboxy', where: 'úvod a stránka Bufet a skyboxy' },
-  { key: 'bufet', label: 'Bufet', where: 'úvod a stránka Bufet a skyboxy' },
-  { key: 'ihrisko', label: 'Futbalové ihrisko', where: 'úvod a stránka Ihrisko' },
-  { key: 'posilnovna', label: 'Posilňovňa', where: 'úvod a stránka Fitness a wellness' },
-  { key: 'wellness', label: 'Wellness', where: 'úvod a stránka Fitness a wellness' },
-  { key: 'prehliadka', label: 'Prehliadka 360°', where: 'stránka Prehliadka 360° (panoramatické fotky v pomere 2:1 z 360° kamery alebo z telefónu – režim Panoráma/Photo Sphere). Kým tu nie je fotka, stránka sa nezobrazuje' },
+  { key: 'komplex', label: msg('Celý komplex'), where: msg('úvod, budova zvonka') },
+  { key: 'ladova-plocha', label: msg('Ľadová plocha'), where: msg('stránka Ľadová plocha') },
+  { key: 'skyboxy', label: msg('Skyboxy'), where: msg('úvod a stránka Bufet a skyboxy') },
+  { key: 'bufet', label: msg('Bufet'), where: msg('úvod a stránka Bufet a skyboxy') },
+  { key: 'ihrisko', label: msg('Futbalové ihrisko'), where: msg('úvod a stránka Ihrisko') },
+  { key: 'posilnovna', label: msg('Posilňovňa'), where: msg('úvod a stránka Fitness a wellness') },
+  { key: 'wellness', label: msg('Wellness'), where: msg('úvod a stránka Fitness a wellness') },
+  { key: 'prehliadka', label: msg('Prehliadka 360°'), where: msg('stránka Prehliadka 360° (panoramatické fotky v pomere 2:1 z 360° kamery alebo z telefónu – režim Panoráma/Photo Sphere). Kým tu nie je fotka, stránka sa nezobrazuje') },
 ] as const;
 export type SlotKey = (typeof SLOTS)[number]['key'];
 export const isSlot = (v: string): v is SlotKey => SLOTS.some((s) => s.key === v);

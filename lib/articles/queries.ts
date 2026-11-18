@@ -164,12 +164,13 @@ export async function relatedArticles(id: string, category: string): Promise<Art
   return [...cards.filter((c) => c.category === category), ...cards.filter((c) => c.category !== category)].slice(0, 3);
 }
 
-export function fmtArticleDate(d: Date): string {
-  return d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Bratislava' });
+// t.intl = jazyk návštevníka
+export function fmtArticleDate(d: Date, t: { intl: string }): string {
+  return d.toLocaleDateString(t.intl, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Bratislava' });
 }
 
-export function fmtShortDate(d: Date): string {
-  return d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'Europe/Bratislava' });
+export function fmtShortDate(d: Date, t: { intl: string }): string {
+  return d.toLocaleDateString(t.intl, { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'Europe/Bratislava' });
 }
 
 export function fmtDuration(sec: number): string {

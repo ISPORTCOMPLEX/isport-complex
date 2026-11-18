@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { addDays, hallTime, todayIso } from '@/lib/booking/time';
 import type { BookingSettings } from '@/lib/booking/settings';
+import { msg } from '@/lib/i18n/translate';
 
 // Štatistiky pre administráciu: návštevnosť webu (PageView) a prevádzka ľadu (Booking).
 // Dni a hodiny sa počítajú v miestnom čase haly.
@@ -112,10 +113,10 @@ export async function trafficStats(range: Range) {
     countries,
     heat: heatGrid,
     funnel: [
-      { label: 'Návštevníci webu', value: visitors },
-      { label: 'Výber termínu', value: step('pick') },
-      { label: 'Vyplnenie údajov', value: step('details') },
-      { label: 'Online rezervácie', value: onlineBookings },
+      { label: msg('Návštevníci webu'), value: visitors },
+      { label: msg('Výber termínu'), value: step('pick') },
+      { label: msg('Vyplnenie údajov'), value: step('details') },
+      { label: msg('Online rezervácie'), value: onlineBookings },
     ],
   };
 }
@@ -125,7 +126,7 @@ async function group(col: 'source' | 'device' | 'browser' | 'country', from: Dat
     SELECT ${Prisma.raw(`"${col}"`)} AS label, COUNT(DISTINCT visitor) AS value FROM "PageView"
     WHERE "createdAt" >= ${from} AND "createdAt" < ${to}
     GROUP BY 1 ORDER BY value DESC LIMIT 8`;
-  return rows.map((r) => ({ label: r.label ?? 'Neznáme', value: n(r.value) }));
+  return rows.map((r) => ({ label: r.label ?? msg('Neznáme'), value: n(r.value) }));
 }
 
 /* ---------------- prevádzka ľadu ---------------- */

@@ -9,12 +9,17 @@ import { AREA_SHORT } from '@/lib/booking/format';
 import { addDays, euros, fmtRange, hallTime, todayIso } from '@/lib/booking/time';
 import { businessStats, rangeOf } from '@/lib/analytics/stats';
 import { BarChart } from '@/components/admin/Charts';
+import { getT } from '@/lib/i18n/server';
 
-export const metadata: Metadata = { title: 'Prehľad' };
+export async function generateMetadata(): Promise<Metadata> {
+  const tr = await getT();
+  return { title: tr('Prehľad') };
+}
 
 const today = new Intl.DateTimeFormat('sk-SK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Bratislava' });
 
 export default async function AdminHome() {
+  const tr = await getT();
   const me = await requireStaff('dashboard');
   const now = Date.now();
   const day = new Date(now - 24 * 3600 * 1000);
@@ -76,27 +81,27 @@ export default async function AdminHome() {
   const waiting = todays.filter((b) => b.status === 'CONFIRMED' && !b.checkedInAt && b.endsAt > new Date(now)).length;
 
   const attention: { text: string; sub: string; href?: string }[] = [];
-  if (showBookings && unpaidPast > 0) attention.push({ text: `${unpaidPast} odohraných rezervácií bez platby`, sub: 'Skontroluj platby na recepcii alebo prevodom', href: '/admin/rezervacie?f=nezaplatene' });
+  if (showBookings && unpaidPast > 0) attention.push({ text: tr.n(unpaidPast, '{n} odohraná rezervácia bez platby|{n} odohrané rezervácie bez platby|{n} odohraných rezervácií bez platby'), sub: tr('Skontroluj platby na recepcii alebo prevodom'), href: '/admin/rezervacie?f=nezaplatene' });
   if (unverified > 0 && can(me.role, 'users.view'))
-    attention.push({ text: `${unverified} ${unverified === 1 ? 'účet čaká' : 'účty čakajú'} na aktiváciu`, sub: emailEnabled() ? 'Zákazník ešte neklikol na odkaz v e-maile' : 'E-maily nie sú spustené – over zákazníka a aktivuj účet', href: '/admin/zakaznici?f=neovereni' });
-  for (const u of locked) attention.push({ text: `Zamknutý účet ${u.email}`, sub: `Po neúspešných prihláseniach, do ${fmtDateTime(u.lockedUntil)}`, href: `/admin/zakaznici/${u.id}` });
-  for (const ip of suspiciousIps) attention.push({ text: `Veľa neúspešných pokusov z IP ${ip.ip}`, sub: `${ip._count._all} za posledných 24 hodín`, href: `/admin/bezpecnost?ip=${encodeURIComponent(ip.ip ?? '')}` });
-  if (!me.twoFactorEnabledAt) attention.push({ text: 'Zapni si dvojstupňové overenie', sub: 'Povinné pre personál', href: '/ucet/zabezpecenie' });
+    attention.push({ text: tr.n(unverified, '{n} účet čaká na aktiváciu|{n} účty čakajú na aktiváciu|{n} účtov čaká na aktiváciu'), sub: emailEnabled() ? tr('Zákazník ešte neklikol na odkaz v e-maile') : tr('E-maily nie sú spustené – over zákazníka a aktivuj účet'), href: '/admin/zakaznici?f=neovereni' });
+  for (const u of locked) attention.push({ text: tr('Zamknutý účet {email}', { email: u.email }), sub: tr('Po neúspešných prihláseniach, do {fmtDateTime}', { fmtDateTime: fmtDateTime(u.lockedUntil, tr) }), href: `/admin/zakaznici/${u.id}` });
+  for (const ip of suspiciousIps) attention.push({ text: tr('Veľa neúspešných pokusov z IP {ip}', { ip: ip.ip }), sub: tr.n(ip._count._all, '{n} pokus za posledných 24 hodín|{n} pokusy za posledných 24 hodín|{n} pokusov za posledných 24 hodín'), href: `/admin/bezpecnost?ip=${encodeURIComponent(ip.ip ?? '')}` });
+  if (!me.twoFactorEnabledAt) attention.push({ text: tr('Zapni si dvojstupňové overenie'), sub: tr('Povinné pre personál'), href: '/ucet/zabezpecenie' });
 
   return (
     <div className="adm__stack">
-      <AdmHead title="Prehľad" sub={<span className="u-cap">{today.format(new Date())}</span>}>
+      <AdmHead title={tr('Prehľad')} sub={<span className="u-cap">{today.format(new Date())}</span>}>
         {showBookings ? (
           <>
             <a href={ex} className="btn btn--sm btn--ghost">
-              Export CSV
+              {tr('Export CSV')}
             </a>
             <Link href="/admin/kalendar" className="btn btn--sm btn--ghost">
-              Kalendár
+              {tr('Kalendár')}
             </Link>
             {can(me.role, 'bookings.manage') ? (
               <Link href="/admin/rezervacie/nova" className="btn btn--sm">
-                Nová rezervácia
+                {tr('Nová rezervácia')}
               </Link>
             ) : null}
           </>
@@ -105,39 +110,39 @@ export default async function AdminHome() {
 
       {showBookings ? (
         <div className="adm-stats">
-          <Stat label="Rezervácie dnes" value={todays.length} note={`${waiting} ešte čakajú na príchod`} />
-          <Stat label="Obsadenosť dnes" value={`${halfHoursToday ? Math.round((usedToday / halfHoursToday) * 100) : 0} %`} note={`${settings.openHour}:00 – ${settings.closeHour}:00`} />
-          <Stat label="Tržby za 7 dní" value={euros(weekCents)} note="odohrané rezervácie" />
-          <Stat label="Nezaplatené po termíne" value={unpaidPast} tone={unpaidPast > 0 ? 'warn' : undefined} />
-          {webToday ? <Stat label="Návštevníci webu dnes" value={Number(webToday.v)} note={`${Number(webToday.views)} zobrazení stránok`} /> : null}
+          <Stat label={tr('Rezervácie dnes')} value={todays.length} note={tr.n(waiting, '{n} ešte čaká na príchod|{n} ešte čakajú na príchod|{n} ešte čaká na príchod')} />
+          <Stat label={tr('Obsadenosť dnes')} value={`${halfHoursToday ? Math.round((usedToday / halfHoursToday) * 100) : 0} %`} note={`${settings.openHour}:00 – ${settings.closeHour}:00`} />
+          <Stat label={tr('Tržby za 7 dní')} value={euros(weekCents)} note={tr('odohrané rezervácie')} />
+          <Stat label={tr('Nezaplatené po termíne')} value={unpaidPast} tone={unpaidPast > 0 ? 'warn' : undefined} />
+          {webToday ? <Stat label={tr('Návštevníci webu dnes')} value={Number(webToday.v)} note={tr.n(Number(webToday.views), '{n} zobrazenie stránky|{n} zobrazenia stránok|{n} zobrazení stránok')} /> : null}
         </div>
       ) : null}
 
       {trend ? (
-        <Panel title="Tržby za posledných 14 dní" action={can(me.role, 'analytics.view') ? { href: '/admin/analytika?tab=lad&d=30', label: 'Analytika' } : undefined}>
-          <BarChart points={trend.dailyRevenue} valueLabel="Tržby" unit="€" extraLabel="Hodiny ľadu" extraUnit="h" height={160} />
+        <Panel title={tr('Tržby za posledných 14 dní')} action={can(me.role, 'analytics.view') ? { href: '/admin/analytika?tab=lad&d=30', label: 'Analytika' } : undefined}>
+          <BarChart points={trend.dailyRevenue} valueLabel={tr('Tržby')} unit="€" extraLabel={tr('Hodiny ľadu')} extraUnit="h" height={160} />
         </Panel>
       ) : null}
 
       <div className="adm-stats">
-        <Stat label="Registrovaní zákazníci" value={total} note={`+${newWeek} za posledných 7 dní`} />
-        <Stat label="Neoverený e-mail" value={unverified} note="čakajú na kliknutie v e-maile" tone={unverified > 0 ? 'warn' : undefined} />
-        <Stat label="Účty s 2FA" value={total ? `${Math.round((with2fa / total) * 100)} %` : '0 %'} note={`${with2fa} z ${total}`} tone="ok" />
-        <Stat label="Neúspešné prihlásenia" value={failed24} note={`za 24 h · ${botBlocked24} zastavených botov`} tone={failed24 > 20 ? 'red' : undefined} />
+        <Stat label={tr('Registrovaní zákazníci')} value={total} note={tr('+{newWeek} za posledných 7 dní', { newWeek })} />
+        <Stat label={tr('Neoverený e-mail')} value={unverified} note={tr('čakajú na kliknutie v e-maile')} tone={unverified > 0 ? 'warn' : undefined} />
+        <Stat label={tr('Účty s 2FA')} value={total ? `${Math.round((with2fa / total) * 100)} %` : '0 %'} note={`${with2fa} z ${total}`} tone="ok" />
+        <Stat label={tr('Neúspešné prihlásenia')} value={failed24} note={tr('za 24 h · {botBlocked24} zastavených botov', { botBlocked24 })} tone={failed24 > 20 ? 'red' : undefined} />
       </div>
 
       <div className="adm-grid">
-        <Panel title="Nové registrácie" action={can(me.role, 'users.view') ? { href: '/admin/zakaznici', label: 'Všetci zákazníci' } : undefined}>
+        <Panel title={tr('Nové registrácie')} action={can(me.role, 'users.view') ? { href: '/admin/zakaznici', label: tr('Všetci zákazníci') } : undefined}>
           {recent.length === 0 ? (
-            <Empty>Zatiaľ sa nikto nezaregistroval.</Empty>
+            <Empty>{tr('Zatiaľ sa nikto nezaregistroval.')}</Empty>
           ) : (
             <div className="adm-table-wrap">
               <table className="adm-table">
                 <thead>
                   <tr>
-                    <th>Zákazník</th>
-                    <th>Registrácia</th>
-                    <th>Stav</th>
+                    <th>{tr('Zákazník')}</th>
+                    <th>{tr('Registrácia')}</th>
+                    <th>{tr('Stav')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -160,8 +165,8 @@ export default async function AdminHome() {
                           </span>
                         )}
                       </td>
-                      <td>{ago(u.createdAt)}</td>
-                      <td>{u.emailVerifiedAt ? <Chip tone="ok">Overený</Chip> : <Chip tone="warn">Neoverený</Chip>}</td>
+                      <td>{ago(u.createdAt, tr)}</td>
+                      <td>{u.emailVerifiedAt ? <Chip tone="ok">{tr('Overený')}</Chip> : <Chip tone="warn">{tr('Neoverený')}</Chip>}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -170,9 +175,9 @@ export default async function AdminHome() {
           )}
         </Panel>
 
-        <Panel title="Vyžaduje pozornosť">
+        <Panel title={tr('Vyžaduje pozornosť')}>
           {attention.length === 0 ? (
-            <Empty>Všetko je v poriadku.</Empty>
+            <Empty>{tr('Všetko je v poriadku.')}</Empty>
           ) : (
             <ul className="adm-attn">
               {attention.map((a, i) => (
@@ -192,24 +197,24 @@ export default async function AdminHome() {
               ))}
             </ul>
           )}
-          {banned > 0 ? <p className="muted adm-note">Zablokované účty: {banned}</p> : null}
+          {banned > 0 ? <p className="muted adm-note">{tr('Zablokované účty: {banned}', { banned })}</p> : null}
         </Panel>
       </div>
 
       {showBookings ? (
-        <Panel title="Dnes na ľade" action={{ href: '/admin/kalendar', label: 'Otvoriť kalendár' }}>
+        <Panel title={tr('Dnes na ľade')} action={{ href: '/admin/kalendar', label: tr('Otvoriť kalendár') }}>
           {todays.length === 0 ? (
-            <Empty>Dnes nie sú žiadne rezervácie.</Empty>
+            <Empty>{tr('Dnes nie sú žiadne rezervácie.')}</Empty>
           ) : (
             <div className="adm-table-wrap">
               <table className="adm-table adm-table--rows">
                 <thead>
                   <tr>
-                    <th>Čas</th>
-                    <th>Zákazník</th>
-                    <th>Plocha</th>
-                    <th>Platba</th>
-                    <th>Stav</th>
+                    <th>{tr('Čas')}</th>
+                    <th>{tr('Zákazník')}</th>
+                    <th>{tr('Plocha')}</th>
+                    <th>{tr('Platba')}</th>
+                    <th>{tr('Stav')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -227,9 +232,9 @@ export default async function AdminHome() {
                           <small>{b.contactPhone}</small>
                         </span>
                       </td>
-                      <td>{AREA_SHORT[b.area]}</td>
-                      <td>{b.paymentStatus === 'PAID' ? <Chip tone="ok">Zaplatená</Chip> : <Chip tone="warn">{euros(b.priceCents)}</Chip>}</td>
-                      <td>{b.status === 'NO_SHOW' ? <Chip tone="red">Neprišiel</Chip> : b.checkedInAt ? <Chip tone="ok">Prišiel</Chip> : <Chip tone="blue">Čaká</Chip>}</td>
+                      <td>{tr(AREA_SHORT[b.area])}</td>
+                      <td>{b.paymentStatus === 'PAID' ? <Chip tone="ok">{tr('Zaplatená')}</Chip> : <Chip tone="warn">{euros(b.priceCents)}</Chip>}</td>
+                      <td>{b.status === 'NO_SHOW' ? <Chip tone="red">{tr('Neprišiel')}</Chip> : b.checkedInAt ? <Chip tone="ok">{tr('Prišiel')}</Chip> : <Chip tone="blue">{tr('Čaká')}</Chip>}</td>
                     </tr>
                   ))}
                 </tbody>

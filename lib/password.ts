@@ -1,18 +1,19 @@
 import 'server-only';
 import bcrypt from 'bcryptjs';
 import { randomToken } from './crypto';
+import { msg } from '@/lib/i18n/translate';
 
 // Heslá len ako bcrypt hash (cost 12), nikdy čistý text. Staršie hashe (cost 10) sa pri prihlásení prepočítajú.
 const COST = 12;
 
-export const PASSWORD_RULES = 'Aspoň 8 znakov, malé a veľké písmeno a číslica.';
+export const PASSWORD_RULES = msg('Aspoň 8 znakov, malé a veľké písmeno a číslica.');
 
 export function passwordProblem(pw: string): string | null {
-  if (pw.length < 8) return 'Heslo musí mať aspoň 8 znakov.';
-  if (Buffer.byteLength(pw, 'utf8') > 72) return 'Heslo je príliš dlhé (max. 72 bajtov).';
-  if (!/[a-z]/.test(pw)) return 'Heslo musí obsahovať malé písmeno.';
-  if (!/[A-Z]/.test(pw)) return 'Heslo musí obsahovať veľké písmeno.';
-  if (!/[0-9]/.test(pw)) return 'Heslo musí obsahovať číslicu.';
+  if (pw.length < 8) return msg('Heslo musí mať aspoň 8 znakov.');
+  if (Buffer.byteLength(pw, 'utf8') > 72) return msg('Heslo je príliš dlhé (max. 72 bajtov).');
+  if (!/[a-z]/.test(pw)) return msg('Heslo musí obsahovať malé písmeno.');
+  if (!/[A-Z]/.test(pw)) return msg('Heslo musí obsahovať veľké písmeno.');
+  if (!/[0-9]/.test(pw)) return msg('Heslo musí obsahovať číslicu.');
   return null;
 }
 
@@ -56,18 +57,19 @@ const COMMON = new Set(
 
 // Pred uložením nového hesla: pravidlá + bežné heslá + heslo podobné e-mailu/menu + uniknuté heslá (Have I Been Pwned).
 // HIBP: posiela sa len prvých 5 znakov odtlačku SHA-1 (k-anonymita), heslo neopustí server. Pri výpadku služby sa kontrola preskočí.
+// Vracia slovenský kľúč prekladu chyby (volajúci ho preloží cez t()) alebo null.
 export async function passwordProblemStrong(pw: string, ctx: { email?: string; names?: string[] } = {}): Promise<string | null> {
   const basic = passwordProblem(pw);
   if (basic) return basic;
   const lower = pw.toLowerCase();
-  if (COMMON.has(lower)) return 'Toto heslo je príliš bežné. Zvoľ iné.';
+  if (COMMON.has(lower)) return msg('Toto heslo je príliš bežné. Zvoľ iné.');
   const local = ctx.email?.split('@')[0]?.toLowerCase();
-  if (local && local.length >= 4 && lower.includes(local)) return 'Heslo nesmie obsahovať tvoj e-mail.';
+  if (local && local.length >= 4 && lower.includes(local)) return msg('Heslo nesmie obsahovať tvoj e-mail.');
   for (const n of ctx.names ?? []) {
     const name = n.trim().toLowerCase();
-    if (name.length >= 4 && lower.includes(name)) return 'Heslo nesmie obsahovať tvoje meno.';
+    if (name.length >= 4 && lower.includes(name)) return msg('Heslo nesmie obsahovať tvoje meno.');
   }
-  if (/(.)\1{4,}/.test(pw)) return 'Heslo nesmie obsahovať 5 rovnakých znakov za sebou.';
+  if (/(.)\1{4,}/.test(pw)) return msg('Heslo nesmie obsahovať 5 rovnakých znakov za sebou.');
   try {
     const { createHash } = await import('node:crypto');
     const hash = createHash('sha1').update(pw).digest('hex').toUpperCase();
@@ -81,7 +83,7 @@ export async function passwordProblemStrong(pw: string, ctx: { email?: string; n
       const text = await res.text();
       for (const line of text.split('\n')) {
         const [sfx, count] = line.trim().split(':');
-        if (sfx === suffix && Number(count) > 0) return 'Toto heslo sa objavilo v uniknutých databázach hesiel. Zvoľ iné.';
+        if (sfx === suffix && Number(count) > 0) return msg('Toto heslo sa objavilo v uniknutých databázach hesiel. Zvoľ iné.');
       }
     }
   } catch {

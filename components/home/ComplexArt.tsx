@@ -1,3 +1,5 @@
+'use client';
+
 // Ilustrácia areálu I-SPORT COMPLEX v štýle architektonickej makety (rovnaký ako 3D model): svetlé matné haly
 // na podstavci, farba len tam, kde niečo znamená (ľad, ihrisko, bazén, dresy, ľudia). viewBox 0 0 1600 700: hala 1 (ľad, skyboxy, bufet), ihrisko medzi halami, hala 2 (posilňovňa, wellness).
 // Čisté SVG bez inline štýlov (CSP) – pohyb riadia triedy cxv-* v globals.css. Postavičky sú kreslené od chodidiel (0,0).

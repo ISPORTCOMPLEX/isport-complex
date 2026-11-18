@@ -1,3 +1,5 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import type { Scene, Weather } from '@/lib/sky';
 import { rng } from '@/components/home/ComplexSky';

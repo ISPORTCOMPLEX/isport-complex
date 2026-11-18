@@ -13,6 +13,9 @@ import {
   type RevisionRow,
 } from '@/lib/actions/articles';
 import { posterUrl, thumbUrl, uploadMedia, videoUrl } from './upload';
+import { useT } from '@/lib/i18n/client';
+import { errText } from '@/lib/i18n/translate';
+import { msg } from '@/lib/i18n/translate';
 
 type Props = {
   id: string;
@@ -40,16 +43,17 @@ const NEW: Record<BlockType, () => Block | null> = {
 };
 
 const STATUS: Record<string, { t: string; c: string }> = {
-  DRAFT: { t: 'Koncept', c: 'muted' },
-  SCHEDULED: { t: 'Naplánovaný', c: 'blue' },
-  PUBLISHED: { t: 'Zverejnený', c: 'ok' },
-  ARCHIVED: { t: 'Stiahnutý', c: 'muted' },
+  DRAFT: { t: msg('Koncept'), c: 'muted' },
+  SCHEDULED: { t: msg('Naplánovaný'), c: 'blue' },
+  PUBLISHED: { t: msg('Zverejnený'), c: 'ok' },
+  ARCHIVED: { t: msg('Stiahnutý'), c: 'muted' },
 };
 
 const fmt = (iso: string) => new Date(iso).toLocaleString('sk-SK', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 const localInput = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
 export function ArticleEditor({ id, canPublish, mediaReady, initial, status: status0, publishAt: publishAt0, publishedAt, updatedAt }: Props) {
+  const tr = useT();
   const [d, setD] = useState<ArticleDraft>(initial);
   const [status, setStatus] = useState(status0);
   const [publishAt, setPublishAt] = useState<string | null>(publishAt0);
@@ -88,7 +92,7 @@ export function ArticleEditor({ id, canPublish, mediaReady, initial, status: sta
         return true;
       } catch {
         dirty.current = true;
-        setSave((s) => ({ ...s, state: 'error', msg: 'Uloženie zlyhalo – skontroluj internet.' }));
+        setSave((s) => ({ ...s, state: 'error', msg: tr('Uloženie zlyhalo – skontroluj internet.') }));
         return false;
       }
     },
@@ -116,7 +120,7 @@ export function ArticleEditor({ id, canPublish, mediaReady, initial, status: sta
 
   const ago = Math.max(0, Math.round((now - new Date(save.at).getTime()) / 1000));
   const saveLabel =
-    save.state === 'saving' ? 'Ukladám…' : save.state === 'dirty' ? 'Neuložené zmeny' : save.state === 'error' ? save.msg ?? 'Chyba ukladania' : ago < 60 ? `Uložené pred ${Math.max(1, ago)} s` : `Uložené ${fmt(save.at)}`;
+    save.state === 'saving' ? tr('Ukladám…') : save.state === 'dirty' ? tr('Neuložené zmeny') : save.state === 'error' ? save.msg ?? tr('Chyba ukladania') : ago < 60 ? tr('Uložené pred {max} s', { max: Math.max(1, ago) }) : tr('Uložené {fmt}', { fmt: fmt(save.at) });
 
   async function publish(at: string | null) {
     setBusy('publish');
@@ -131,7 +135,7 @@ export function ArticleEditor({ id, canPublish, mediaReady, initial, status: sta
     if (!r.ok) return setNotice({ ok: false, text: r.error });
     setStatus(r.status);
     setPublishAt(r.status === 'SCHEDULED' && at ? new Date(at).toISOString() : null);
-    setNotice({ ok: true, text: r.status === 'SCHEDULED' ? 'Článok je naplánovaný.' : 'Článok je zverejnený na webe.' });
+    setNotice({ ok: true, text: r.status === 'SCHEDULED' ? tr('Článok je naplánovaný.') : tr('Článok je zverejnený na webe.') });
   }
 
   async function unpublish() {
@@ -141,7 +145,7 @@ export function ArticleEditor({ id, canPublish, mediaReady, initial, status: sta
     if (!r.ok) return setNotice({ ok: false, text: r.error });
     setStatus('DRAFT');
     setPublishAt(null);
-    setNotice({ ok: true, text: 'Článok je stiahnutý z webu a je znova koncept.' });
+    setNotice({ ok: true, text: tr('Článok je stiahnutý z webu a je znova koncept.') });
   }
 
   async function openRevisions() {
@@ -153,7 +157,7 @@ export function ArticleEditor({ id, canPublish, mediaReady, initial, status: sta
     if (!r) return;
     update({ title: r.title, perex: r.perex, blocks: r.blocks, cover: r.cover });
     setRevs(null);
-    setNotice({ ok: true, text: 'Verzia je obnovená v editore. Uloží sa automaticky.' });
+    setNotice({ ok: true, text: tr('Verzia je obnovená v editore. Uloží sa automaticky.') });
   }
 
   const st = STATUS[status] ?? STATUS.DRAFT;
@@ -164,10 +168,10 @@ export function ArticleEditor({ id, canPublish, mediaReady, initial, status: sta
       <div className="ed__bar">
         <div className="ed__bar-l">
           <a href="/admin/clanky" className="ed__back">
-            ← Články
+            {tr('← Články')}
           </a>
           <span className={`chip chip--${st.c}`}>
-            {st.t}
+            {tr(st.t)}
             {status === 'SCHEDULED' && publishAt ? ` · ${fmt(publishAt)}` : ''}
           </span>
           <span className={`ed__saved ed__saved--${save.state}`} aria-live="polite">
@@ -177,17 +181,17 @@ export function ArticleEditor({ id, canPublish, mediaReady, initial, status: sta
         </div>
         <div className="ed__bar-r">
           <a href={previewHref} target="_blank" rel="noopener" className="btn btn--sm btn--ghost">
-            Náhľad<span className="sr-only"> (otvorí sa v novom okne)</span>
+            {tr('Náhľad')}<span className="sr-only"> {' '}{tr('(otvorí sa v novom okne)')}</span>
           </a>
           <button type="button" className="btn btn--sm btn--ghost" onClick={openRevisions}>
-            História verzií
+            {tr('História verzií')}
           </button>
           <button type="button" className="btn btn--sm btn--ghost" onClick={() => void doSave('save')} disabled={save.state === 'saving'}>
-            Uložiť
+            {tr('Uložiť')}
           </button>
           {canPublish ? (
             <button type="button" className="btn btn--sm" onClick={() => void publish(null)} disabled={busy !== null}>
-              {status === 'PUBLISHED' ? 'Aktualizovať na webe' : 'Zverejniť'}
+              {status === 'PUBLISHED' ? tr('Aktualizovať na webe') : tr('Zverejniť')}
             </button>
           ) : null}
         </div>
@@ -197,18 +201,18 @@ export function ArticleEditor({ id, canPublish, mediaReady, initial, status: sta
           {notice.text}
         </div>
       ) : null}
-      {!mediaReady ? <div className="alert alert--error ed__notice">Úložisko fotiek (Cloudinary) nie je nastavené – fotky a videá sa zatiaľ nedajú nahrať.</div> : null}
+      {!mediaReady ? <div className="alert alert--error ed__notice">{tr('Úložisko fotiek (Cloudinary) nie je nastavené – fotky a videá sa zatiaľ nedajú nahrať.')}</div> : null}
 
       <div className="ed__grid">
         <div className="ed__canvas">
           <label className="sr-only" htmlFor="ed-title">
-            Nadpis článku
+            {tr('Nadpis článku')}
           </label>
-          <textarea id="ed-title" className="ed__title" rows={1} value={d.title} maxLength={160} placeholder="Nadpis článku" onChange={(e) => update({ title: e.target.value })} />
+          <textarea id="ed-title" className="ed__title" rows={1} value={d.title} maxLength={160} placeholder={tr('Nadpis článku')} onChange={(e) => update({ title: e.target.value })} />
           <label className="sr-only" htmlFor="ed-perex">
-            Perex
+            {tr('Perex')}
           </label>
-          <textarea id="ed-perex" className="ed__perex" rows={2} value={d.perex} maxLength={400} placeholder="Perex – krátke zhrnutie, zobrazí sa aj v zozname a pri zdieľaní." onChange={(e) => update({ perex: e.target.value })} />
+          <textarea id="ed-perex" className="ed__perex" rows={2} value={d.perex} maxLength={400} placeholder={tr('Perex – krátke zhrnutie, zobrazí sa aj v zozname a pri zdieľaní.')} onChange={(e) => update({ perex: e.target.value })} />
 
           <div className="ed__blocks">
             {d.blocks.map((b, i) => (
@@ -240,60 +244,60 @@ export function ArticleEditor({ id, canPublish, mediaReady, initial, status: sta
 
         <aside className="ed__side">
           <section className="ed__box">
-            <h2>Zverejnenie</h2>
-            {publishedAt && status === 'PUBLISHED' ? <p className="ed__muted">Zverejnené {fmt(publishedAt)}</p> : null}
+            <h2>{tr('Zverejnenie')}</h2>
+            {publishedAt && status === 'PUBLISHED' ? <p className="ed__muted">{tr('Zverejnené {fmt}', { fmt: fmt(publishedAt) })}</p> : null}
             {canPublish ? (
               <>
                 <label className="ed__lbl" htmlFor="ed-when">
-                  Naplánovať na
+                  {tr('Naplánovať na')}
                 </label>
                 <div className="ed__row">
                   <input id="ed-when" type="datetime-local" className="adm-input" value={when} min={localInput(new Date())} onChange={(e) => setWhen(e.target.value)} />
                   <button type="button" className="btn btn--sm btn--ghost" disabled={!when || busy !== null} onClick={() => void publish(when)}>
-                    Naplánovať
+                    {tr('Naplánovať')}
                   </button>
                 </div>
                 {status !== 'DRAFT' ? (
                   <button type="button" className="ed__link" onClick={() => void unpublish()} disabled={busy !== null}>
-                    Stiahnuť z webu
+                    {tr('Stiahnuť z webu')}
                   </button>
                 ) : null}
                 <label className="ed__switch">
                   <input type="checkbox" role="switch" className="rz-switch" checked={d.pinned} onChange={(e) => update({ pinned: e.target.checked })} />
-                  <span>Pripnúť na úvod webu</span>
+                  <span>{tr('Pripnúť na úvod webu')}</span>
                 </label>
               </>
             ) : (
-              <p className="ed__muted">Zverejniť článok môže administrátor. Tvoje zmeny sa ukladajú automaticky.</p>
+              <p className="ed__muted">{tr('Zverejniť článok môže administrátor. Tvoje zmeny sa ukladajú automaticky.')}</p>
             )}
           </section>
 
           <section className="ed__box">
-            <h2>Titulná fotka</h2>
+            <h2>{tr('Titulná fotka')}</h2>
             <CoverPicker cover={d.cover} mediaReady={mediaReady} onChange={(cover) => update({ cover })} onError={(t) => setNotice({ ok: false, text: t })} />
           </section>
 
           <section className="ed__box">
-            <h2>Kategória a štítky</h2>
+            <h2>{tr('Kategória a štítky')}</h2>
             <label className="ed__lbl" htmlFor="ed-cat">
-              Kategória
+              {tr('Kategória')}
             </label>
             <select id="ed-cat" className="adm-select ed__full" value={d.category} onChange={(e) => update({ category: e.target.value })}>
               {CATEGORIES.map((c) => (
                 <option key={c.key} value={c.key}>
-                  {c.label}
+                  {tr(c.label)}
                 </option>
               ))}
             </select>
             <label className="ed__lbl" htmlFor="ed-tags">
-              Štítky (oddelené čiarkou)
+              {tr('Štítky (oddelené čiarkou)')}
             </label>
             <input
               id="ed-tags"
               className="adm-input ed__full"
               defaultValue={d.tags.join(', ')}
               maxLength={300}
-              placeholder="hokej, nábor, turnaj"
+              placeholder={tr('hokej, nábor, turnaj')}
               onBlur={(e) =>
                 update({
                   tags: e.target.value
@@ -304,31 +308,31 @@ export function ArticleEditor({ id, canPublish, mediaReady, initial, status: sta
               }
             />
             <label className="ed__lbl" htmlFor="ed-author">
-              Autor
+              {tr('Autor')}
             </label>
             <input id="ed-author" className="adm-input ed__full" value={d.authorName} maxLength={80} onChange={(e) => update({ authorName: e.target.value })} />
           </section>
 
           <section className="ed__box">
-            <h2>Google a zdieľanie</h2>
+            <h2>{tr('Google a zdieľanie')}</h2>
             <div className="ed__gp" aria-hidden="true">
-              <small>isport-complex › aktuality › {d.slug}</small>
-              <b>{(d.seoTitle || d.title || 'Nadpis článku') + ' – I-SPORT COMPLEX'}</b>
-              <p>{d.seoDescription || d.perex || 'Perex článku sa zobrazí tu, ak nenapíšeš vlastný popis.'}</p>
+              <small>{tr('isport-complex › aktuality › {slug}', { slug: d.slug })}</small>
+              <b>{(d.seoTitle || d.title || tr('Nadpis článku')) + ' – I-SPORT COMPLEX'}</b>
+              <p>{d.seoDescription || d.perex || tr('Perex článku sa zobrazí tu, ak nenapíšeš vlastný popis.')}</p>
             </div>
             <label className="ed__lbl" htmlFor="ed-slug">
-              Adresa článku
+              {tr('Adresa článku')}
             </label>
             <div className="ed__slug">
               <span>/aktuality/</span>
               <input id="ed-slug" className="adm-input" value={d.slug} maxLength={80} onChange={(e) => update({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })} />
             </div>
             <label className="ed__lbl" htmlFor="ed-seot">
-              Nadpis pre Google (nepovinné)
+              {tr('Nadpis pre Google (nepovinné)')}
             </label>
             <input id="ed-seot" className="adm-input ed__full" value={d.seoTitle} maxLength={70} onChange={(e) => update({ seoTitle: e.target.value })} />
             <label className="ed__lbl" htmlFor="ed-seod">
-              Popis pre Google (nepovinné)
+              {tr('Popis pre Google (nepovinné)')}
             </label>
             <textarea id="ed-seod" className="textarea ed__full ed__ta" value={d.seoDescription} maxLength={170} onChange={(e) => update({ seoDescription: e.target.value })} />
           </section>
@@ -337,7 +341,7 @@ export function ArticleEditor({ id, canPublish, mediaReady, initial, status: sta
             <form action={trashArticleAction} className="ed__trash">
               <input type="hidden" name="id" value={id} />
               <input type="hidden" name="op" value="trash" />
-              <button className="ed__link ed__link--red">Presunúť do koša</button>
+              <button className="ed__link ed__link--red">{tr('Presunúť do koša')}</button>
             </form>
           ) : null}
         </aside>
@@ -347,13 +351,13 @@ export function ArticleEditor({ id, canPublish, mediaReady, initial, status: sta
         <div className="ed__modal" role="dialog" aria-modal="true" aria-labelledby="ed-rev-t">
           <div className="ed__modal-in">
             <div className="ed__modal-h">
-              <h2 id="ed-rev-t">História verzií</h2>
+              <h2 id="ed-rev-t">{tr('História verzií')}</h2>
               <button type="button" className="btn btn--sm btn--ghost" onClick={() => setRevs(null)}>
-                Zavrieť
+                {tr('Zavrieť')}
               </button>
             </div>
             {revs.length === 0 ? (
-              <p className="ed__muted">Zatiaľ žiadne uložené verzie.</p>
+              <p className="ed__muted">{tr('Zatiaľ žiadne uložené verzie.')}</p>
             ) : (
               <ul className="ed__revs">
                 {revs.map((r) => (
@@ -361,11 +365,11 @@ export function ArticleEditor({ id, canPublish, mediaReady, initial, status: sta
                     <span>
                       <b>{fmt(r.createdAt)}</b>
                       <small>
-                        {{ autosave: 'automaticky uložené', save: 'uložené', publish: 'zverejnené', restore: 'obnovené' }[r.reason] ?? r.reason} · {r.title || 'Bez názvu'}
+                        {{ autosave: tr('automaticky uložené'), save: tr('uložené'), publish: tr('zverejnené'), restore: tr('obnovené') }[r.reason] ?? r.reason} · {r.title || tr('Bez názvu')}
                       </small>
                     </span>
                     <button type="button" className="btn btn--sm btn--ghost" onClick={() => void restore(r.id)}>
-                      Obnoviť
+                      {tr('Obnoviť')}
                     </button>
                   </li>
                 ))}
@@ -380,36 +384,37 @@ export function ArticleEditor({ id, canPublish, mediaReady, initial, status: sta
 
 // ───────────── Jeden blok ─────────────
 function BlockEditor({ block, first, last, onChange, onMove, onRemove }: { block: Block; first: boolean; last: boolean; onChange: (p: Partial<Block>) => void; onMove: (dir: -1 | 1) => void; onRemove: () => void }) {
+  const tr = useT();
   return (
     <div className={`ed__block ed__block--${block.type}`}>
-      <div className="ed__tools" role="group" aria-label="Blok">
-        <button type="button" onClick={() => onMove(-1)} disabled={first} aria-label="Posunúť vyššie">
+      <div className="ed__tools" role="group" aria-label={tr('Blok')}>
+        <button type="button" onClick={() => onMove(-1)} disabled={first} aria-label={tr('Posunúť vyššie')}>
           ↑
         </button>
-        <button type="button" onClick={() => onMove(1)} disabled={last} aria-label="Posunúť nižšie">
+        <button type="button" onClick={() => onMove(1)} disabled={last} aria-label={tr('Posunúť nižšie')}>
           ↓
         </button>
-        <button type="button" onClick={onRemove} aria-label="Odstrániť blok" className="ed__tools-del">
+        <button type="button" onClick={onRemove} aria-label={tr('Odstrániť blok')} className="ed__tools-del">
           ✕
         </button>
       </div>
       {block.type === 'text' ? <RichText html={block.html} onChange={(html) => onChange({ html })} /> : null}
       {block.type === 'heading' ? (
-        <input className="ed__h2" value={block.text} placeholder="Medzititulok" maxLength={300} aria-label="Medzititulok" onChange={(e) => onChange({ text: e.target.value })} />
+        <input className="ed__h2" value={block.text} placeholder={tr('Medzititulok')} maxLength={300} aria-label={tr('Medzititulok')} onChange={(e) => onChange({ text: e.target.value })} />
       ) : null}
       {block.type === 'image' ? (
         <figure className="ed__fig">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={thumbUrl(block.img, 1200)} alt="" />
-          <input className="adm-input" value={block.alt} placeholder="Čo je na fotke (pre nevidiacich a Google)" maxLength={200} aria-label="Popis obsahu fotky" onChange={(e) => onChange({ alt: e.target.value })} />
-          <input className="adm-input" value={block.caption} placeholder="Popis pod fotkou (nepovinné)" maxLength={300} aria-label="Popis pod fotkou" onChange={(e) => onChange({ caption: e.target.value })} />
+          <input className="adm-input" value={block.alt} placeholder={tr('Čo je na fotke (pre nevidiacich a Google)')} maxLength={200} aria-label={tr('Popis obsahu fotky')} onChange={(e) => onChange({ alt: e.target.value })} />
+          <input className="adm-input" value={block.caption} placeholder={tr('Popis pod fotkou (nepovinné)')} maxLength={300} aria-label={tr('Popis pod fotkou')} onChange={(e) => onChange({ caption: e.target.value })} />
         </figure>
       ) : null}
       {block.type === 'gallery' ? <GalleryEditor block={block} onChange={onChange} /> : null}
       {block.type === 'video' ? (
         <figure className="ed__fig">
           <video src={videoUrl(block.video)} poster={posterUrl(block.video)} controls preload="metadata" className="ed__video" />
-          <input className="adm-input" value={block.caption} placeholder="Popis videa (nepovinné)" maxLength={300} aria-label="Popis videa" onChange={(e) => onChange({ caption: e.target.value })} />
+          <input className="adm-input" value={block.caption} placeholder={tr('Popis videa (nepovinné)')} maxLength={300} aria-label={tr('Popis videa')} onChange={(e) => onChange({ caption: e.target.value })} />
         </figure>
       ) : null}
       {block.type === 'youtube' ? (
@@ -417,25 +422,25 @@ function BlockEditor({ block, first, last, onChange, onMove, onRemove }: { block
           <input
             className="adm-input"
             defaultValue={block.youtubeId ? `https://youtu.be/${block.youtubeId}` : ''}
-            placeholder="Odkaz na video z YouTube"
-            aria-label="Odkaz na YouTube"
+            placeholder={tr('Odkaz na video z YouTube')}
+            aria-label={tr('Odkaz na YouTube')}
             onBlur={(e) => onChange({ youtubeId: youtubeIdFrom(e.target.value) ?? '' })}
           />
-          {block.youtubeId ? <div className="ed__yt">YouTube · {block.youtubeId} – na webe sa prehrá po kliknutí</div> : <small className="ed__muted">Vlož odkaz typu youtube.com/watch?v=… alebo youtu.be/…</small>}
-          <input className="adm-input" value={block.caption} placeholder="Popis videa (nepovinné)" maxLength={300} aria-label="Popis videa" onChange={(e) => onChange({ caption: e.target.value })} />
+          {block.youtubeId ? <div className="ed__yt">{tr('YouTube · {youtubeId} – na webe sa prehrá po kliknutí', { youtubeId: block.youtubeId })} </div> : <small className="ed__muted">{tr('Vlož odkaz typu youtube.com/watch?v=… alebo youtu.be/…')}</small>}
+          <input className="adm-input" value={block.caption} placeholder={tr('Popis videa (nepovinné)')} maxLength={300} aria-label={tr('Popis videa')} onChange={(e) => onChange({ caption: e.target.value })} />
         </div>
       ) : null}
       {block.type === 'quote' ? (
         <div className="ed__quote">
-          <textarea value={block.text} placeholder="Citát" rows={2} maxLength={1000} aria-label="Citát" onChange={(e) => onChange({ text: e.target.value })} />
-          <input className="adm-input" value={block.author} placeholder="Meno, funkcia" maxLength={160} aria-label="Autor citátu" onChange={(e) => onChange({ author: e.target.value })} />
+          <textarea value={block.text} placeholder={tr('Citát')} rows={2} maxLength={1000} aria-label={tr('Citát')} onChange={(e) => onChange({ text: e.target.value })} />
+          <input className="adm-input" value={block.author} placeholder={tr('Meno, funkcia')} maxLength={160} aria-label={tr('Autor citátu')} onChange={(e) => onChange({ author: e.target.value })} />
         </div>
       ) : null}
       {block.type === 'button' ? (
         <div className="ed__btnb">
-          <span className="ed__btnprev">{block.label || 'Tlačidlo'} →</span>
-          <input className="adm-input" value={block.label} placeholder="Text tlačidla" maxLength={80} aria-label="Text tlačidla" onChange={(e) => onChange({ label: e.target.value })} />
-          <input className="adm-input" value={block.href} placeholder="/rezervacia alebo https://…" maxLength={500} aria-label="Adresa tlačidla" onChange={(e) => onChange({ href: e.target.value })} />
+          <span className="ed__btnprev">{block.label || tr('Tlačidlo')} →</span>
+          <input className="adm-input" value={block.label} placeholder={tr('Text tlačidla')} maxLength={80} aria-label={tr('Text tlačidla')} onChange={(e) => onChange({ label: e.target.value })} />
+          <input className="adm-input" value={block.href} placeholder="/rezervacia alebo https://…" maxLength={500} aria-label={tr('Adresa tlačidla')} onChange={(e) => onChange({ href: e.target.value })} />
         </div>
       ) : null}
       {block.type === 'divider' ? <hr className="ed__hr" /> : null}
@@ -445,6 +450,7 @@ function BlockEditor({ block, first, last, onChange, onMove, onRemove }: { block
 
 // Text s formátovaním. Obsah sa nastaví len raz (inak by kurzor skákal); zmeny idú von cez onInput.
 function RichText({ html, onChange }: { html: string; onChange: (html: string) => void }) {
+  const tr = useT();
   const ref = useRef<HTMLDivElement | null>(null);
   // počiatočný obsah sa vloží len raz – React ho potom už neprepisuje (kurzor neskáče)
   const [init] = useState(html);
@@ -454,26 +460,26 @@ function RichText({ html, onChange }: { html: string; onChange: (html: string) =
     onChange(ref.current?.innerHTML ?? '');
   };
   const link = () => {
-    const url = window.prompt('Adresa odkazu (https://… alebo /stranka)');
+    const url = window.prompt(tr('Adresa odkazu (https://… alebo /stranka)'));
     if (url) cmd('createLink', url.trim());
   };
   return (
     <div className="ed__rt">
-      <div className="ed__fmt" role="toolbar" aria-label="Formátovanie textu">
-        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => cmd('bold')} aria-label="Tučné">
+      <div className="ed__fmt" role="toolbar" aria-label={tr('Formátovanie textu')}>
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => cmd('bold')} aria-label={tr('Tučné')}>
           <b>B</b>
         </button>
-        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => cmd('italic')} aria-label="Kurzíva">
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => cmd('italic')} aria-label={tr('Kurzíva')}>
           <i>I</i>
         </button>
-        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={link} aria-label="Odkaz">
-          Odkaz
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={link} aria-label={tr('Odkaz')}>
+          {tr('Odkaz')}
         </button>
-        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => cmd('insertUnorderedList')} aria-label="Zoznam">
-          • Zoznam
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => cmd('insertUnorderedList')} aria-label={tr('Zoznam')}>
+          {tr('• Zoznam')}
         </button>
-        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => cmd('removeFormat')} aria-label="Zrušiť formátovanie">
-          Tx
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => cmd('removeFormat')} aria-label={tr('Zrušiť formátovanie')}>
+          {tr('Tx')}
         </button>
       </div>
       <div
@@ -483,8 +489,8 @@ function RichText({ html, onChange }: { html: string; onChange: (html: string) =
         suppressContentEditableWarning
         role="textbox"
         aria-multiline="true"
-        aria-label="Text odstavca"
-        data-placeholder="Píš text článku…"
+        aria-label={tr('Text odstavca')}
+        data-placeholder={tr('Píš text článku…')}
         dangerouslySetInnerHTML={{ __html: sanitizeInline(init) }}
         onInput={(e) => onChange((e.target as HTMLDivElement).innerHTML)}
         onPaste={(e) => {
@@ -498,17 +504,18 @@ function RichText({ html, onChange }: { html: string; onChange: (html: string) =
 }
 
 function GalleryEditor({ block, onChange }: { block: Extract<Block, { type: 'gallery' }>; onChange: (p: Partial<Block>) => void }) {
+  const tr = useT();
   const [up, setUp] = useState<string | null>(null);
   async function add(files: File[]) {
     let images = [...block.images];
     for (const [i, f] of files.entries()) {
-      setUp(`Nahrávam ${i + 1} z ${files.length}…`);
+      setUp(tr('Nahrávam {v} z {length}…', { v: i + 1, length: files.length }));
       try {
         const r = await uploadMedia('image', f);
         images = [...images, { publicId: r.publicId, version: r.version, width: r.width, height: r.height, alt: '' }];
         onChange({ images } as Partial<Block>);
       } catch (err) {
-        setUp(err instanceof Error ? err.message : 'Nahrávanie zlyhalo.');
+        setUp(errText(tr, err, 'Nahrávanie zlyhalo.'));
         return;
       }
     }
@@ -521,22 +528,23 @@ function GalleryEditor({ block, onChange }: { block: Extract<Block, { type: 'gal
           <div key={im.publicId} className="ed__galit">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={thumbUrl(im, 480)} alt="" />
-            <button type="button" aria-label={`Odstrániť fotku ${i + 1}`} onClick={() => onChange({ images: block.images.filter((x) => x.publicId !== im.publicId) } as Partial<Block>)}>
+            <button type="button" aria-label={tr('Odstrániť fotku {v}', { v: i + 1 })} onClick={() => onChange({ images: block.images.filter((x) => x.publicId !== im.publicId) } as Partial<Block>)}>
               ✕
             </button>
           </div>
         ))}
         <label className="ed__galadd">
-          <input type="file" accept="image/*" multiple className="sr-only" onChange={(e) => void add(Array.from(e.target.files ?? []))} />+ Pridať fotky
+          <input type="file" accept="image/*" multiple className="sr-only" onChange={(e) => void add(Array.from(e.target.files ?? []))} />{tr('+ Pridať fotky')}
         </label>
       </div>
       {up ? <small className="ed__muted">{up}</small> : null}
-      <input className="adm-input" value={block.caption} placeholder="Popis galérie (nepovinné)" maxLength={300} aria-label="Popis galérie" onChange={(e) => onChange({ caption: e.target.value })} />
+      <input className="adm-input" value={block.caption} placeholder={tr('Popis galérie (nepovinné)')} maxLength={300} aria-label={tr('Popis galérie')} onChange={(e) => onChange({ caption: e.target.value })} />
     </div>
   );
 }
 
 function CoverPicker({ cover, mediaReady, onChange, onError }: { cover: Cover | null; mediaReady: boolean; onChange: (c: Cover | null) => void; onError: (t: string) => void }) {
+  const tr = useT();
   const [p, setP] = useState<number | null>(null);
   async function pick(f: File | undefined) {
     if (!f) return;
@@ -545,7 +553,7 @@ function CoverPicker({ cover, mediaReady, onChange, onError }: { cover: Cover | 
       const r = await uploadMedia('image', f, setP);
       onChange({ publicId: r.publicId, version: r.version, width: r.width, height: r.height, alt: cover?.alt ?? '', caption: cover?.caption ?? '' });
     } catch (err) {
-      onError(err instanceof Error ? err.message : 'Nahrávanie zlyhalo.');
+      onError(errText(tr, err, 'Nahrávanie zlyhalo.'));
     } finally {
       setP(null);
     }
@@ -556,24 +564,24 @@ function CoverPicker({ cover, mediaReady, onChange, onError }: { cover: Cover | 
         // eslint-disable-next-line @next/next/no-img-element
         <img src={thumbUrl(cover, 800)} alt="" />
       ) : (
-        <div className="ed__cover-empty">Bez titulnej fotky</div>
+        <div className="ed__cover-empty">{tr('Bez titulnej fotky')}</div>
       )}
-      {p !== null ? <div className="ed__prog">Nahrávam {Math.round(p * 100)} %</div> : null}
+      {p !== null ? <div className="ed__prog">{tr('Nahrávam {round} %', { round: Math.round(p * 100) })} </div> : null}
       <div className="ed__row">
         <label className={`btn btn--sm btn--ghost${mediaReady ? '' : ' is-off'}`}>
           <input type="file" accept="image/*" className="sr-only" disabled={!mediaReady} onChange={(e) => void pick(e.target.files?.[0])} />
-          {cover ? 'Zmeniť' : 'Nahrať fotku'}
+          {cover ? tr('Zmeniť') : tr('Nahrať fotku')}
         </label>
         {cover ? (
           <button type="button" className="ed__link ed__link--red" onClick={() => onChange(null)}>
-            Odstrániť
+            {tr('Odstrániť')}
           </button>
         ) : null}
       </div>
       {cover ? (
         <>
-          <input className="adm-input ed__full" value={cover.alt} placeholder="Čo je na fotke" maxLength={200} aria-label="Popis obsahu titulnej fotky" onChange={(e) => onChange({ ...cover, alt: e.target.value })} />
-          <input className="adm-input ed__full" value={cover.caption} placeholder="Popis pod fotkou · Foto: autor" maxLength={300} aria-label="Popis pod titulnou fotkou" onChange={(e) => onChange({ ...cover, caption: e.target.value })} />
+          <input className="adm-input ed__full" value={cover.alt} placeholder={tr('Čo je na fotke')} maxLength={200} aria-label={tr('Popis obsahu titulnej fotky')} onChange={(e) => onChange({ ...cover, alt: e.target.value })} />
+          <input className="adm-input ed__full" value={cover.caption} placeholder={tr('Popis pod fotkou · Foto: autor')} maxLength={300} aria-label={tr('Popis pod titulnou fotkou')} onChange={(e) => onChange({ ...cover, caption: e.target.value })} />
         </>
       ) : null}
     </div>
@@ -582,29 +590,30 @@ function CoverPicker({ cover, mediaReady, onChange, onError }: { cover: Cover | 
 
 // ───────────── Pridanie bloku ─────────────
 function AddBlock({ mediaReady, onAdd, onError }: { mediaReady: boolean; onAdd: (b: Block) => void; onError: (t: string) => void }) {
+  const tr = useT();
   const [up, setUp] = useState<string | null>(null);
   async function upload(kind: 'image' | 'gallery' | 'video', files: File[]) {
     if (!files.length) return;
     try {
       if (kind === 'video') {
-        setUp('Nahrávam video 0 %');
-        const r = await uploadMedia('video', files[0], (p) => setUp(`Nahrávam video ${Math.round(p * 100)} %`));
+        setUp(tr('Nahrávam video 0 %'));
+        const r = await uploadMedia('video', files[0], (p) => setUp(tr('Nahrávam video {round} %', { round: Math.round(p * 100) })));
         onAdd({ id: uid(), type: 'video', source: 'upload', video: { publicId: r.publicId, version: r.version, width: r.width, height: r.height, duration: r.duration }, caption: '' });
       } else if (kind === 'image') {
-        setUp('Nahrávam fotku…');
-        const r = await uploadMedia('image', files[0], (p) => setUp(`Nahrávam fotku ${Math.round(p * 100)} %`));
+        setUp(tr('Nahrávam fotku…'));
+        const r = await uploadMedia('image', files[0], (p) => setUp(tr('Nahrávam fotku {round} %', { round: Math.round(p * 100) })));
         onAdd({ id: uid(), type: 'image', img: { publicId: r.publicId, version: r.version, width: r.width, height: r.height }, alt: '', caption: '' });
       } else {
         const images: (Extract<Block, { type: 'gallery' }>['images'][number])[] = [];
         for (const [i, f] of files.entries()) {
-          setUp(`Nahrávam ${i + 1} z ${files.length}…`);
+          setUp(tr('Nahrávam {v} z {length}…', { v: i + 1, length: files.length }));
           const r = await uploadMedia('image', f);
           images.push({ publicId: r.publicId, version: r.version, width: r.width, height: r.height, alt: '' });
         }
         onAdd({ id: uid(), type: 'gallery', images, caption: '' });
       }
     } catch (err) {
-      onError(err instanceof Error ? err.message : 'Nahrávanie zlyhalo.');
+      onError(errText(tr, err, 'Nahrávanie zlyhalo.'));
     } finally {
       setUp(null);
     }
@@ -615,33 +624,33 @@ function AddBlock({ mediaReady, onAdd, onError }: { mediaReady: boolean; onAdd: 
   };
   return (
     <div className="ed__add">
-      <b>+ Pridať blok</b>
+      <b>{tr('+ Pridať blok')}</b>
       <button type="button" onClick={() => simple('text')}>
-        ¶ Text
+        {tr('¶ Text')}
       </button>
       <button type="button" onClick={() => simple('heading')}>
-        H Medzititulok
+        {tr('H Medzititulok')}
       </button>
       <label className={mediaReady ? '' : 'is-off'}>
-        <input type="file" accept="image/*" className="sr-only" disabled={!mediaReady || up !== null} onChange={(e) => void upload('image', Array.from(e.target.files ?? []))} />▣ Fotka
+        <input type="file" accept="image/*" className="sr-only" disabled={!mediaReady || up !== null} onChange={(e) => void upload('image', Array.from(e.target.files ?? []))} />{tr('▣ Fotka')}
       </label>
       <label className={mediaReady ? '' : 'is-off'}>
-        <input type="file" accept="image/*" multiple className="sr-only" disabled={!mediaReady || up !== null} onChange={(e) => void upload('gallery', Array.from(e.target.files ?? []))} />▦ Galéria
+        <input type="file" accept="image/*" multiple className="sr-only" disabled={!mediaReady || up !== null} onChange={(e) => void upload('gallery', Array.from(e.target.files ?? []))} />{tr('▦ Galéria')}
       </label>
       <label className={mediaReady ? '' : 'is-off'}>
-        <input type="file" accept="video/mp4,video/quicktime,video/webm,video/x-m4v" className="sr-only" disabled={!mediaReady || up !== null} onChange={(e) => void upload('video', Array.from(e.target.files ?? []))} />▶ Video
+        <input type="file" accept="video/mp4,video/quicktime,video/webm,video/x-m4v" className="sr-only" disabled={!mediaReady || up !== null} onChange={(e) => void upload('video', Array.from(e.target.files ?? []))} />{tr('▶ Video')}
       </label>
       <button type="button" onClick={() => simple('youtube')}>
-        ▶ YouTube
+        {tr('▶ YouTube')}
       </button>
       <button type="button" onClick={() => simple('quote')}>
-        ❝ Citát
+        {tr('❝ Citát')}
       </button>
       <button type="button" onClick={() => simple('button')}>
-        ⬭ Tlačidlo
+        {tr('⬭ Tlačidlo')}
       </button>
       <button type="button" onClick={() => simple('divider')}>
-        — Oddeľovač
+        {tr('— Oddeľovač')}
       </button>
       {up ? (
         <span className="ed__up" aria-live="polite">

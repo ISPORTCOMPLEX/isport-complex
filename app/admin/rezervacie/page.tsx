@@ -6,22 +6,28 @@ import { requireStaff, can } from '@/lib/staff';
 import { AREA_SHORT, METHOD_LABEL, STATUS_LABEL } from '@/lib/booking/format';
 import { addDays, euros, fmtDayShort, fmtRange, hallTime, todayIso } from '@/lib/booking/time';
 import { AdmHead, Chip, Empty, Panel } from '@/components/admin/ui';
+import { getT } from '@/lib/i18n/server';
+import { msg } from '@/lib/i18n/translate';
 
-export const metadata: Metadata = { title: 'Rezervácie' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Rezervácie') };
+}
 
 const PER_PAGE = 30;
 const FILTERS = [
-  { key: 'dnes', label: 'Dnes' },
-  { key: 'nadchadzajuce', label: 'Nadchádzajúce' },
-  { key: 'nezaplatene', label: 'Nezaplatené' },
-  { key: 'minule', label: 'Minulé' },
-  { key: 'zrusene', label: 'Zrušené' },
+  { key: 'dnes', label: msg('Dnes') },
+  { key: 'nadchadzajuce', label: msg('Nadchádzajúce') },
+  { key: 'nezaplatene', label: msg('Nezaplatené') },
+  { key: 'minule', label: msg('Minulé') },
+  { key: 'zrusene', label: msg('Zrušené') },
 ] as const;
 
 type Props = { searchParams: Promise<{ f?: string | string[]; q?: string | string[]; p?: string | string[] }> };
 const one = (v: string | string[] | undefined) => (typeof v === 'string' ? v : '');
 
 export default async function AdminRezervacie({ searchParams }: Props) {
+  const t = await getT();
   const me = await requireStaff('bookings.view', '/admin/rezervacie');
   const sp = await searchParams;
   const q = one(sp.q).trim().slice(0, 60);
@@ -78,66 +84,66 @@ export default async function AdminRezervacie({ searchParams }: Props) {
 
   return (
     <div className="adm__stack">
-      <AdmHead title="Rezervácie" sub={`${count} ${count === 1 ? 'rezervácia' : count >= 2 && count <= 4 ? 'rezervácie' : 'rezervácií'}`}>
+      <AdmHead title={t('Rezervácie')} sub={t.n(count, '{n} rezervácia|{n} rezervácie|{n} rezervácií')}>
         <Link href="/admin/kalendar" className="btn btn--sm btn--ghost">
-          Kalendár
+          {t('Kalendár')}
         </Link>
         {can(me.role, 'bookings.manage') ? (
           <Link href="/admin/rezervacie/nova" className="btn btn--sm">
-            Nová rezervácia
+            {t('Nová rezervácia')}
           </Link>
         ) : null}
       </AdmHead>
 
       <div className="adm-toolbar">
         <form className="adm-search" action="/admin/rezervacie" role="search">
-          <input type="search" name="q" defaultValue={q} placeholder="Kód, meno, tím, telefón alebo e-mail" aria-label="Hľadať rezerváciu" maxLength={60} />
+          <input type="search" name="q" defaultValue={q} placeholder={t('Kód, meno, tím, telefón alebo e-mail')} aria-label={t('Hľadať rezerváciu')} maxLength={60} />
           <button type="submit" className="btn btn--sm">
-            Hľadať
+            {t('Hľadať')}
           </button>
         </form>
-        <nav className="adm-filters" aria-label="Filter">
+        <nav className="adm-filters" aria-label={t('Filter')}>
           {FILTERS.map((x) => (
             <Link key={x.key} href={href({ f: x.key, q: '', p: 1 })} aria-current={f === x.key ? 'true' : undefined}>
-              {x.label}
+              {t(x.label)}
             </Link>
           ))}
         </nav>
       </div>
 
       <details className="adm-export">
-        <summary>Export do Excelu (CSV)</summary>
+        <summary>{t('Export do Excelu (CSV)')}</summary>
         <form action="/api/admin/export" method="get" className="adm-inline-form">
           <label className="adm-label u-f200">
-            Od
+            {t('Od')}
             <input type="date" name="od" defaultValue={addDays(today, -30)} className="adm-input" required />
           </label>
           <label className="adm-label u-f200">
-            Do
+            {t('Do')}
             <input type="date" name="do" defaultValue={today} className="adm-input" required />
           </label>
           <button type="submit" className="btn btn--sm">
-            Stiahnuť CSV
+            {t('Stiahnuť CSV')}
           </button>
-          <p className="muted">Podľa dátumu tréningu, všetky stavy vrátane zrušených. Otvorí sa priamo v Exceli.</p>
+          <p className="muted">{t('Podľa dátumu tréningu, všetky stavy vrátane zrušených. Otvorí sa priamo v Exceli.')}</p>
         </form>
       </details>
 
       <Panel>
         {rows.length === 0 ? (
-          <Empty>{q ? `Pre „${q}“ sme nič nenašli.` : 'Žiadne rezervácie v tomto filtri.'}</Empty>
+          <Empty>{q ? t('Pre „{q}“ sme nič nenašli.', { q }) : t('Žiadne rezervácie v tomto filtri.')}</Empty>
         ) : (
           <div className="adm-table-wrap">
             <table className="adm-table adm-table--rows">
               <thead>
                 <tr>
-                  <th>Termín</th>
-                  <th>Plocha</th>
-                  <th>Zákazník</th>
-                  <th>Telefón</th>
-                  <th>Cena</th>
-                  <th>Platba</th>
-                  <th>Stav</th>
+                  <th>{t('Termín')}</th>
+                  <th>{t('Plocha')}</th>
+                  <th>{t('Zákazník')}</th>
+                  <th>{t('Telefón')}</th>
+                  <th>{t('Cena')}</th>
+                  <th>{t('Platba')}</th>
+                  <th>{t('Stav')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -146,32 +152,32 @@ export default async function AdminRezervacie({ searchParams }: Props) {
                     <td className="nowrap">
                       <Link href={`/admin/rezervacie/${b.id}`} className="adm-person">
                         <strong>
-                          {fmtDayShort(b.startsAt)} · {fmtRange(b.startsAt, b.endsAt)}
+                          {fmtDayShort(b.startsAt, t)} · {fmtRange(b.startsAt, b.endsAt)}
                         </strong>
                         <small>{b.code}</small>
                       </Link>
                     </td>
-                    <td>{AREA_SHORT[b.area]}</td>
+                    <td>{t(AREA_SHORT[b.area])}</td>
                     <td>
                       <span className="adm-person">
                         <strong>{b.teamName || b.contactName}</strong>
-                        <small>{b.teamName ? b.contactName : (b.user?.email ?? b.guestEmail ?? 'bez účtu')}</small>
+                        <small>{b.teamName ? b.contactName : (b.user?.email ?? b.guestEmail ?? t('bez účtu'))}</small>
                       </span>
                     </td>
                     <td className="nowrap">{b.contactPhone || '—'}</td>
                     <td className="nowrap">{euros(b.priceCents)}</td>
                     <td>
-                      {b.paymentStatus === 'PAID' ? <Chip tone="ok">Zaplatená</Chip> : b.paymentStatus === 'REFUNDED' ? <Chip tone="blue">Vrátená</Chip> : <Chip tone="warn">{METHOD_LABEL[b.paymentMethod]}</Chip>}
+                      {b.paymentStatus === 'PAID' ? <Chip tone="ok">{t('Zaplatená')}</Chip> : b.paymentStatus === 'REFUNDED' ? <Chip tone="blue">{t('Vrátená')}</Chip> : <Chip tone="warn">{t(METHOD_LABEL[b.paymentMethod])}</Chip>}
                     </td>
                     <td>
                       {b.status === 'CANCELLED' ? (
-                        <Chip tone="muted">Zrušená</Chip>
+                        <Chip tone="muted">{t('Zrušená')}</Chip>
                       ) : b.status === 'NO_SHOW' ? (
-                        <Chip tone="red">Neprišiel</Chip>
+                        <Chip tone="red">{t('Neprišiel')}</Chip>
                       ) : b.checkedInAt ? (
-                        <Chip tone="ok">Prišiel</Chip>
+                        <Chip tone="ok">{t('Prišiel')}</Chip>
                       ) : (
-                        <Chip tone="blue">{STATUS_LABEL[b.status]}</Chip>
+                        <Chip tone="blue">{t(STATUS_LABEL[b.status])}</Chip>
                       )}
                     </td>
                   </tr>
@@ -181,12 +187,13 @@ export default async function AdminRezervacie({ searchParams }: Props) {
           </div>
         )}
         {pages > 1 ? (
-          <nav className="adm-pager" aria-label="Stránkovanie">
-            {page > 1 ? <Link href={href({ p: page - 1 })}>← Predchádzajúca</Link> : <span />}
+          <nav className="adm-pager" aria-label={t('Stránkovanie')}>
+            {page > 1 ? <Link href={href({ p: page - 1 })}>{t('← Predchádzajúca')}</Link> : <span />}
             <span className="muted">
-              Strana {page} z {pages}
+              {t('Strana {page} z {pages}', { page, pages })} 
+            
             </span>
-            {page < pages ? <Link href={href({ p: page + 1 })}>Ďalšia →</Link> : <span />}
+            {page < pages ? <Link href={href({ p: page + 1 })}>{t('Ďalšia →')}</Link> : <span />}
           </nav>
         ) : null}
       </Panel>

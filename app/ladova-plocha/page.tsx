@@ -2,80 +2,86 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PartCta, PartGallery, PartPage, PartPhoto } from '@/components/PartPage';
 import { getBookingSettings } from '@/lib/booking/settings';
+import { getT } from '@/lib/i18n/server';
+import { msg } from '@/lib/i18n/translate';
 
-export const metadata: Metadata = { title: 'Ľadová plocha', description: 'Prenájom celej tréningovej ľadovej plochy v I-SPORT COMPLEX Košice. Rezervácia online, šatňa v cene, sprchy za príplatok.' };
+export async function generateMetadata(): Promise<Metadata> {
+  const tr = await getT();
+  return { title: tr('Ľadová plocha'), description: tr('Prenájom celej tréningovej ľadovej plochy v I-SPORT COMPLEX Košice. Rezervácia online, šatňa v cene, sprchy za príplatok.') };
+}
 
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
 
 const STEPS = [
-  ['Rezervuj online', 'Vyber deň, čas a či chceš sprchy. Potvrdenie s QR kódom máš hneď v telefóne.'],
-  ['Príď 30 minút vopred', 'Na recepcii ukáž QR kód, šatňa je pripravená.'],
-  ['Na ľad po úprave', 'Na plochu vstupuješ presne v čase rezervácie.'],
-  ['Uvoľni šatňu', 'Najneskôr 30 minút po skončení tréningu.'],
+  [msg('Rezervuj online'), msg('Vyber deň, čas a či chceš sprchy. Potvrdenie s QR kódom máš hneď v telefóne.')],
+  [msg('Príď 30 minút vopred'), msg('Na recepcii ukáž QR kód, šatňa je pripravená.')],
+  [msg('Na ľad po úprave'), msg('Na plochu vstupuješ presne v čase rezervácie.')],
+  [msg('Uvoľni šatňu'), msg('Najneskôr 30 minút po skončení tréningu.')],
 ];
 
 export default async function LadovaPlochaPage() {
+  const tr = await getT();
   const s = await getBookingSettings();
   const p = s.prices.full;
   const peak = `${String(s.peakFromHour).padStart(2, '0')}:00`;
   return (
     <PartPage
       zone="ice"
-      crumb="Ľadová plocha"
+      crumb={tr('Ľadová plocha')}
       title={
         <>
-          Ľadová
+          {tr('Ľadová')}
           <br />
-          plocha
+          {tr('plocha')}
         </>
       }
-      lead="Tréningová hokejová plocha na prenájom pre kluby, školy, firmy aj partie. Prenajíma sa celá plocha, šatňa je v cene, sprchy za príplatok."
+      lead={tr('Tréningová hokejová plocha na prenájom pre kluby, školy, firmy aj partie. Prenajíma sa celá plocha, šatňa je v cene, sprchy za príplatok.')}
     >
       <section className="pp-dark pp-ice2">
         <div className="wrap pp__grid">
           <div className="pp__copy">
-            <h2 className="cond pp__h">Cenník</h2>
+            <h2 className="cond pp__h">{tr('Cenník')}</h2>
             <dl className="ix__prices">
               <div>
-                <dt>Po – Pi do {peak}</dt>
+                <dt>{tr('Po – Pi do {peak}', { peak })}</dt>
                 <dd className="cond">{eur(p.offPeak)}</dd>
-                <dd>za hodinu</dd>
+                <dd>{tr('za hodinu')}</dd>
               </div>
               <div>
-                <dt>Po – Pi od {peak}</dt>
+                <dt>{tr('Po – Pi od {peak}', { peak })}</dt>
                 <dd className="cond">{eur(p.peak)}</dd>
-                <dd>za hodinu</dd>
+                <dd>{tr('za hodinu')}</dd>
               </div>
               <div>
-                <dt>Víkend</dt>
+                <dt>{tr('Víkend')}</dt>
                 <dd className="cond">{eur(p.weekend)}</dd>
-                <dd>za hodinu</dd>
+                <dd>{tr('za hodinu')}</dd>
               </div>
             </dl>
             {s.showersEnabled ? (
               <p className="pp__p">
-                <strong>Sprchy:</strong> {eur(s.showerPrice)} jednorazovo pre celý tím. Šatňa a úprava ľadu sú v cene.
+                <strong>{tr('Sprchy:')}</strong> {' '}{tr('{eur} jednorazovo pre celý tím. Šatňa a úprava ľadu sú v cene.', { eur: eur(s.showerPrice) })} 
               </p>
             ) : (
-              <p className="pp__p">Úprava ľadu je v cene.</p>
+              <p className="pp__p">{tr('Úprava ľadu je v cene.')}</p>
             )}
             <div className="pp__links">
-              <PartCta href="/rezervacia">Rezervovať ľad</PartCta>
+              <PartCta href="/rezervacia">{tr('Rezervovať ľad')}</PartCta>
               <Link href="/cennik" className="ulink">
-                Cenník a storno podmienky
+                {tr('Cenník a storno podmienky')}
               </Link>
               <Link href="/pre-kluby" className="ulink">
-                Sezónny prenájom pre kluby
+                {tr('Sezónny prenájom pre kluby')}
               </Link>
             </div>
           </div>
           <div className="pp__side">
-            <PartPhoto label="Ľadová plocha I-SPORT COMPLEX" slot="ladova-plocha" />
-            <ul className="pp__incl" aria-label="V cene prenájmu">
-              <li>Celá plocha len pre tvoj tím</li>
-              <li>Šatňa v cene</li>
-              <li>Úprava ľadu pred každým blokom</li>
-              <li>Potvrdenie s QR kódom v mobile</li>
+            <PartPhoto label={tr('Ľadová plocha I-SPORT COMPLEX')} slot="ladova-plocha" />
+            <ul className="pp__incl" aria-label={tr('V cene prenájmu')}>
+              <li>{tr('Celá plocha len pre tvoj tím')}</li>
+              <li>{tr('Šatňa v cene')}</li>
+              <li>{tr('Úprava ľadu pred každým blokom')}</li>
+              <li>{tr('Potvrdenie s QR kódom v mobile')}</li>
             </ul>
           </div>
         </div>
@@ -88,18 +94,18 @@ export default async function LadovaPlochaPage() {
         <div className="wrap">
           <div className="bx__head">
             <h2 className="cond bx__title">
-              Ako to
+              {tr('Ako to')}
               <br />
-              prebieha
+              {tr('prebieha')}
             </h2>
-            <p>Od rezervácie po ľad v štyroch krokoch. Bezplatne zrušíš najneskôr {s.cancelFreeHours} hodín vopred.</p>
+            <p>{tr('Od rezervácie po ľad v štyroch krokoch. Bezplatne zrušíš najneskôr {cancelFreeHours} hodín vopred.', { cancelFreeHours: s.cancelFreeHours })} </p>
           </div>
           <ol className="pp__steps">
             {STEPS.map(([t, d], i) => (
               <li key={t}>
                 <span className="wide-display">{String(i + 1).padStart(2, '0')}</span>
-                <strong>{t}</strong>
-                <p>{d}</p>
+                <strong>{tr(t)}</strong>
+                <p>{tr(d)}</p>
               </li>
             ))}
           </ol>

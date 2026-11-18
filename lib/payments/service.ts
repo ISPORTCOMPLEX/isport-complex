@@ -9,6 +9,7 @@ import { PAY_GRACE_MIN, PAY_WINDOW_MIN } from './config';
 import { getProvider, providerFor } from './index';
 import type { PaymentEventIn, PaymentProvider } from './types';
 import { refundState } from './math';
+import { getT, MAIL_SK_EN } from '@/lib/i18n/server';
 
 // Celý životný cyklus platby kartou:
 //   1. createBookingAction vytvorí rezerváciu s paymentStatus=PENDING a podrží čas (payDeadline)
@@ -52,17 +53,18 @@ export function holdDeadline(now = new Date()): Date {
 // ───────────────────────── 2. Platobná relácia ─────────────────────────
 
 export async function startCheckout(bookingId: string, base: string): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  const t = await getT();
   const provider = getProvider();
-  if (!provider) return { ok: false, error: 'Platba kartou online nie je zapnutá.' };
+  if (!provider) return { ok: false, error: t('Platba kartou online nie je zapnutá.') };
   const b = await prisma.booking.findUnique({ where: { id: bookingId }, include: withUser });
-  if (!b || b.status !== 'CONFIRMED' || b.paymentMethod !== 'CARD' || b.paymentStatus !== 'PENDING') return { ok: false, error: 'Táto rezervácia nečaká na platbu kartou.' };
+  if (!b || b.status !== 'CONFIRMED' || b.paymentMethod !== 'CARD' || b.paymentStatus !== 'PENDING') return { ok: false, error: t('Táto rezervácia nečaká na platbu kartou.') };
 
   const now = new Date();
   const open = await prisma.payment.findFirst({ where: { bookingId, state: 'CREATED', expiresAt: { gt: new Date(now.getTime() + 2 * 60000) } }, orderBy: { createdAt: 'desc' } });
   if (open?.checkoutUrl && open.provider === provider.id) return { ok: true, url: open.checkoutUrl };
 
   const attempts = await prisma.payment.count({ where: { bookingId } });
-  if (attempts >= 5) return { ok: false, error: 'Príliš veľa pokusov o platbu. Kontaktuj recepciu.' };
+  if (attempts >= 5) return { ok: false, error: t('Príliš veľa pokusov o platbu. Kontaktuj recepciu.') };
 
   const expiresAt = new Date(now.getTime() + (PAY_WINDOW_MIN + 1) * 60000); // Stripe: najmenej 30 minút
   const who = recipient(b);
@@ -71,7 +73,7 @@ export async function startCheckout(bookingId: string, base: string): Promise<{ 
     code: b.code,
     amountCents: b.priceCents,
     currency: 'EUR',
-    description: `Ľadová plocha · ${bookingRows(b)[1]?.value ?? ''} · ${bookingRows(b)[2]?.value ?? ''}`,
+    description: `${t('Ľadová plocha')} · ${bookingRows(b, t)[1]?.value ?? ''} · ${bookingRows(b, t)[2]?.value ?? ''}`,
     customerEmail: who?.to ?? null,
     successUrl: `${base}/rezervacia/${b.code}?platba=ok`,
     cancelUrl: `${base}/rezervacia/${b.code}?platba=zrusena`,
@@ -126,7 +128,7 @@ export async function markPaid(sessionRef: string, intentRef: string | null, amo
   if (who && base) {
     await safely('email-paid', async () => {
       const fresh = await prisma.booking.findUnique({ where: { id: b.id } });
-      if (fresh) await sendBookingConfirmedEmail(who.to, who.firstName, `${base}/rezervacia/${b.code}`, bookingRows(fresh));
+      if (fresh) await sendBookingConfirmedEmail(MAIL_SK_EN(), who.to, who.firstName, `${base}/rezervacia/${b.code}`, (m) => bookingRows(fresh, m));
     });
   }
   return 'paid';
@@ -146,7 +148,7 @@ export async function markUnsuccessful(sessionRef: string, kind: 'EXPIRED' | 'FA
   await prisma.booking.update({ where: { id: b.id }, data: { paymentStatus: 'UNPAID', payDeadline: null } });
   await audit(kind === 'EXPIRED' ? 'payment.expired' : 'payment.failed', b.id, { code: b.code, reason });
   const who = recipient(b);
-  if (cancelled && who && base) await safely('email-expired', () => sendPaymentExpiredEmail(who.to, who.firstName, `${base}/rezervacia`, bookingRows(b)));
+  if (cancelled && who && base) await safely('email-expired', () => sendPaymentExpiredEmail(MAIL_SK_EN(), who.to, who.firstName, `${base}/rezervacia`, (m) => bookingRows(b, m)));
   return 'booking-released';
 }
 
@@ -246,16 +248,17 @@ async function syncRefundTotal(intentRef: string, totalCents: number): Promise<s
 }
 
 export async function refundPayment(paymentId: string, amountCents: number | null, reason: string | null, actorId: string | null): Promise<{ ok: true; amountCents: number } | { ok: false; error: string }> {
+  const t = await getT();
   const p = await prisma.payment.findUnique({ where: { id: paymentId }, include: { booking: true } });
-  if (!p || p.state !== 'SUCCEEDED' || !p.intentRef) return { ok: false, error: 'Platba sa nenašla alebo nebola dokončená.' };
+  if (!p || p.state !== 'SUCCEEDED' || !p.intentRef) return { ok: false, error: t('Platba sa nenašla alebo nebola dokončená.') };
   const remaining = p.amountCents - p.refundedCents;
   const amount = amountCents ?? remaining;
-  if (!Number.isInteger(amount) || amount < 1 || amount > remaining) return { ok: false, error: `Vrátiť sa dá najviac ${euros(remaining)}.` };
+  if (!Number.isInteger(amount) || amount < 1 || amount > remaining) return { ok: false, error: t('Vrátiť sa dá najviac {amount}.', { amount: euros(remaining) }) };
   const provider = providerFor(p.provider);
-  if (!provider) return { ok: false, error: `Brána ${p.provider} teraz nie je zapnutá. Vráť peniaze priamo v jej administrácii – stav sa zladí sám.` };
+  if (!provider) return { ok: false, error: t('Brána {provider} teraz nie je zapnutá. Vráť peniaze priamo v jej administrácii – stav sa zladí sám.', { provider: p.provider }) };
 
   const r = await provider.refund(p.intentRef, amount, `refund:${p.id}:${p.refundedCents}:${amount}`, reason);
-  if (r.status === 'failed') return { ok: false, error: 'Brána vrátenie odmietla. Skús to v jej administrácii.' };
+  if (r.status === 'failed') return { ok: false, error: t('Brána vrátenie odmietla. Skús to v jej administrácii.') };
   // Zvýšenie vrátenej sumy je podmienené pôvodnou hodnotou – súbežné kliknutie nezdvojí záznam.
   const bumped = await prisma.payment.updateMany({ where: { id: p.id, refundedCents: p.refundedCents }, data: { refundedCents: p.refundedCents + amount } });
   await prisma.refund.upsert({
@@ -272,9 +275,10 @@ export async function refundPayment(paymentId: string, amountCents: number | nul
 
 // Vráti peniaze za rezerváciu (všetky úspešné platby, alebo zadanú sumu).
 export async function refundBooking(bookingId: string, amountCents: number | null, reason: string | null, actorId: string | null, base: string | null): Promise<{ ok: true; amountCents: number } | { ok: false; error: string }> {
+  const t = await getT();
   const payments = await prisma.payment.findMany({ where: { bookingId, state: 'SUCCEEDED' }, orderBy: { createdAt: 'asc' } });
   const open = payments.filter((p: Payment) => p.amountCents > p.refundedCents);
-  if (open.length === 0) return { ok: false, error: 'Rezervácia nemá platbu kartou, ktorú by bolo možné vrátiť.' };
+  if (open.length === 0) return { ok: false, error: t('Rezervácia nemá platbu kartou, ktorú by bolo možné vrátiť.') };
   let left = amountCents;
   let total = 0;
   for (const p of open) {
@@ -288,7 +292,7 @@ export async function refundBooking(bookingId: string, amountCents: number | nul
   if (total > 0 && base) {
     const b = await prisma.booking.findUnique({ where: { id: bookingId }, include: withUser });
     const who = b ? recipient(b) : null;
-    if (b && who) await safely('email-refund', () => sendRefundEmail(who.to, who.firstName, `${base}/rezervacia/${b.code}`, bookingRows(b), euros(total)));
+    if (b && who) await safely('email-refund', () => sendRefundEmail(MAIL_SK_EN(), who.to, who.firstName, `${base}/rezervacia/${b.code}`, (m) => bookingRows(b, m), euros(total)));
   }
   return { ok: true, amountCents: total };
 }

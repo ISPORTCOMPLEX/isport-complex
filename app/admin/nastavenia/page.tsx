@@ -11,6 +11,7 @@ import { euros } from '@/lib/booking/time';
 import { SettingsForm } from '@/components/admin/SettingsForm';
 import { SiteForm } from '@/components/admin/SiteForm';
 import { videoPath } from '@/lib/cloudinary';
+import { getT } from '@/lib/i18n/server';
 
 // nahraté videá z článkov – na výber do pozadia úvodu
 async function articleVideos(): Promise<{ path: string; label: string }[]> {
@@ -31,11 +32,15 @@ async function articleVideos(): Promise<{ path: string; label: string }[]> {
   }
 }
 
-export const metadata: Metadata = { title: 'Nastavenia' };
+export async function generateMetadata(): Promise<Metadata> {
+  const tr = await getT();
+  return { title: tr('Nastavenia') };
+}
 
 type Props = { searchParams: Promise<{ tab?: string }> };
 
 export default async function NastaveniaPage({ searchParams }: Props) {
+  const tr = await getT();
   await requireStaff('settings.manage', '/admin/nastavenia');
   const t = (await searchParams).tab;
   const tab = t === 'firma' || t === 'platby' ? t : 'cennik';
@@ -43,24 +48,24 @@ export default async function NastaveniaPage({ searchParams }: Props) {
   return (
     <div className="adm__stack">
       <AdmHead
-        title="Nastavenia"
+        title={tr('Nastavenia')}
         sub={
           tab === 'cennik'
-            ? 'Ceny sú v eurách s DPH za 60 minút. Zmena platí pre nové rezervácie.'
+            ? tr('Ceny sú v eurách s DPH za 60 minút. Zmena platí pre nové rezervácie.')
             : tab === 'firma'
-              ? 'Kontakty, otváracie hodiny a fakturačné údaje sa hneď zobrazia na webe.'
-              : 'Stav platby kartou online. Zapína sa v nastaveniach Vercelu – postup je v docs/PLATBY.md.'
+              ? tr('Kontakty, otváracie hodiny a fakturačné údaje sa hneď zobrazia na webe.')
+              : tr('Stav platby kartou online. Zapína sa v nastaveniach Vercelu – postup je v docs/PLATBY.md.')
         }
       />
-      <nav className="adm-filters u-start" aria-label="Sekcie">
+      <nav className="adm-filters u-start" aria-label={tr('Sekcie')}>
         <Link href="/admin/nastavenia" aria-current={tab === 'cennik' ? 'true' : undefined}>
-          Cenník a rezervácie
+          {tr('Cenník a rezervácie')}
         </Link>
         <Link href="/admin/nastavenia?tab=firma" aria-current={tab === 'firma' ? 'true' : undefined}>
-          Firma a kontakty
+          {tr('Firma a kontakty')}
         </Link>
         <Link href="/admin/nastavenia?tab=platby" aria-current={tab === 'platby' ? 'true' : undefined}>
-          Platobná brána
+          {tr('Platobná brána')}
         </Link>
       </nav>
       {tab === 'cennik' ? <SettingsForm s={s} /> : tab === 'firma' ? <SiteForm s={site} videos={videos} /> : <PaymentsStatus />}
@@ -70,6 +75,7 @@ export default async function NastaveniaPage({ searchParams }: Props) {
 
 // Len stav – žiadne kľúče sa tu nezobrazujú ani neukladajú (sú iba v premenných prostredia na Verceli).
 async function PaymentsStatus() {
+  const tr = await getT();
   const provider = getProvider();
   const problems = providerDiagnosis();
   const since = new Date(Date.now() - 30 * 86400000);
@@ -80,16 +86,16 @@ async function PaymentsStatus() {
   ]);
   return (
     <>
-      <Panel title="Stav">
+      <Panel title={tr('Stav')}>
         <p className="u-row10">
-          {provider ? <Chip tone="ok">Zapnutá</Chip> : <Chip tone="muted">Vypnutá</Chip>}
-          <strong>{provider ? provider.label : 'Platba kartou online je vypnutá'}</strong>
-          {provider?.test ? <Chip tone="warn">Testovací režim – žiadne skutočné peniaze</Chip> : null}
+          {provider ? <Chip tone="ok">{tr('Zapnutá')}</Chip> : <Chip tone="muted">{tr('Vypnutá')}</Chip>}
+          <strong>{provider ? provider.label : tr('Platba kartou online je vypnutá')}</strong>
+          {provider?.test ? <Chip tone="warn">{tr('Testovací režim – žiadne skutočné peniaze')}</Chip> : null}
         </p>
         {provider ? (
-          <p className="muted">Zákazník pri rezervácii vidí možnosť „Kartou online“. Termín podržíme {PAY_WINDOW_MIN} minút, potom sa nezaplatená rezervácia sama zruší.</p>
+          <p className="muted">{tr('Zákazník pri rezervácii vidí možnosť „Kartou online“. Termín podržíme {PAY_WINDOW_MIN} minút, potom sa nezaplatená rezervácia sama zruší.', { PAY_WINDOW_MIN })} </p>
         ) : (
-          <p className="muted">Zákazníci vidia pri platbe „Kartou online – pripravujeme“. Rezervácie fungujú ďalej s platbou na recepcii a prevodom.</p>
+          <p className="muted">{tr('Zákazníci vidia pri platbe „Kartou online – pripravujeme“. Rezervácie fungujú ďalej s platbou na recepcii a prevodom.')}</p>
         )}
         {problems.length > 0 && process.env.PAYMENTS_PROVIDER && process.env.PAYMENTS_PROVIDER !== 'off' ? (
           <ul className="muted">
@@ -99,28 +105,27 @@ async function PaymentsStatus() {
           </ul>
         ) : null}
       </Panel>
-      <Panel title="Posledných 30 dní">
+      <Panel title={tr('Posledných 30 dní')}>
         <dl className="adm-dl">
           <div>
-            <dt>Prijaté platby</dt>
+            <dt>{tr('Prijaté platby')}</dt>
             <dd>
               {paid._count} · {euros(paid._sum.amountCents ?? 0)}
             </dd>
           </div>
           <div>
-            <dt>Vrátené</dt>
+            <dt>{tr('Vrátené')}</dt>
             <dd>{euros(refunded._sum.refundedCents ?? 0)}</dd>
           </div>
           <div>
-            <dt>Teraz čaká na platbu</dt>
+            <dt>{tr('Teraz čaká na platbu')}</dt>
             <dd>{pending}</dd>
           </div>
         </dl>
       </Panel>
-      <Panel title="Webhook">
+      <Panel title={tr('Webhook')}>
         <p className="muted">
-          Adresa pre platobnú bránu: <code>/api/platby/webhook</code> na tvojej doméne. Udalosti: checkout.session.completed, checkout.session.async_payment_succeeded,
-          checkout.session.async_payment_failed, checkout.session.expired, charge.refunded.
+          {tr('Adresa pre platobnú bránu:')}{' '}<code>/api/platby/webhook</code> {' '}{tr('na tvojej doméne. Udalosti: checkout.session.completed, checkout.session.async_payment_succeeded, checkout.session.async_payment_failed, checkout.session.expired, charge.refunded.')}
         </p>
       </Panel>
     </>

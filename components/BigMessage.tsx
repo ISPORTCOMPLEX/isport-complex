@@ -1,3 +1,5 @@
+'use client';
+
 // Veľká správa na tmavom pozadí s čiarami ihriska (404, chyba, pripravujeme).
 export function BigMessage({ kicker, title, text, children }: { kicker: string; title: React.ReactNode; text?: React.ReactNode; children?: React.ReactNode }) {
   return (

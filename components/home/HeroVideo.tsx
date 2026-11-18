@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useT } from '@/lib/i18n/client';
 
 // Video na pozadí úvodu: bez zvuku, dookola, s náhľadom (poster) kým sa načíta. Pri „obmedziť pohyb“
 // alebo šetrení dát sa nespustí samo (ostane náhľad). Tlačidlo pauzy – pohyb na stránke sa dá vždy zastaviť (WCAG 2.2.2).
 export function HeroVideo({ src, poster }: { src: string; poster: string }) {
+  const t = useT();
   const v = useRef<HTMLVideoElement | null>(null);
   const [playing, setPlaying] = useState(false);
 
@@ -43,7 +45,7 @@ export function HeroVideo({ src, poster }: { src: string; poster: string }) {
         }}
         onPause={() => setPlaying(false)}
       />
-      <button type="button" className="hx2__vbtn" onClick={toggle} aria-label={playing ? 'Pozastaviť video v pozadí' : 'Prehrať video v pozadí'}>
+      <button type="button" className="hx2__vbtn" onClick={toggle} aria-label={playing ? t('Pozastaviť video v pozadí') : t('Prehrať video v pozadí')}>
         <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
           {playing ? <path d="M3 2h3v10H3zM8 2h3v10H8z" fill="currentColor" /> : <path d="M3 1.5v11l9-5.5z" fill="currentColor" />}
         </svg>

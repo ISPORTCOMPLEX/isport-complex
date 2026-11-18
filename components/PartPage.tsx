@@ -8,6 +8,8 @@ import type { Zone } from '@/components/home/ComplexExplorer';
 import { kosiceWeather } from '@/lib/weather';
 import { AreaArt } from '@/components/home/AreaArt';
 import { weatherLabel } from '@/lib/sky';
+import '@/lib/skyLabels';
+import { getT } from '@/lib/i18n/server';
 
 // Spoločné rozloženie stránok jednotlivých častí komplexu.
 // `zone` pridá hore ilustráciu areálu priblíženú na túto časť (s aktuálnym časom a počasím v Košiciach).
@@ -26,22 +28,24 @@ export async function PartPage({
   zone?: Zone;
   children: React.ReactNode;
 }) {
+  const t = await getT();
   const weather = zone ? await kosiceWeather() : null;
   const renderedAt = Date.now();
   return (
     <>
       <RzBand
         art={zone && weather ? <ZoneHero zone={zone} now={renderedAt} weather={weather} /> : undefined}
-        crumbs={[{ href: '/', label: 'Komplex' }, { label: crumb }]}
+        crumbs={[{ href: '/', label: t('Komplex') }, { label: crumb }]}
         title={title}
         lead={
           <>
-            {soon ? <p className="pp__soon">Pripravujeme</p> : null}
+            {soon ? <p className="pp__soon">{t('Pripravujeme')}</p> : null}
             <p>{lead}</p>
             {weather && weather.temp !== null ? (
               <p className="band2__live">
                 <b>{Math.round(weather.temp)} °C</b>
-                Teraz v areáli · {weatherLabel(weather)}
+                {t('Teraz v areáli · {weatherLabel}', { weatherLabel: t(weatherLabel(weather)) })}
+              
               </p>
             ) : null}
           </>
@@ -55,10 +59,11 @@ export async function PartPage({
 // Fotka časti komplexu z Cloudinary; kým nie je nahraná, ukáže sa výrez z ilustrácie areálu (nikdy prázdna sivá plocha).
 const SLOT_ZONE: Partial<Record<SlotKey, Zone>> = { 'ladova-plocha': 'ice', skyboxy: 'sky', bufet: 'food', ihrisko: 'pitch', posilnovna: 'gym', wellness: 'well' };
 export async function PartPhoto({ label, slot, index = 0 }: { label: string; slot?: SlotKey; index?: number }) {
+  const t = await getT();
   const photo = slot ? (await slotPhotos(slot, '16:10'))[index] : undefined;
   if (photo)
     return (
-      <Link href={`/fotky/${photo.id}`} className="pp__plink" aria-label={`Otvoriť fotku: ${photo.alt}`}>
+      <Link href={`/fotky/${photo.id}`} className="pp__plink" aria-label={t('Otvoriť fotku: {alt}', { alt: photo.alt })}>
         <CloudImage photo={photo} className="pp__img" />
       </Link>
     );
@@ -75,6 +80,7 @@ export async function PartPhoto({ label, slot, index = 0 }: { label: string; slo
 // Sekcia „Fotky“ v štýle IMDb: 2 riadky (3 + 4), „+N“ a odkaz na všetky fotky. Klik otvorí prehliadač /fotky/<id>.
 // skip: koľko prvých fotiek už stránka ukazuje vyššie (aby sa neopakovali)
 export async function PartGallery({ slot, title, skip = 0 }: { slot: SlotKey; title?: string; skip?: number }) {
+  const t = await getT();
   const all = (await galleryPhotos(slot)).slice(skip);
   if (all.length === 0) return null;
   const first = all.slice(0, 7);
@@ -85,7 +91,7 @@ export async function PartGallery({ slot, title, skip = 0 }: { slot: SlotKey; ti
       <div className="ps__head">
         <Link href={allHref} className="ps__ttl">
           <h2 id={`ps-${slot}`} className="cond">
-            {title ? `Fotky · ${title}` : 'Fotky'}
+            {title ? t('Fotky · {title}', { title }) : t('Fotky')}
           </h2>
           <small>{all.length}</small>
           <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
@@ -93,7 +99,7 @@ export async function PartGallery({ slot, title, skip = 0 }: { slot: SlotKey; ti
           </svg>
         </Link>
         <Link href={allHref} className="ps__all">
-          Zobraziť všetky<span> fotky</span> →
+          {t('Zobraziť všetky')}<span> {' '}{t('fotky')}</span> →
         </Link>
       </div>
       <Mosaic photos={first} rows={rows} total={all.length} moreHref={allHref} viewHref={(p) => `/fotky/${p.id}`} />

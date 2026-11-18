@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useT } from '@/lib/i18n/client';
 
 // Ponuka „Pridať na plochu“ na mobile. Android/Chrome: systémové okno inštalácie.
 // iPhone (Safari): krátky návod, lebo Apple systémové okno neponúka.
@@ -24,6 +25,7 @@ function write(k: string, v: string) {
 }
 
 export function InstallPrompt() {
+  const tr = useT();
   const [evt, setEvt] = useState<BIP | null>(null);
   const [ios, setIos] = useState(false);
   const [show, setShow] = useState(false);
@@ -60,12 +62,12 @@ export function InstallPrompt() {
   };
   if (!show) return null;
   return (
-    <div className="pwa" role="dialog" aria-label="Pridať I-SPORT na plochu">
+    <div className="pwa" role="dialog" aria-label={tr('Pridať I-SPORT na plochu')}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/brand/icon-192.png" width={52} height={52} alt="" />
       <div className="pwa__tx">
-        <b>I-SPORT do mobilu</b>
-        <small>{ios ? 'Ťukni na Zdieľať a potom „Pridať na plochu“.' : 'Rezervácie a QR kód jedným ťuknutím.'}</small>
+        <b>{tr('I-SPORT do mobilu')}</b>
+        <small>{ios ? tr('Ťukni na Zdieľať a potom „Pridať na plochu“.') : tr('Rezervácie a QR kód jedným ťuknutím.')}</small>
       </div>
       {evt ? (
         <button
@@ -77,10 +79,10 @@ export function InstallPrompt() {
             close();
           }}
         >
-          Pridať
+          {tr('Pridať')}
         </button>
       ) : null}
-      <button type="button" className="pwa__x" aria-label="Zavrieť" onClick={close}>
+      <button type="button" className="pwa__x" aria-label={tr('Zavrieť')} onClick={close}>
         ✕
       </button>
     </div>

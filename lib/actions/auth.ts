@@ -17,14 +17,16 @@ import { createSession, destroySession, getPending2fa, setPending2fa } from '@/l
 import { safeRedirect } from '@/lib/safeRedirect';
 import { sha256 } from '@/lib/crypto';
 import { checkSecondFactor } from '@/lib/secondFactor';
+import { getT } from '@/lib/i18n/server';
+import { msg, type T } from '@/lib/i18n/translate';
 
 const MAX_FAILED = 5;
 const LOGIN_CAPTCHA_AFTER = 3;
 const LOCK_MIN = 15;
-const BOT_MESSAGE = 'Formulár sa nepodarilo odoslať. Obnov stránku a skús to znova.';
+const BOT_MESSAGE = msg('Formulár sa nepodarilo odoslať. Obnov stránku a skús to znova.');
 
-function tooMany(sec: number): string {
-  return `Príliš veľa pokusov. Skús to znova o ${minutes(sec)} min.`;
+function tooMany(t: T, sec: number): string {
+  return t('Príliš veľa pokusov. Skús to znova o {minutes} min.', { minutes: minutes(sec) });
 }
 
 // Vývojový režim bez Resendu: odkaz z e-mailu sa ukáže priamo na stránke, aby sa dalo testovať.
@@ -44,6 +46,7 @@ async function mailSafely(fn: () => Promise<void>, label: string) {
 // ───────────────────────── Registrácia ─────────────────────────
 
 export async function registerAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const { ip, userAgent } = await getRequestInfo();
   const values = {
     firstName: str(form, 'firstName', 60),
@@ -56,40 +59,40 @@ export async function registerAction(_prev: FormState, form: FormData): Promise<
   const guard = checkFormGuard(form);
   if (!guard.ok) {
     await logSecurity({ type: 'register', ok: false, reason: guard.reason, email: values.email, ip, userAgent });
-    return { error: BOT_MESSAGE, values, captcha: fresh() };
+    return { error: t(BOT_MESSAGE), values, captcha: fresh() };
   }
 
   const burst = await hitLimit(`reg:ip15:${ip}`, 8, 15 * 60);
   const hourly = await hitLimit(`reg:ip60:${ip}`, 20, 60 * 60);
   if (!burst.ok || !hourly.ok) {
     await logSecurity({ type: 'register', ok: false, reason: 'rate-limit', email: values.email, ip, userAgent });
-    return { error: tooMany(Math.max(burst.ok ? 0 : burst.retryAfterSec, hourly.ok ? 0 : hourly.retryAfterSec)), values, captcha: fresh() };
+    return { error: tooMany(t, Math.max(burst.ok ? 0 : burst.retryAfterSec, hourly.ok ? 0 : hourly.retryAfterSec)), values, captcha: fresh() };
   }
 
   const errors: Record<string, string> = {};
-  if (!isName(values.firstName)) errors.firstName = 'Zadaj meno.';
-  if (!isName(values.lastName)) errors.lastName = 'Zadaj priezvisko.';
-  if (!isEmail(values.email)) errors.email = 'Zadaj platný e-mail.';
-  if (!isPhone(values.phone)) errors.phone = 'Zadaj telefón v tvare +421 9xx xxx xxx.';
+  if (!isName(values.firstName)) errors.firstName = t('Zadaj meno.');
+  if (!isName(values.lastName)) errors.lastName = t('Zadaj priezvisko.');
+  if (!isEmail(values.email)) errors.email = t('Zadaj platný e-mail.');
+  if (!isPhone(values.phone)) errors.phone = t('Zadaj telefón v tvare +421 9xx xxx xxx.');
   const password = raw(form, 'password', 200);
   const pwProblem = await passwordProblemStrong(password, { email: values.email, names: [values.firstName, values.lastName] });
-  if (pwProblem) errors.password = pwProblem;
-  else if (password !== raw(form, 'password2', 200)) errors.password2 = 'Heslá sa nezhodujú.';
-  if (!checked(form, 'age')) errors.age = 'Registrácia je možná od 16 rokov.';
-  if (!checked(form, 'terms')) errors.terms = 'Bez súhlasu s podmienkami sa nedá registrovať.';
+  if (pwProblem) errors.password = t(pwProblem);
+  else if (password !== raw(form, 'password2', 200)) errors.password2 = t('Heslá sa nezhodujú.');
+  if (!checked(form, 'age')) errors.age = t('Registrácia je možná od 16 rokov.');
+  if (!checked(form, 'terms')) errors.terms = t('Bez súhlasu s podmienkami sa nedá registrovať.');
 
   const captchaOk = await verifyCaptcha(str(form, 'captcha_token', 400), str(form, 'captcha', 10));
-  if (!captchaOk) errors.captcha = 'Znaky z obrázka nesedia. Skús nový obrázok.';
+  if (!captchaOk) errors.captcha = t('Znaky z obrázka nesedia. Skús nový obrázok.');
 
   if (Object.keys(errors).length > 0) {
     await logSecurity({ type: 'register', ok: false, reason: `invalid:${Object.keys(errors).join(',')}`, email: values.email, ip, userAgent });
-    return { error: 'Skontroluj označené polia.', errors, values, captcha: fresh() };
+    return { error: t('Skontroluj označené polia.'), errors, values, captcha: fresh() };
   }
 
   const domain = await checkEmailDomain(values.email);
   if (!domain.ok) {
     await logSecurity({ type: 'register', ok: false, reason: domain.reason, email: values.email, ip, userAgent });
-    return { error: domain.message, errors: { email: domain.message }, values, captcha: fresh() };
+    return { error: t(domain.message), errors: { email: t(domain.message) }, values, captcha: fresh() };
   }
 
   const base = await getBaseUrl();
@@ -100,13 +103,13 @@ export async function registerAction(_prev: FormState, form: FormData): Promise<
   if (existing) {
     if (!existing.deletedAt && !existing.bannedAt) {
       if (existing.emailVerifiedAt) {
-        await mailSafely(() => sendAlreadyRegisteredEmail(existing.email, existing.firstName, `${base}/zabudnute-heslo`), 'already');
+        await mailSafely(() => sendAlreadyRegisteredEmail(t, existing.email, existing.firstName, `${base}/zabudnute-heslo`), 'already');
         link = devLink(`${base}/prihlasenie`);
       } else {
         // Pôvodný neoverený účet sa nemení (ochrana pred prevzatím účtu), len pošleme nový odkaz.
         const token = await createAuthToken(existing.id, 'VERIFY_EMAIL');
         const url = `${base}/overenie-emailu?token=${token}`;
-        await mailSafely(() => sendVerifyEmail(existing.email, existing.firstName, url), 'verify');
+        await mailSafely(() => sendVerifyEmail(t, existing.email, existing.firstName, url), 'verify');
         link = devLink(url);
       }
     }
@@ -129,7 +132,7 @@ export async function registerAction(_prev: FormState, form: FormData): Promise<
   });
   const token = await createAuthToken(user.id, 'VERIFY_EMAIL');
   const url = `${base}/overenie-emailu?token=${token}`;
-  await mailSafely(() => sendVerifyEmail(user.email, user.firstName, url), 'verify');
+  await mailSafely(() => sendVerifyEmail(t, user.email, user.firstName, url), 'verify');
   await logSecurity({ type: 'register', ok: true, email: user.email, userId: user.id, ip, userAgent });
   return { done: true, values: { email: values.email }, devLink: devLink(url), manual: !emailEnabled() };
 }
@@ -137,21 +140,22 @@ export async function registerAction(_prev: FormState, form: FormData): Promise<
 // ───────────────────────── Overenie e-mailu ─────────────────────────
 
 export async function resendVerificationAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const { ip, userAgent } = await getRequestInfo();
   const email = normalizeEmail(str(form, 'email', 254));
   const answer: FormState = emailEnabled()
-    ? { success: 'Ak účet čaká na overenie, poslali sme nový odkaz. Pozri aj priečinok Spam.' }
-    : { success: 'E-maily momentálne neposielame. Účet ti aktivuje recepcia – zvyčajne do 24 hodín, alebo nám zavolaj.' };
+    ? { success: t('Ak účet čaká na overenie, poslali sme nový odkaz. Pozri aj priečinok Spam.') }
+    : { success: t('E-maily momentálne neposielame. Účet ti aktivuje recepcia – zvyčajne do 24 hodín, alebo nám zavolaj.') };
   if (!isEmail(email)) return answer;
   const byIp = await hitLimit(`resend:ip:${ip}`, 10, 60 * 60);
   const byEmail = await hitLimit(`resend:email:${sha256(email)}`, 3, 60 * 60);
-  if (!byIp.ok || !byEmail.ok) return { error: tooMany(Math.max(byIp.retryAfterSec, byEmail.retryAfterSec)) };
+  if (!byIp.ok || !byEmail.ok) return { error: tooMany(t, Math.max(byIp.retryAfterSec, byEmail.retryAfterSec)) };
   const user = await prisma.user.findUnique({ where: { email } });
   if (user && !user.emailVerifiedAt && !user.deletedAt && !user.bannedAt) {
     const token = await createAuthToken(user.id, 'VERIFY_EMAIL');
     const base = await getBaseUrl();
     const url = `${base}/overenie-emailu?token=${token}`;
-    await mailSafely(() => sendVerifyEmail(user.email, user.firstName, url), 'verify');
+    await mailSafely(() => sendVerifyEmail(t, user.email, user.firstName, url), 'verify');
     await logSecurity({ type: 'verify-email', ok: true, reason: 'resend', email, userId: user.id, ip, userAgent });
     return { ...answer, devLink: devLink(url) };
   }
@@ -161,23 +165,24 @@ export async function resendVerificationAction(_prev: FormState, form: FormData)
 // ───────────────────────── Prihlásenie ─────────────────────────
 
 export async function loginAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const { ip, userAgent } = await getRequestInfo();
   const email = normalizeEmail(str(form, 'email', 254));
   const password = raw(form, 'password', 200);
   const next = safeRedirect(str(form, 'next', 500));
   const values = { email };
-  const generic = 'Nesprávny e-mail alebo heslo.';
+  const generic = t('Nesprávny e-mail alebo heslo.');
 
   const guard = checkFormGuard(form);
   if (!guard.ok) {
     await logSecurity({ type: 'login', ok: false, reason: guard.reason, email, ip, userAgent });
-    return { error: BOT_MESSAGE, values };
+    return { error: t(BOT_MESSAGE), values };
   }
 
   const byIp = await hitLimit(`login:ip:${ip}`, 20, 15 * 60);
   if (!byIp.ok) {
     await logSecurity({ type: 'login', ok: false, reason: 'rate-limit-ip', email, ip, userAgent });
-    return { error: tooMany(byIp.retryAfterSec), values };
+    return { error: tooMany(t, byIp.retryAfterSec), values };
   }
   // Po 3 neúspešných pokusoch z tej istej adresy chceme aj CAPTCHA (zastaví hádanie hesiel botmi).
   const failKey = `login:fail:${ip}`;
@@ -185,7 +190,7 @@ export async function loginAction(_prev: FormState, form: FormData): Promise<For
     const ok = await verifyCaptcha(str(form, 'captcha_token', 400), str(form, 'captcha', 10));
     if (!ok) {
       await logSecurity({ type: 'login', ok: false, reason: 'captcha', email, ip, userAgent });
-      return { error: 'Opíš znaky z obrázka.', errors: { captcha: 'Znaky nesedia, skús nový obrázok.' }, values, captcha: createCaptcha() };
+      return { error: t('Opíš znaky z obrázka.'), errors: { captcha: t('Znaky nesedia, skús nový obrázok.') }, values, captcha: createCaptcha() };
     }
   }
   const failed = async (): Promise<FormState> => {
@@ -197,7 +202,7 @@ export async function loginAction(_prev: FormState, form: FormData): Promise<For
   const byEmail = await hitLimit(`login:email:${sha256(email)}`, 10, 15 * 60);
   if (!byEmail.ok) {
     await logSecurity({ type: 'login', ok: false, reason: 'rate-limit-email', email, ip, userAgent });
-    return { error: tooMany(byEmail.retryAfterSec), values };
+    return { error: tooMany(t, byEmail.retryAfterSec), values };
   }
 
   const found = await prisma.user.findUnique({ where: { email } });
@@ -209,7 +214,7 @@ export async function loginAction(_prev: FormState, form: FormData): Promise<For
     await logSecurity({ type: 'login', ok: false, reason: 'locked', email, userId: user.id, ip, userAgent });
     await hitLimit(`login:fail:${ip}`, 1000, 15 * 60);
     return right
-      ? { error: `Účet je dočasne zamknutý pre veľa neúspešných pokusov. Skús to znova o ${minutes((user.lockedUntil.getTime() - Date.now()) / 1000)} min alebo si obnov heslo.`, values }
+      ? { error: t('Účet je dočasne zamknutý pre veľa neúspešných pokusov. Skús to znova o {minutes} min alebo si obnov heslo.', { minutes: minutes((user.lockedUntil.getTime() - Date.now()) / 1000) }), values }
       : await failed();
   }
 
@@ -229,13 +234,13 @@ export async function loginAction(_prev: FormState, form: FormData): Promise<For
 
   if (user.bannedAt) {
     await logSecurity({ type: 'login', ok: false, reason: 'banned', email, userId: user.id, ip, userAgent });
-    return { error: 'Účet je zablokovaný. Kontaktuj nás, prosím.', values };
+    return { error: t('Účet je zablokovaný. Kontaktuj nás, prosím.'), values };
   }
   if (!user.emailVerifiedAt) {
     await logSecurity({ type: 'login', ok: false, reason: 'unverified', email, userId: user.id, ip, userAgent });
     return emailEnabled()
-      ? { error: 'Najprv over svoj e-mail – odkaz sme ti poslali pri registrácii.', unverifiedEmail: email, values }
-      : { error: 'Účet čaká na aktiváciu recepciou (zvyčajne do 24 hodín). Ak sa ponáhľaš, zavolaj nám.', values };
+      ? { error: t('Najprv over svoj e-mail – odkaz sme ti poslali pri registrácii.'), unverifiedEmail: email, values }
+      : { error: t('Účet čaká na aktiváciu recepciou (zvyčajne do 24 hodín). Ak sa ponáhľaš, zavolaj nám.'), values };
   }
 
   if (user.failedLoginCount > 0 || user.lockedUntil || needsRehash(user.passwordHash)) {
@@ -257,26 +262,27 @@ export async function loginAction(_prev: FormState, form: FormData): Promise<For
 }
 
 export async function twoFactorLoginAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const { ip, userAgent } = await getRequestInfo();
   const pending = await getPending2fa();
-  if (!pending) return { error: 'Čas na zadanie kódu vypršal. Prihlás sa znova.' };
+  if (!pending) return { error: t('Čas na zadanie kódu vypršal. Prihlás sa znova.') };
 
   const limit = await hitLimit(`2fa:user:${pending.userId}`, 10, 15 * 60);
   const daily = await hitLimit(`2fa:day:${pending.userId}`, 30, 24 * 60 * 60);
   if (!limit.ok || !daily.ok) {
     await logSecurity({ type: 'login-2fa', ok: false, reason: 'rate-limit', userId: pending.userId, ip, userAgent });
-    return { error: tooMany(limit.ok ? daily.retryAfterSec : limit.retryAfterSec) };
+    return { error: tooMany(t, limit.ok ? daily.retryAfterSec : limit.retryAfterSec) };
   }
 
   const user = await prisma.user.findUnique({ where: { id: pending.userId } });
   if (!user || user.deletedAt || user.bannedAt || !user.twoFactorSecretEnc || !user.twoFactorEnabledAt) {
-    return { error: 'Prihlás sa znova.' };
+    return { error: t('Prihlás sa znova.') };
   }
 
   const ok = await checkSecondFactor(user, str(form, 'code', 20));
   if (!ok) {
     await logSecurity({ type: 'login-2fa', ok: false, reason: 'bad-code', userId: user.id, ip, userAgent });
-    return { error: 'Kód nie je správny alebo už bol použitý.' };
+    return { error: t('Kód nie je správny alebo už bol použitý.') };
   }
 
   await createSession(user.id);
@@ -287,16 +293,17 @@ export async function twoFactorLoginAction(_prev: FormState, form: FormData): Pr
 // ───────────────────────── Zabudnuté heslo ─────────────────────────
 
 export async function forgotPasswordAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const { ip, userAgent } = await getRequestInfo();
   const email = normalizeEmail(str(form, 'email', 254));
   const answer: FormState = { done: true, values: { email }, manual: !emailEnabled() };
 
   const guard = checkFormGuard(form);
-  if (!guard.ok) return { error: BOT_MESSAGE, values: { email } };
-  if (!isEmail(email)) return { error: 'Zadaj platný e-mail.', errors: { email: 'Zadaj platný e-mail.' }, values: { email } };
+  if (!guard.ok) return { error: t(BOT_MESSAGE), values: { email } };
+  if (!isEmail(email)) return { error: t('Zadaj platný e-mail.'), errors: { email: t('Zadaj platný e-mail.') }, values: { email } };
 
   const byIp = await hitLimit(`forgot:ip:${ip}`, 10, 60 * 60);
-  if (!byIp.ok) return { error: tooMany(byIp.retryAfterSec), values: { email } };
+  if (!byIp.ok) return { error: tooMany(t, byIp.retryAfterSec), values: { email } };
   // Pri prekročení limitu na e-mail odpovedáme rovnako – nič neprezradíme.
   const byEmail = await hitLimit(`forgot:email:${sha256(email)}`, 3, 60 * 60);
   if (!byEmail.ok) return answer;
@@ -306,7 +313,7 @@ export async function forgotPasswordAction(_prev: FormState, form: FormData): Pr
     const token = await createAuthToken(user.id, 'RESET_PASSWORD');
     const base = await getBaseUrl();
     const url = `${base}/obnova-hesla?token=${token}`;
-    await mailSafely(() => sendResetEmail(user.email, user.firstName, url), 'reset');
+    await mailSafely(() => sendResetEmail(t, user.email, user.firstName, url), 'reset');
     await logSecurity({ type: 'password-reset', ok: true, reason: 'requested', email, userId: user.id, ip, userAgent });
     return { ...answer, devLink: devLink(url) };
   } else {
@@ -316,22 +323,23 @@ export async function forgotPasswordAction(_prev: FormState, form: FormData): Pr
 }
 
 export async function resetPasswordAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const { ip, userAgent } = await getRequestInfo();
   const limit = await hitLimit(`reset:ip:${ip}`, 10, 15 * 60);
-  if (!limit.ok) return { error: tooMany(limit.retryAfterSec) };
+  if (!limit.ok) return { error: tooMany(t, limit.retryAfterSec) };
 
   const password = raw(form, 'password', 200);
   const problem = await passwordProblemStrong(password);
-  if (problem) return { error: problem, errors: { password: problem } };
-  if (password !== raw(form, 'password2', 200)) return { error: 'Heslá sa nezhodujú.', errors: { password2: 'Heslá sa nezhodujú.' } };
+  if (problem) return { error: t(problem), errors: { password: t(problem) } };
+  if (password !== raw(form, 'password2', 200)) return { error: t('Heslá sa nezhodujú.'), errors: { password2: t('Heslá sa nezhodujú.') } };
 
   const userId = await consumeAuthToken(str(form, 'token', 200), 'RESET_PASSWORD');
   if (!userId) {
     await logSecurity({ type: 'password-reset', ok: false, reason: 'bad-token', ip, userAgent });
-    return { error: 'Odkaz na obnovu je neplatný alebo vypršal. Vyžiadaj si nový.' };
+    return { error: t('Odkaz na obnovu je neplatný alebo vypršal. Vyžiadaj si nový.') };
   }
   const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user || user.deletedAt || user.bannedAt) return { error: 'Odkaz na obnovu je neplatný alebo vypršal. Vyžiadaj si nový.' };
+  if (!user || user.deletedAt || user.bannedAt) return { error: t('Odkaz na obnovu je neplatný alebo vypršal. Vyžiadaj si nový.') };
 
   await prisma.user.update({
     where: { id: userId },

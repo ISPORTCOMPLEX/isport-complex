@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { ratioClass, type GalleryPhoto } from '@/lib/media';
+import { getT } from '@/lib/i18n/server';
 
 // Zarovnané riadky fotiek ako na IMDb: každá fotka si zachová svoj tvar, výška riadku je spoločná.
 // rows = počty fotiek v riadkoch (napr. [3, 4]). „+N“ na poslednej dlaždici vedie na všetky fotky.
 // Na mobile: mriežka 2 stĺpce, prvá fotka cez celú šírku, ukáže sa najviac 5 (ak mobileLimit).
-export function Mosaic({
+export async function Mosaic({
   photos,
   rows,
   total,
@@ -21,6 +22,7 @@ export function Mosaic({
   mobileLimit?: boolean;
   sizes?: string;
 }) {
+  const t = await getT();
   const chunks: GalleryPhoto[][] = [];
   let at = 0;
   for (const r of rows) {
@@ -42,7 +44,7 @@ export function Mosaic({
             const cls = ['jm__it', ratioClass(p.ratio), i === 0 ? 'jm__it--first' : '', mobileLimit && i >= MOBILE ? 'jm__it--mhide' : ''].filter(Boolean).join(' ');
             return (
               <div key={p.id} className={cls}>
-                <Link href={viewHref(p)} className="jm__a" aria-label={`Otvoriť fotku: ${p.alt}`}>
+                <Link href={viewHref(p)} className="jm__a" aria-label={t('Otvoriť fotku: {alt}', { alt: p.alt })}>
                   <picture className="ph">
                     <source type="image/avif" srcSet={p.avif} sizes={sizes} />
                     <source type="image/webp" srcSet={p.webp} sizes={sizes} />
@@ -51,12 +53,12 @@ export function Mosaic({
                   </picture>
                 </Link>
                 {lastDesktop ? (
-                  <Link href={moreHref} className="jm__more jm__more--d" aria-label={`Zobraziť všetkých ${total} fotiek`}>
+                  <Link href={moreHref} className="jm__more jm__more--d" aria-label={t('Zobraziť všetkých {total} fotiek', { total })}>
                     +{total - shown + 1}
                   </Link>
                 ) : null}
                 {lastMobile ? (
-                  <Link href={moreHref} className="jm__more jm__more--m" aria-label={`Zobraziť všetkých ${total} fotiek`}>
+                  <Link href={moreHref} className="jm__more jm__more--m" aria-label={t('Zobraziť všetkých {total} fotiek', { total })}>
                     +{total - MOBILE + 1}
                   </Link>
                 ) : null}

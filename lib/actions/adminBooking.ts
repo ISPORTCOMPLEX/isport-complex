@@ -17,13 +17,14 @@ import { sendBookingCancelledEmail, sendBookingConfirmedEmail } from '@/lib/emai
 import { getSite, saveSite, storeUrl, heroVideoPath } from '@/lib/siteSettings';
 import { closeOpenCheckouts, refundBooking } from '@/lib/payments/service';
 import { parseEuroInput } from '@/lib/payments/math';
+import { getT, MAIL_SK_EN } from '@/lib/i18n/server';
 
 // Zásahy recepcie a administrátora do rezervácií. Každý zásah ide do záznamu zmien.
 
 async function staff(perm: Permission) {
   const actor = await requireStaff(perm);
   const limit = await hitLimit(`admin:book:${actor.id}`, 120, 10 * 60);
-  if (!limit.ok) throw new Error('Príliš veľa zásahov za krátky čas.');
+  if (!limit.ok) throw new Error((await getT())('Príliš veľa zásahov za krátky čas.'));
   return actor;
 }
 
@@ -110,9 +111,10 @@ export async function adminNoShow(form: FormData): Promise<void> {
 }
 
 export async function adminCancelBooking(form: FormData): Promise<void> {
+  const t = await getT();
   const actor = await staff('bookings.manage');
   const b = await loadBooking(form);
-  const reason = str(form, 'reason', 300) || 'Zrušené recepciou';
+  const reason = str(form, 'reason', 300) || t('Zrušené recepciou');
   const ok = await cancelBooking(b.id, 'staff', reason);
   if (!ok) back(b.id, 'nie-aktivna');
   await audit(actor.id, 'booking.cancel', b.id, { code: b.code, reason });
@@ -135,7 +137,7 @@ export async function adminCancelBooking(form: FormData): Promise<void> {
     if (to) {
       const base = await getBaseUrl();
       try {
-        await sendBookingCancelledEmail(to, user?.firstName ?? b.contactName.split(' ')[0], `${base}/rezervacia`, bookingRows(b), true);
+        await sendBookingCancelledEmail(MAIL_SK_EN(), to, user?.firstName ?? b.contactName.split(' ')[0], `${base}/rezervacia`, (m) => bookingRows(b, m), true);
       } catch (err) {
         console.error('[email:admin-cancel]', err);
       }
@@ -149,12 +151,13 @@ export async function adminCancelBooking(form: FormData): Promise<void> {
 const AREAS: Area[] = ['FULL', 'HALF_A', 'HALF_B'];
 
 export async function adminCreateBlock(form: FormData): Promise<void> {
+  const t = await getT();
   const actor = await staff('bookings.manage');
   const iso = str(form, 'datum', 10);
   const from = Number.parseInt(str(form, 'od', 2), 10);
   const to = Number.parseInt(str(form, 'do', 2), 10);
   const area = str(form, 'plocha', 10) as Area;
-  const reason = str(form, 'reason', 200) || 'Blokované';
+  const reason = str(form, 'reason', 200) || t('Blokované');
   const backTo = (stav: string): never => redirect(`/admin/kalendar?datum=${isIsoDate(iso) ? iso : ''}&stav=${stav}`);
   if (!isIsoDate(iso) || !AREAS.includes(area) || !Number.isInteger(from) || !Number.isInteger(to) || from < 0 || to > 24 || to <= from) backTo('blok-chyba');
 
@@ -197,6 +200,7 @@ export async function adminDeleteBlock(form: FormData): Promise<void> {
 // ───────────────────────── Nastavenia ─────────────────────────
 
 export async function adminSaveSettings(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const actor = await staff('settings.manage');
   const n = (name: string) => Number(str(form, name, 10).replace(',', '.'));
   const raw = {
@@ -217,28 +221,29 @@ export async function adminSaveSettings(_prev: FormState, form: FormData): Promi
   };
   const errors: Record<string, string> = {};
   const priceKeys = ['fullOff', 'fullPeak', 'fullWeekend', 'showerPrice'];
-  for (const k of priceKeys) if (!Number.isFinite(n(k)) || n(k) < 0 || n(k) > 10000) errors[k] = 'Zadaj cenu 0 – 10 000 €.';
+  for (const k of priceKeys) if (!Number.isFinite(n(k)) || n(k) < 0 || n(k) > 10000) errors[k] = t('Zadaj cenu 0 – 10 000 €.');
   if (!(raw.openHour >= 0 && raw.openHour <= 23)) errors.openHour = '0 – 23';
-  if (!(raw.closeHour > raw.openHour && raw.closeHour <= 24)) errors.closeHour = 'Musí byť po otvorení (najviac 24).';
+  if (!(raw.closeHour > raw.openHour && raw.closeHour <= 24)) errors.closeHour = t('Musí byť po otvorení (najviac 24).');
   if (!(raw.peakFromHour >= 0 && raw.peakFromHour <= 24)) errors.peakFromHour = '0 – 24';
   if (!(raw.maxHours >= 1 && raw.maxHours <= 12)) errors.maxHours = '1 – 12';
   if (!(raw.maxActive >= 1 && raw.maxActive <= 100)) errors.maxActive = '1 – 100';
   if (!(raw.maxDaysAhead >= 1 && raw.maxDaysAhead <= 365)) errors.maxDaysAhead = '1 – 365';
   if (!(raw.cancelFreeHours >= 0 && raw.cancelFreeHours <= 720)) errors.cancelFreeHours = '0 – 720';
   if (!(raw.leadMinutes >= 0 && raw.leadMinutes <= 10080)) errors.leadMinutes = '0 – 10 080';
-  if (Object.keys(errors).length) return { error: 'Skontroluj označené polia.', errors };
+  if (Object.keys(errors).length) return { error: t('Skontroluj označené polia.'), errors };
 
   const before = await getBookingSettings();
   const value = normalizeSettings(raw);
   await saveBookingSettings(value, actor.id);
   await audit(actor.id, 'settings.booking', 'booking', { before, after: value });
   revalidatePath('/', 'layout');
-  return { success: 'Nastavenia sú uložené. Nové ceny platia pre nové rezervácie.' };
+  return { success: t('Nastavenia sú uložené. Nové ceny platia pre nové rezervácie.') };
 }
 
 // ───────────────────────── Rezervácia zadaná recepciou ─────────────────────────
 
 export async function adminCreateBookingAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const actor = await staff('bookings.manage');
   const iso = str(form, 'datum', 10);
   const showers = checked(form, 'sprchy');
@@ -253,12 +258,12 @@ export async function adminCreateBookingAction(_prev: FormState, form: FormData)
     platba: str(form, 'platba', 10) === 'TRANSFER' ? 'TRANSFER' : 'ONSITE',
   };
   const errors: Record<string, string> = {};
-  if (!isIsoDate(iso)) return { error: 'Vyber dátum.', values };
-  if (!Number.isInteger(startHour)) errors.od = 'Vyber začiatok.';
-  if (values.contactName.length < 2) errors.contactName = 'Zadaj meno.';
-  if (!/^\+?[0-9]{9,15}$/.test(values.contactPhone)) errors.contactPhone = 'Zadaj telefón.';
-  if (values.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(values.email)) errors.email = 'Neplatný e-mail.';
-  if (Object.keys(errors).length) return { error: 'Skontroluj označené polia.', errors, values };
+  if (!isIsoDate(iso)) return { error: t('Vyber dátum.'), values };
+  if (!Number.isInteger(startHour)) errors.od = t('Vyber začiatok.');
+  if (values.contactName.length < 2) errors.contactName = t('Zadaj meno.');
+  if (!/^\+?[0-9]{9,15}$/.test(values.contactPhone)) errors.contactPhone = t('Zadaj telefón.');
+  if (values.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(values.email)) errors.email = t('Neplatný e-mail.');
+  if (Object.keys(errors).length) return { error: t('Skontroluj označené polia.'), errors, values };
 
   const account = values.email ? await prisma.user.findUnique({ where: { email: values.email } }) : null;
   const user = account && !account.deletedAt ? account : null;
@@ -289,7 +294,7 @@ export async function adminCreateBookingAction(_prev: FormState, form: FormData)
     if (b) {
       const base = await getBaseUrl();
       try {
-        await sendBookingConfirmedEmail(to, user?.firstName ?? values.contactName.split(' ')[0], user ? `${base}/rezervacia/${b.code}` : `${base}/rezervacia`, bookingRows(b));
+        await sendBookingConfirmedEmail(MAIL_SK_EN(), to, user?.firstName ?? values.contactName.split(' ')[0], user ? `${base}/rezervacia/${b.code}` : `${base}/rezervacia`, (m) => bookingRows(b, m));
       } catch (err) {
         console.error('[email:admin-create]', err);
       }
@@ -301,6 +306,7 @@ export async function adminCreateBookingAction(_prev: FormState, form: FormData)
 // ───────────────────────── Údaje o firme a hale ─────────────────────────
 
 export async function adminSaveSiteAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const actor = await staff('settings.manage');
   const current = await getSite();
   const v = (k: string, max = 300) => str(form, k, max);
@@ -308,31 +314,31 @@ export async function adminSaveSiteAction(_prev: FormState, form: FormData): Pro
   const email = v('email', 200).toLowerCase();
   const notifyEmail = v('notifyEmail', 200).toLowerCase();
   const mailOk = (x: string) => x === '' || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(x);
-  if (!mailOk(email)) errors.email = 'Neplatný e-mail.';
-  if (!mailOk(notifyEmail)) errors.notifyEmail = 'Neplatný e-mail.';
+  if (!mailOk(email)) errors.email = t('Neplatný e-mail.');
+  if (!mailOk(notifyEmail)) errors.notifyEmail = t('Neplatný e-mail.');
   const urlOk = (x: string) => x === '' || /^https:\/\/[^\s]+$/.test(x);
-  for (const k of ['mapUrl', 'facebook', 'instagram']) if (!urlOk(v(k, 500))) errors[k] = 'Adresa musí začínať https://';
+  for (const k of ['mapUrl', 'facebook', 'instagram']) if (!urlOk(v(k, 500))) errors[k] = t('Adresa musí začínať https://');
   const iban = v('iban', 40).replace(/\s/g, '').toUpperCase();
-  if (iban && !/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(iban)) errors.iban = 'Neplatný IBAN.';
+  if (iban && !/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(iban)) errors.iban = t('Neplatný IBAN.');
   // Poloha: „48.70123, 21.25456“ skopírované z Google Máp (pravý klik na budovu)
   const gps = v('gps', 60).replace(/\s+/g, '');
   let lat = '';
   let lng = '';
   if (gps) {
     const m = /^(-?\d{1,2}\.\d{3,8}),(-?\d{1,3}\.\d{3,8})$/.exec(gps.replace(';', ','));
-    if (!m || +m[1] < 47.5 || +m[1] > 49.8 || +m[2] < 16.7 || +m[2] > 22.7) errors.gps = 'Zadaj polohu v tvare 48.70123, 21.25456 (v Google Mapách pravý klik na budovu a klikni na čísla).';
+    if (!m || +m[1] < 47.5 || +m[1] > 49.8 || +m[2] < 16.7 || +m[2] > 22.7) errors.gps = t('Zadaj polohu v tvare 48.70123, 21.25456 (v Google Mapách pravý klik na budovu a klikni na čísla).');
     else [lat, lng] = [m[1], m[2]];
   }
   const iosRaw = v('appIos', 500);
   const androidRaw = v('appAndroid', 500);
   const ios = storeUrl(iosRaw, 'apps.apple.com');
   const android = storeUrl(androidRaw, 'play.google.com');
-  if (iosRaw && !ios) errors.appIos = 'Zadaj odkaz z App Store (https://apps.apple.com/…).';
-  if (androidRaw && !android) errors.appAndroid = 'Zadaj odkaz z Google Play (https://play.google.com/…).';
+  if (iosRaw && !ios) errors.appIos = t('Zadaj odkaz z App Store (https://apps.apple.com/…).');
+  if (androidRaw && !android) errors.appAndroid = t('Zadaj odkaz z Google Play (https://play.google.com/…).');
   const videoRaw = v('heroVideo', 400);
   const heroVideo = heroVideoPath(videoRaw);
-  if (videoRaw && !heroVideo) errors.heroVideo = 'Vyber video zo zoznamu alebo vlož adresu videa z článku (…/videa/….mp4).';
-  if (Object.keys(errors).length) return { error: 'Skontroluj označené polia.', errors };
+  if (videoRaw && !heroVideo) errors.heroVideo = t('Vyber video zo zoznamu alebo vlož adresu videa z článku (…/videa/….mp4).');
+  if (Object.keys(errors).length) return { error: t('Skontroluj označené polia.'), errors };
 
   const next = {
     ...current,
@@ -359,5 +365,5 @@ export async function adminSaveSiteAction(_prev: FormState, form: FormData): Pro
   await saveSite(next, actor.id);
   await audit(actor.id, 'settings.site', 'site');
   revalidatePath('/', 'layout');
-  return { success: 'Údaje sú uložené a hneď sa zobrazujú na webe.' };
+  return { success: t('Údaje sú uložené a hneď sa zobrazujú na webe.') };
 }

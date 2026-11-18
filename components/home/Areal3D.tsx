@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Scene, Weather } from '@/lib/sky';
 import type { Areal, Zone3D } from '@/components/home/areal3d/scene';
+import { useT } from '@/lib/i18n/client';
 
 // 3D režim areálu (len počítač s WebGL a bez „obmedziť pohyb“). Three.js sa načíta až tu, samostatným balíkom.
 // Ťahaním sa areál otáča, klik na časť ju priblíži (rovnako ako 2D). Animácia stojí, keď areál nie je vidno
@@ -43,6 +44,7 @@ export function Areal3D({
   onHover: (z: Zone3D | null) => void;
   onReady?: (ok: boolean) => void;
 }) {
+  const tr = useT();
   const wrap = useRef<HTMLDivElement | null>(null);
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const tags = useRef<Map<Zone3D, HTMLElement>>(new Map());
@@ -219,18 +221,18 @@ export function Areal3D({
       </div>
       {ready && !open ? (
         <div className="a3d__ctl">
-          <button type="button" className="a3d__btn" aria-label="Priblížiť" onClick={() => areal.current?.zoom(0.85)}>
+          <button type="button" className="a3d__btn" aria-label={tr('Priblížiť')} onClick={() => areal.current?.zoom(0.85)}>
             +
           </button>
-          <button type="button" className="a3d__btn" aria-label="Oddialiť" onClick={() => areal.current?.zoom(1.18)}>
+          <button type="button" className="a3d__btn" aria-label={tr('Oddialiť')} onClick={() => areal.current?.zoom(1.18)}>
             −
           </button>
           <button type="button" className="a3d__btn a3d__btn--w" onClick={() => areal.current?.reset()}>
-            Pôvodný pohľad
+            {tr('Pôvodný pohľad')}
           </button>
         </div>
       ) : null}
-      {!ready ? <span className="a3d__load">Načítavam 3D areál…</span> : null}
+      {!ready ? <span className="a3d__load">{tr('Načítavam 3D areál…')}</span> : null}
     </div>
   );
 }

@@ -1,3 +1,5 @@
+'use client';
+
 import { moonLitPath, type Scene, type Weather } from '@/lib/sky';
 
 // Obloha za halami: farby podľa výšky slnka, slnko a mesiac na skutočnej pozícii (Košice), fáza mesiaca,

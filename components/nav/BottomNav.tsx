@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icon } from '@/components/Icon';
+import { useT } from '@/lib/i18n/client';
 
 // Spodná lišta na mobile – ako v aplikácii. Na počítači sa nezobrazuje (CSS).
 const HOME = 'M3 11l9-7 9 7v9h-6v-6H9v6H3z';
@@ -17,31 +18,32 @@ function Glyph({ d }: { d: string }) {
 }
 
 export function BottomNav({ loggedIn }: { loggedIn: boolean }) {
+  const t = useT();
   const path = usePathname() ?? '/';
   const on = (p: string, exact = false) => (exact ? path === p : path === p || path.startsWith(`${p}/`));
   return (
-    <nav className="bn" aria-label="Rýchla navigácia">
+    <nav className="bn" aria-label={t('Rýchla navigácia')}>
       <Link href="/" className={on('/', true) ? 'is-on' : undefined} aria-current={on('/', true) ? 'page' : undefined}>
         <Glyph d={HOME} />
-        Domov
+        {t('Domov')}
       </Link>
       <Link href="/aktuality" className={on('/aktuality') ? 'is-on' : undefined} aria-current={on('/aktuality') ? 'page' : undefined}>
         <Icon name="novinky" />
-        Novinky
+        {t('Novinky')}
       </Link>
       <Link href="/rezervacia" className="bn__cta">
         <span>
           <Icon name="kalendar" size={26} />
         </span>
-        Rezervovať
+        {t('Rezervovať')}
       </Link>
       <Link href={loggedIn ? '/ucet/rezervacie' : '/prihlasenie?next=/ucet/rezervacie'} className={on('/ucet/rezervacie') ? 'is-on' : undefined} aria-current={on('/ucet/rezervacie') ? 'page' : undefined}>
         <Icon name="qr" />
-        Moje
+        {t('Moje')}
       </Link>
       <Link href={loggedIn ? '/ucet' : '/prihlasenie'} className={on('/ucet', true) || on('/ucet/profil') || on('/ucet/zabezpecenie') ? 'is-on' : undefined}>
         <Glyph d={USER} />
-        {loggedIn ? 'Účet' : 'Prihlásiť'}
+        {loggedIn ? t('Účet') : t('Prihlásiť')}
       </Link>
     </nav>
   );

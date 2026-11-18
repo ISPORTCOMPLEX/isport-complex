@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { savePhotoAction, signUploadAction } from '@/lib/actions/media';
 import { Dyn } from '@/components/Dyn';
+import { useT } from '@/lib/i18n/client';
+import { errText, msg, TError } from '@/lib/i18n/translate';
 
 type Item = { name: string; progress: number; state: 'wait' | 'up' | 'ok' | 'err'; error?: string };
 
@@ -23,17 +25,18 @@ function upload(url: string, fields: Record<string, string | number>, file: File
       try {
         const j = JSON.parse(xhr.responseText);
         if (xhr.status >= 200 && xhr.status < 300) resolve(j);
-        else reject(new Error(j?.error?.message ?? `Chyba ${xhr.status}`));
+        else reject(new Error(j?.error?.message ?? `HTTP ${xhr.status}`));
       } catch {
-        reject(new Error(`Chyba ${xhr.status}`));
+        reject(new Error(`HTTP ${xhr.status}`));
       }
     };
-    xhr.onerror = () => reject(new Error('Spojenie s úložiskom zlyhalo. Obnov stránku (F5) a skús to znova; ak to nepomôže, skontroluj internet.'));
+    xhr.onerror = () => reject(new Error(msg('Spojenie s úložiskom zlyhalo. Obnov stránku (F5) a skús to znova; ak to nepomôže, skontroluj internet.')));
     xhr.send(fd);
   });
 }
 
 export function MediaUploader({ slot, label }: { slot: string; label: string }) {
+  const t = useT();
   const router = useRouter();
   const [items, setItems] = useState<Item[]>([]);
   const [busy, setBusy] = useState(false);
@@ -47,20 +50,20 @@ export function MediaUploader({ slot, label }: { slot: string; label: string }) 
     const set = (i: number, patch: Partial<Item>) => setItems((cur) => cur.map((it, n) => (n === i ? { ...it, ...patch } : it)));
     for (const [i, file] of files.entries()) {
       if (!TYPES.includes(file.type)) {
-        set(i, { state: 'err', error: 'Nepodporovaný formát (JPG, PNG, WebP, AVIF, HEIC).' });
+        set(i, { state: 'err', error: t('Nepodporovaný formát (JPG, PNG, WebP, AVIF, HEIC).') });
         continue;
       }
       set(i, { state: 'up' });
       try {
         const sig = await signUploadAction(slot);
         if (!sig.ok) throw new Error(sig.error);
-        if (file.size > sig.maxBytes) throw new Error(`Súbor je väčší ako ${Math.round(sig.maxBytes / 1024 / 1024)} MB.`);
+        if (file.size > sig.maxBytes) throw new TError('Súbor je väčší ako {mb} MB.', { mb: Math.round(sig.maxBytes / 1024 / 1024) });
         const r = await upload(sig.url, sig.fields, file, (p) => set(i, { progress: p }));
         const saved = await savePhotoAction({ slot, publicId: r.public_id, version: r.version, signature: r.signature, alt: '' });
         if (!saved.ok) throw new Error(saved.error);
         set(i, { state: 'ok', progress: 1 });
       } catch (err) {
-        set(i, { state: 'err', error: err instanceof Error ? err.message : 'Nahrávanie zlyhalo.' });
+        set(i, { state: 'err', error: errText(t, err, 'Nahrávanie zlyhalo.') });
       }
     }
     setBusy(false);
@@ -92,10 +95,10 @@ export function MediaUploader({ slot, label }: { slot: string; label: string }) 
             void run(Array.from(e.target.files ?? []));
             e.target.value = '';
           }}
-          aria-label={`Nahrať fotky – ${label}`}
+          aria-label={t('Nahrať fotky – {label}', { label })}
         />
-        <strong>{busy ? 'Nahrávam…' : 'Pretiahni sem fotky alebo klikni'}</strong>
-        <span>JPG, PNG, WebP, AVIF alebo HEIC z iPhonu, do 10 MB. Väčšie fotky sa automaticky zmenšia.</span>
+        <strong>{busy ? t('Nahrávam…') : t('Pretiahni sem fotky alebo klikni')}</strong>
+        <span>{t('JPG, PNG, WebP, AVIF alebo HEIC z iPhonu, do 10 MB. Väčšie fotky sa automaticky zmenšia.')}</span>
       </label>
       {items.length ? (
         <ul className="md-progress" aria-live="polite">
@@ -105,7 +108,7 @@ export function MediaUploader({ slot, label }: { slot: string; label: string }) 
               <span className="md-progress__bar">
                 <Dyn as="i" css={{ width: `${Math.round(it.progress * 100)}%` }} />
               </span>
-              <span className="md-progress__st">{it.state === 'ok' ? 'Hotovo' : it.state === 'err' ? it.error : it.state === 'up' ? `${Math.round(it.progress * 100)} %` : 'Čaká'}</span>
+              <span className="md-progress__st">{it.state === 'ok' ? t('Hotovo') : it.state === 'err' ? it.error : it.state === 'up' ? `${Math.round(it.progress * 100)} %` : t('Čaká')}</span>
             </li>
           ))}
         </ul>

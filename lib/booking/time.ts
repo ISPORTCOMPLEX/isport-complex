@@ -62,17 +62,26 @@ export function isWeekend(iso: string): boolean {
 
 export const pad2 = (h: number) => `${String(h).padStart(2, '0')}:00`;
 
-const dayLong = new Intl.DateTimeFormat('sk-SK', { timeZone: HALL_TZ, weekday: 'long', day: 'numeric', month: 'long' });
-const dayShort = new Intl.DateTimeFormat('sk-SK', { timeZone: HALL_TZ, weekday: 'short', day: 'numeric', month: 'numeric' });
+const fmtCache = new Map<string, Intl.DateTimeFormat>();
+const dtf = (intl: string, kind: 'long' | 'short') => {
+  const k = intl + kind;
+  let f = fmtCache.get(k);
+  if (!f) {
+    f = new Intl.DateTimeFormat(intl, kind === 'long' ? { timeZone: HALL_TZ, weekday: 'long', day: 'numeric', month: 'long' } : { timeZone: HALL_TZ, weekday: 'short', day: 'numeric', month: 'numeric' });
+    fmtCache.set(k, f);
+  }
+  return f;
+};
 const timeFmt = new Intl.DateTimeFormat('sk-SK', { timeZone: HALL_TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 
-export function fmtDayLong(d: Date): string {
-  const s = dayLong.format(d);
+// t.intl = jazyk návštevníka (názvy dní a mesiacov)
+export function fmtDayLong(d: Date, t: { intl: string }): string {
+  const s = dtf(t.intl, 'long').format(d);
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-export function fmtDayShort(d: Date): string {
-  return dayShort.format(d);
+export function fmtDayShort(d: Date, t: { intl: string }): string {
+  return dtf(t.intl, 'short').format(d);
 }
 
 export function fmtTime(d: Date): string {

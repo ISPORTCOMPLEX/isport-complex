@@ -2,17 +2,21 @@ import Link from 'next/link';
 import { CoverImg } from '@/components/articles/ArticleCard';
 import { CATEGORIES } from '@/lib/articles/blocks';
 import { fmtArticleDate, fmtDuration, type ArticleCard } from '@/lib/articles/queries';
+import { getT } from '@/lib/i18n/server';
+import type { T } from '@/lib/i18n/translate';
 
-const meta = (a: ArticleCard) => (a.videoSeconds !== null ? `video${a.videoSeconds ? ` ${fmtDuration(a.videoSeconds)}` : ''}` : `${a.readMinutes} ${a.readMinutes === 1 ? 'minúta' : a.readMinutes <= 4 ? 'minúty' : 'minút'} čítania`);
+const meta = (a: ArticleCard, t: T) => (a.videoSeconds !== null ? `${t('video')}${a.videoSeconds ? ` ${fmtDuration(a.videoSeconds)}` : ''}` : t.n(a.readMinutes, '{n} minúta čítania|{n} minúty čítania|{n} minút čítania'));
 // farebné štítky kategórií ako na športových weboch (červená, modrá, žltá, tmavá)
 const tone = (a: ArticleCard) => (a.pinned ? 'red' : ({ novinky: 'red', turnaje: 'blue', kempy: 'yellow', oznamy: 'ink' } as Record<string, string>)[a.category] ?? 'red');
 
-function Chip({ a }: { a: ArticleCard }) {
-  return <span className={`cat cat--${tone(a)}`}>{a.pinned ? 'Dôležité' : a.categoryLabel}</span>;
+async function Chip({ a }: { a: ArticleCard }) {
+  const t = await getT();
+  return <span className={`cat cat--${tone(a)}`}>{a.pinned ? t('Dôležité') : t(a.categoryLabel)}</span>;
 }
 
 // Úvod: NOVINKY ako redakčná titulka – hlavný článok, vedľa dva s fotkou, pod nimi rad štyroch krátkych.
-export function NewsSection({ items }: { items: ArticleCard[] }) {
+export async function NewsSection({ items }: { items: ArticleCard[] }) {
+  const t = await getT();
   const [lead, ...rest] = items;
   const tiles = rest.slice(0, 2);
   const small = rest.slice(2, 6);
@@ -21,16 +25,16 @@ export function NewsSection({ items }: { items: ArticleCard[] }) {
       <div className="wrap">
         <div className="shd">
           <h2 id="nw3-t" className="disp shd__t">
-            Novinky
+            {t('Novinky')}
           </h2>
           {lead ? (
-            <nav className="nw3__cats" aria-label="Kategórie noviniek">
+            <nav className="nw3__cats" aria-label={t('Kategórie noviniek')}>
               <Link href="/aktuality" className="is-on">
-                Všetko
+                {t('Všetko')}
               </Link>
               {CATEGORIES.map((c) => (
                 <Link key={c.key} href={`/aktuality?kategoria=${c.key}`}>
-                  {c.label}
+                  {t(c.label)}
                 </Link>
               ))}
             </nav>
@@ -38,7 +42,7 @@ export function NewsSection({ items }: { items: ArticleCard[] }) {
           <span className="shd__line" aria-hidden="true" />
           {lead ? (
             <Link href="/aktuality" className="shd__more">
-              Všetky články
+              {t('Všetky články')}
             </Link>
           ) : null}
         </div>
@@ -52,7 +56,7 @@ export function NewsSection({ items }: { items: ArticleCard[] }) {
                   <Chip a={lead} />
                   <span className="disp nw3__lt">{lead.title}</span>
                   <span className="nw3__meta">
-                    <time dateTime={lead.date.toISOString()}>{fmtArticleDate(lead.date)}</time>, {meta(lead)}
+                    <time dateTime={lead.date.toISOString()}>{fmtArticleDate(lead.date, t)}</time>, {meta(lead, t)}
                   </span>
                 </span>
               </Link>
@@ -67,7 +71,7 @@ export function NewsSection({ items }: { items: ArticleCard[] }) {
                         <Chip a={a} />
                         <span className="disp nw3__tt">{a.title}</span>
                         <time className="nw3__meta" dateTime={a.date.toISOString()}>
-                          {fmtArticleDate(a.date)}
+                          {fmtArticleDate(a.date, t)}
                         </time>
                       </span>
                     </Link>
@@ -80,10 +84,10 @@ export function NewsSection({ items }: { items: ArticleCard[] }) {
                 {small.map((a) => (
                   <li key={a.id}>
                     <Link href={`/aktuality/${a.slug}`} className="nw3__sm">
-                      <span className={`nw3__k is-${tone(a)}`}>{a.videoSeconds !== null ? 'Video' : a.pinned ? 'Dôležité' : a.categoryLabel}</span>
+                      <span className={`nw3__k is-${tone(a)}`}>{a.videoSeconds !== null ? t('Video') : a.pinned ? t('Dôležité') : t(a.categoryLabel)}</span>
                       <span className="disp nw3__st">{a.title}</span>
                       <time className="nw3__meta" dateTime={a.date.toISOString()}>
-                        {fmtArticleDate(a.date)}
+                        {fmtArticleDate(a.date, t)}
                       </time>
                     </Link>
                   </li>
@@ -92,7 +96,7 @@ export function NewsSection({ items }: { items: ArticleCard[] }) {
             ) : null}
           </>
         ) : (
-          <p className="nw3__empty">Prvé články pribudnú čoskoro.</p>
+          <p className="nw3__empty">{t('Prvé články pribudnú čoskoro.')}</p>
         )}
       </div>
     </section>

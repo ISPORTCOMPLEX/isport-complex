@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Pano } from '@/lib/media';
+import { useT } from '@/lib/i18n/client';
 
 // 360° prehliadka: panoráma 2:1 natiahnutá zvnútra na guľu (three.js, načíta sa až tu).
 // Ťahanie (myš, prst) otáča pohľad, koliesko / štipnutie / +− približuje, šípky na klávesnici tiež.
@@ -9,6 +10,7 @@ import type { Pano } from '@/lib/media';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export function PanoViewer({ scenes }: { scenes: Pano[] }) {
+  const tr = useT();
   const box = useRef<HTMLDivElement | null>(null);
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const api = useRef<{ load: (src: string) => Promise<void>; zoom: (f: number) => void; look: (dx: number, dy: number) => void; dispose: () => void } | null>(null);
@@ -185,7 +187,7 @@ export function PanoViewer({ scenes }: { scenes: Pano[] }) {
     <div className="pv360">
       <div ref={box} className={`pv360__stage is-${state}`}>
         {state === 'flat' ? (
-          <div className="pv360__flat" tabIndex={0} aria-label={`${cur.title} – panoráma, posúvaj do strán`}>
+          <div className="pv360__flat" tabIndex={0} aria-label={tr('{title} – panoráma, posúvaj do strán', { title: cur.title })}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={cur.src} alt={cur.title} />
           </div>
@@ -195,7 +197,7 @@ export function PanoViewer({ scenes }: { scenes: Pano[] }) {
             className="pv360__canvas"
             tabIndex={0}
             role="img"
-            aria-label={`${cur.title} – 360° pohľad. Otáčaj ťahaním alebo šípkami, približuj kolieskom alebo + a −.`}
+            aria-label={tr('{title} – 360° pohľad. Otáčaj ťahaním alebo šípkami, približuj kolieskom alebo + a −.', { title: cur.title })}
             onPointerDown={onDown}
             onPointerMove={onMove}
             onPointerUp={onUp}
@@ -203,7 +205,7 @@ export function PanoViewer({ scenes }: { scenes: Pano[] }) {
             onKeyDown={onKey}
           />
         )}
-        {state === 'loading' || state === 'init' ? <span className="pv360__load">Načítavam panorámu…</span> : null}
+        {state === 'loading' || state === 'init' ? <span className="pv360__load">{tr('Načítavam panorámu…')}</span> : null}
         <div className="pv360__bar">
           <p className="pv360__title">
             <span className="pv360__n">
@@ -213,26 +215,26 @@ export function PanoViewer({ scenes }: { scenes: Pano[] }) {
           </p>
           {state === 'ready' ? (
             <div className="pv360__ctl">
-              <button type="button" className="a3d__btn" aria-label="Priblížiť" onClick={() => api.current?.zoom(0.85)}>
+              <button type="button" className="a3d__btn" aria-label={tr('Priblížiť')} onClick={() => api.current?.zoom(0.85)}>
                 +
               </button>
-              <button type="button" className="a3d__btn" aria-label="Oddialiť" onClick={() => api.current?.zoom(1.18)}>
+              <button type="button" className="a3d__btn" aria-label={tr('Oddialiť')} onClick={() => api.current?.zoom(1.18)}>
                 −
               </button>
               <button type="button" className="a3d__btn a3d__btn--w" onClick={toggleFull}>
-                {full ? 'Zavrieť celú obrazovku' : 'Celá obrazovka'}
+                {full ? tr('Zavrieť celú obrazovku') : tr('Celá obrazovka')}
               </button>
             </div>
           ) : null}
         </div>
         {state === 'ready' ? (
           <p className="pv360__hint" aria-hidden="true">
-            Ťahaj pre rozhliadnutie
+            {tr('Ťahaj pre rozhliadnutie')}
           </p>
         ) : null}
       </div>
       {scenes.length > 1 ? (
-        <ul className="pv360__list" aria-label="Miesta prehliadky">
+        <ul className="pv360__list" aria-label={tr('Miesta prehliadky')}>
           {scenes.map((s, i) => (
             <li key={s.id}>
               <button type="button" aria-pressed={i === idx} onClick={() => setIdx(i)}>

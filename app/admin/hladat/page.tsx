@@ -5,13 +5,18 @@ import { requireStaff, can } from '@/lib/staff';
 import { AdmHead, Chip, Empty, Panel, fmtDateTime } from '@/components/admin/ui';
 import { STATUS_LABEL } from '@/lib/booking/format';
 import { euros, fmtDayShort, fmtRange } from '@/lib/booking/time';
+import { getT } from '@/lib/i18n/server';
 
-export const metadata: Metadata = { title: 'Hľadať' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Hľadať') };
+}
 
 type Props = { searchParams: Promise<{ q?: string }> };
 
 // Globálne vyhľadávanie: rezervácie, zákazníci a dopyty naraz.
 export default async function Hladat({ searchParams }: Props) {
+  const t = await getT();
   const me = await requireStaff('dashboard', '/admin/hladat');
   const q = (typeof (await searchParams).q === 'string' ? (await searchParams).q! : '').trim().slice(0, 80);
   const digits = q.replace(/[\s+]/g, '');
@@ -73,21 +78,21 @@ export default async function Hladat({ searchParams }: Props) {
 
   return (
     <div className="adm__stack">
-      <AdmHead title="Hľadať" sub={ok ? `${total} výsledkov pre „${q}“` : 'Rezervácie, zákazníci a dopyty na jednom mieste'} />
+      <AdmHead title={t('Hľadať')} sub={ok ? t.n(total, '{n} výsledok pre „{q}“|{n} výsledky pre „{q}“|{n} výsledkov pre „{q}“', { q }) : t('Rezervácie, zákazníci a dopyty na jednom mieste')} />
       <form className="adm-search adm-search--big" action="/admin/hladat" role="search">
-        <input type="search" name="q" defaultValue={q} placeholder="Kód, číslo, meno, tím, telefón alebo e-mail" aria-label="Hľadať" maxLength={80} autoFocus />
+        <input type="search" name="q" defaultValue={q} placeholder={t('Kód, číslo, meno, tím, telefón alebo e-mail')} aria-label={t('Hľadať')} maxLength={80} autoFocus />
         <button type="submit" className="btn btn--sm">
-          Hľadať
+          {t('Hľadať')}
         </button>
       </form>
       {!ok ? null : total === 0 ? (
         <Panel>
-          <Empty>Nič sme nenašli. Skús kratší výraz alebo len časť mena.</Empty>
+          <Empty>{t('Nič sme nenašli. Skús kratší výraz alebo len časť mena.')}</Empty>
         </Panel>
       ) : (
         <>
           {bookings.length ? (
-            <Panel title={`Rezervácie (${bookings.length})`}>
+            <Panel title={t('Rezervácie ({length})', { length: bookings.length })}>
               <div className="adm-table-wrap">
                 <table className="adm-table adm-table--rows">
                   <tbody>
@@ -96,10 +101,11 @@ export default async function Hladat({ searchParams }: Props) {
                         <td className="nowrap">
                           <Link href={`/admin/rezervacie/${b.id}`} className="adm-person">
                             <strong>
-                              {fmtDayShort(b.startsAt)} · {fmtRange(b.startsAt, b.endsAt)}
+                              {fmtDayShort(b.startsAt, t)} · {fmtRange(b.startsAt, b.endsAt)}
                             </strong>
                             <small>
-                              {b.code} · č. {b.number}
+                              {t('{code} · č. {number}', { code: b.code, number: b.number })} 
+                            
                             </small>
                           </Link>
                         </td>
@@ -111,7 +117,7 @@ export default async function Hladat({ searchParams }: Props) {
                         </td>
                         <td className="nowrap">{euros(b.priceCents)}</td>
                         <td>
-                          <Chip tone={b.status === 'CANCELLED' ? 'muted' : b.paymentStatus === 'PAID' ? 'ok' : 'warn'}>{b.status === 'CONFIRMED' ? (b.paymentStatus === 'PAID' ? 'Zaplatená' : 'Nezaplatená') : STATUS_LABEL[b.status]}</Chip>
+                          <Chip tone={b.status === 'CANCELLED' ? 'muted' : b.paymentStatus === 'PAID' ? 'ok' : 'warn'}>{b.status === 'CONFIRMED' ? (b.paymentStatus === 'PAID' ? t('Zaplatená') : t('Nezaplatená')) : t(STATUS_LABEL[b.status])}</Chip>
                         </td>
                       </tr>
                     ))}
@@ -121,7 +127,7 @@ export default async function Hladat({ searchParams }: Props) {
             </Panel>
           ) : null}
           {users.length ? (
-            <Panel title={`Zákazníci (${users.length})`}>
+            <Panel title={t('Zákazníci ({length})', { length: users.length })}>
               <div className="adm-table-wrap">
                 <table className="adm-table adm-table--rows">
                   <tbody>
@@ -136,7 +142,7 @@ export default async function Hladat({ searchParams }: Props) {
                           </Link>
                         </td>
                         <td>{u.phone ?? '—'}</td>
-                        <td className="nowrap muted">od {fmtDateTime(u.createdAt)}</td>
+                        <td className="nowrap muted">{t('od {fmtDateTime}', { fmtDateTime: fmtDateTime(u.createdAt, t) })}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -145,7 +151,7 @@ export default async function Hladat({ searchParams }: Props) {
             </Panel>
           ) : null}
           {inquiries.length ? (
-            <Panel title={`Dopyty (${inquiries.length})`}>
+            <Panel title={t('Dopyty ({length})', { length: inquiries.length })}>
               <div className="adm-table-wrap">
                 <table className="adm-table adm-table--rows">
                   <tbody>
@@ -157,8 +163,8 @@ export default async function Hladat({ searchParams }: Props) {
                             <small>{i.email}</small>
                           </Link>
                         </td>
-                        <td>{i.type === 'CLUB' ? 'Klub' : 'Kontakt'}</td>
-                        <td className="nowrap muted">{fmtDateTime(i.createdAt)}</td>
+                        <td>{i.type === 'CLUB' ? t('Klub') : t('Kontakt')}</td>
+                        <td className="nowrap muted">{fmtDateTime(i.createdAt, t)}</td>
                       </tr>
                     ))}
                   </tbody>

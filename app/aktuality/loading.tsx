@@ -1,7 +1,9 @@
 // Kým sa novinky načítajú: obrysy kariet namiesto prázdnej stránky.
-export default function Loading() {
+import { getT } from '@/lib/i18n/server';
+export default async function Loading() {
+  const t = await getT();
   return (
-    <section className="wrap sk2" aria-busy="true" aria-label="Načítavam novinky">
+    <section className="wrap sk2" aria-busy="true" aria-label={t('Načítavam novinky')}>
       <i className="sk2__title" />
       <div className="sk2__grid">
         {[0, 1, 2].map((i) => (

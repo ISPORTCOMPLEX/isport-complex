@@ -3,15 +3,19 @@
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
+import type { Locale } from '@/lib/i18n/config';
+import { useT } from '@/lib/i18n/client';
+import { LangGrid } from './nav/LangSwitch';
+import { msg } from '@/lib/i18n/translate';
 
 export const NAV = [
-  { href: '/aktuality', label: 'Novinky' },
-  { href: '/ladova-plocha', label: 'Ľadová plocha', also: ['/cennik', '/pre-kluby', '/rezervacia'] },
-  { href: '/ihrisko', label: 'Ihrisko' },
-  { href: '/fitness-wellness', label: 'Fitness a wellness' },
-  { href: '/bufet-skyboxy', label: 'Bufet a skyboxy' },
-  { href: '/fotky', label: 'Fotky' },
-  { href: '/kontakt', label: 'Kontakt' },
+  { href: '/aktuality', label: msg('Novinky') },
+  { href: '/ladova-plocha', label: msg('Ľadová plocha'), also: ['/cennik', '/pre-kluby', '/rezervacia'] },
+  { href: '/ihrisko', label: msg('Ihrisko') },
+  { href: '/fitness-wellness', label: msg('Fitness a wellness') },
+  { href: '/bufet-skyboxy', label: msg('Bufet a skyboxy') },
+  { href: '/fotky', label: msg('Fotky') },
+  { href: '/kontakt', label: msg('Kontakt') },
 ];
 
 function isActive(pathname: string, item: (typeof NAV)[number]) {
@@ -21,12 +25,13 @@ function isActive(pathname: string, item: (typeof NAV)[number]) {
 }
 
 export function NavLinks() {
+  const t = useT();
   const pathname = usePathname() ?? '/';
   return (
-    <nav aria-label="Hlavné menu" className="hd__nav">
+    <nav aria-label={t('Hlavné menu')} className="hd__nav">
       {NAV.map((item) => (
         <Link key={item.href} href={item.href} aria-current={isActive(pathname, item) ? 'page' : undefined}>
-          {item.label}
+          {t(item.label)}
         </Link>
       ))}
     </nav>
@@ -34,35 +39,36 @@ export function NavLinks() {
 }
 
 const MOBILE: { href: string; label: string; match: string[]; sub?: { href: string; label: string }[] }[] = [
-  { href: '/aktuality', label: 'Novinky', match: ['/aktuality'] },
+  { href: '/aktuality', label: msg('Novinky'), match: ['/aktuality'] },
   {
     href: '/ladova-plocha',
-    label: 'Ľadová plocha',
+    label: msg('Ľadová plocha'),
     match: ['/ladova-plocha', '/rezervacia', '/cennik', '/pre-kluby'],
     sub: [
-      { href: '/rezervacia', label: 'Rezervácia' },
-      { href: '/cennik', label: 'Cenník a storno' },
-      { href: '/pre-kluby', label: 'Pre kluby a školy' },
+      { href: '/rezervacia', label: msg('Rezervácia') },
+      { href: '/cennik', label: msg('Cenník a storno') },
+      { href: '/pre-kluby', label: msg('Pre kluby a školy') },
     ],
   },
   {
     href: '/bufet-skyboxy',
-    label: 'Komplex',
+    label: msg('Komplex'),
     match: ['/bufet-skyboxy', '/ihrisko', '/fitness-wellness'],
     sub: [
-      { href: '/bufet-skyboxy', label: 'Bufet a skyboxy' },
-      { href: '/ihrisko', label: 'Futbalové ihrisko' },
-      { href: '/fitness-wellness', label: 'Fitness a wellness' },
+      { href: '/bufet-skyboxy', label: msg('Bufet a skyboxy') },
+      { href: '/ihrisko', label: msg('Futbalové ihrisko') },
+      { href: '/fitness-wellness', label: msg('Fitness a wellness') },
     ],
   },
-  { href: '/fotky', label: 'Fotky', match: ['/fotky'] },
-  { href: '/kontakt', label: 'Kontakt', match: ['/kontakt'] },
+  { href: '/fotky', label: msg('Fotky'), match: ['/fotky'] },
+  { href: '/kontakt', label: msg('Kontakt'), match: ['/kontakt'] },
 ];
 const inSection = (path: string, list: string[]) => list.some((p) => path === p || path.startsWith(`${p}/`));
 
 // Mobilné menu na <details> – funguje aj bez JavaScriptu. Po zmene stránky sa zavrie (key).
 // Escape menu zavrie a vráti fokus na tlačidlo (WCAG 2.1.2, 2.4.3).
-export function MobileNav({ loggedIn = false, staff = false, address = '' }: { loggedIn?: boolean; staff?: boolean; address?: string }) {
+export function MobileNav({ locale, loggedIn = false, staff = false, address = '' }: { locale: Locale; loggedIn?: boolean; staff?: boolean; address?: string }) {
+  const t = useT();
   const pathname = usePathname() ?? '/';
   const ref = useRef<HTMLDetailsElement | null>(null);
   useEffect(() => {
@@ -81,7 +87,7 @@ export function MobileNav({ loggedIn = false, staff = false, address = '' }: { l
   const open = active >= 0 && MOBILE[active].sub ? active : 1;
   return (
     <details className="mnav" key={pathname} ref={ref}>
-      <summary aria-label="Menu">
+      <summary aria-label={t('Menu')}>
         <span className="mnav__ic mnav__ic--open" aria-hidden="true">
           <svg width="22" height="22" viewBox="0 0 24 24">
             <path d="M5 7h14M5 12h14M5 17h9" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" fill="none" />
@@ -97,16 +103,16 @@ export function MobileNav({ loggedIn = false, staff = false, address = '' }: { l
         <span className="mnav__bgword" aria-hidden="true">
           IS
         </span>
-        <nav className="mnav__nav" aria-label="Mobilné menu">
+        <nav className="mnav__nav" aria-label={t('Mobilné menu')}>
           {MOBILE.map((m, i) => (
             <div key={m.href} className={`mnav__grp${i === open && m.sub ? ' has-sub' : ''}`}>
               <Link href={m.href} className={`mnav__big${i === active ? ' is-active' : ''}`} aria-current={pathname === m.href ? 'page' : undefined}>
-                {m.label}
+                {t(m.label)}
               </Link>
               {i === open && m.sub
                 ? m.sub.map((s) => (
                     <Link key={s.href + s.label} href={s.href} className="mnav__sub" aria-current={pathname === s.href ? 'page' : undefined}>
-                      {s.label}
+                      {t(s.label)}
                     </Link>
                   ))
                 : null}
@@ -115,16 +121,18 @@ export function MobileNav({ loggedIn = false, staff = false, address = '' }: { l
         </nav>
         <div className="mnav__foot">
           <Link href="/rezervacia" className="sbtn sbtn--block">
-            Rezervovať ľad
+            {t('Rezervovať ľad')}
           </Link>
           {staff ? (
             <Link href="/admin" className="sbtn sbtn--ghost sbtn--block sbtn--sm mnav__admin">
-              Administrácia
+              {t('Administrácia')}
             </Link>
           ) : null}
           <Link href={loggedIn ? '/ucet' : '/prihlasenie'} className="sbtn sbtn--ghost sbtn--block sbtn--sm">
-            {loggedIn ? 'Môj účet' : 'Prihlásiť sa'}
+            {loggedIn ? t('Môj účet') : t('Prihlásiť sa')}
           </Link>
+          <p className="mnav__lang-t">{t('Jazyk webu')}</p>
+          <LangGrid locale={locale} className="mnav__lang" />
           {address ? <span className="mnav__addr">{address}</span> : null}
         </div>
       </div>

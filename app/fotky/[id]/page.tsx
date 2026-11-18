@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ViewerKeys } from '@/components/photos/ViewerKeys';
 import { SLOT_PAGE, galleryPhotos, isSlot, type GalleryPhoto } from '@/lib/media';
+import { getT } from '@/lib/i18n/server';
 
 // Prehliadač jednej fotky (ako „media viewer“ na IMDb). Každá fotka má vlastnú adresu – dá sa poslať odkazom.
 // ?v=vsetky prechádza všetkými fotkami komplexu, inak len fotkami tej istej sekcie.
@@ -22,12 +23,14 @@ async function load(id: string, v?: string) {
 }
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  const t = await getT();
   const r = await load((await params).id, (await searchParams).v);
-  if (!r) return { title: 'Fotka' };
-  return { title: `${r.photo.label} – fotka ${r.idx + 1} z ${r.list.length}`, description: r.photo.alt };
+  if (!r) return { title: t('Fotka') };
+  return { title: t('{label} – fotka {v} z {length}', { label: t(r.photo.label), v: r.idx + 1, length: r.list.length }), description: r.photo.alt };
 }
 
 export default async function PhotoViewer({ params, searchParams }: Props) {
+  const t = await getT();
   const r = await load((await params).id, (await searchParams).v);
   if (!r) notFound();
   const { photo, list, idx, scope } = r;
@@ -46,16 +49,17 @@ export default async function PhotoViewer({ params, searchParams }: Props) {
   return (
     <div className="pv">
       <div className="pv__top">
-        <Link href={close} className="pv__btn" aria-label="Zavrieť prehliadač fotiek">
+        <Link href={close} className="pv__btn" aria-label={t('Zavrieť prehliadač fotiek')}>
           <span className="pv__ic">
             <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
             </svg>
           </span>
-          <span>Zavrieť</span>
+          <span>{t('Zavrieť')}</span>
         </Link>
         <span className="pv__count" aria-live="polite">
-          <b>{idx + 1}</b> z {n}
+          <b>{idx + 1}</b> {' '}{t('z {n}', { n })}
+        
         </span>
         <Link href={allHref} className="pv__btn pv__btn--r">
           <span className="pv__ic">
@@ -63,7 +67,7 @@ export default async function PhotoViewer({ params, searchParams }: Props) {
               <path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="currentColor" />
             </svg>
           </span>
-          <span>Všetky fotky</span>
+          <span>{t('Všetky fotky')}</span>
         </Link>
       </div>
 
@@ -76,12 +80,12 @@ export default async function PhotoViewer({ params, searchParams }: Props) {
         </picture>
         {n > 1 ? (
           <>
-            <Link href={prev} replace scroll={false} className="pv__nav pv__nav--prev" aria-label="Predchádzajúca fotka">
+            <Link href={prev} replace scroll={false} className="pv__nav pv__nav--prev" aria-label={t('Predchádzajúca fotka')}>
               <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M15 5l-7 7 7 7" stroke="currentColor" strokeWidth="2.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </Link>
-            <Link href={next} replace scroll={false} className="pv__nav pv__nav--next" aria-label="Ďalšia fotka">
+            <Link href={next} replace scroll={false} className="pv__nav pv__nav--next" aria-label={t('Ďalšia fotka')}>
               <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -94,13 +98,13 @@ export default async function PhotoViewer({ params, searchParams }: Props) {
         <div className="pv__cap">
           <h1>{photo.alt}</h1>
           <p>
-            <Link href={SLOT_PAGE[photo.slot]}>{photo.label}</Link> · I-SPORT COMPLEX Košice
+            <Link href={SLOT_PAGE[photo.slot]}>{t(photo.label)}</Link> {' '}{t('· I-SPORT COMPLEX Košice')}
           </p>
         </div>
         {n > 1 ? (
-          <nav className="pv__thumbs" aria-label="Ďalšie fotky">
+          <nav className="pv__thumbs" aria-label={t('Ďalšie fotky')}>
             {thumbs.map(({ p, i }) => (
-              <Link key={p.id} href={at(i)} replace scroll={false} className="pv__th" aria-current={i === idx ? 'true' : undefined} aria-label={`Fotka ${i + 1} z ${n}`}>
+              <Link key={p.id} href={at(i)} replace scroll={false} className="pv__th" aria-current={i === idx ? 'true' : undefined} aria-label={t('Fotka {v} z {n}', { v: i + 1, n })}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.thumb} alt="" width={96} height={64} loading="lazy" decoding="async" draggable={false} />
               </Link>
@@ -110,17 +114,17 @@ export default async function PhotoViewer({ params, searchParams }: Props) {
         {n > 1 ? (
           <>
             <div className="pv__hints" aria-hidden="true">
-              <span className="pv__hint">← → šípky na klávesnici</span>
-              <span className="pv__hint">Esc zavrie</span>
+              <span className="pv__hint">{t('← → šípky na klávesnici')}</span>
+              <span className="pv__hint">{t('Esc zavrie')}</span>
             </div>
             <div className="pv__mnav">
-              <Link href={prev} replace scroll={false} className="pv__nav" aria-label="Predchádzajúca fotka">
+              <Link href={prev} replace scroll={false} className="pv__nav" aria-label={t('Predchádzajúca fotka')}>
                 <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M15 5l-7 7 7 7" stroke="currentColor" strokeWidth="2.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </Link>
-              <small>alebo potiahni prstom</small>
-              <Link href={next} replace scroll={false} className="pv__nav pv__nav--next" aria-label="Ďalšia fotka">
+              <small>{t('alebo potiahni prstom')}</small>
+              <Link href={next} replace scroll={false} className="pv__nav pv__nav--next" aria-label={t('Ďalšia fotka')}>
                 <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>

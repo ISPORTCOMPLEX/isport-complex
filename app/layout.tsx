@@ -9,7 +9,10 @@ import { BookingHeader } from '@/components/booking/BookingHeader';
 import { Analytics } from '@/components/Analytics';
 import { PhotoGuard } from '@/components/PhotoGuard';
 import { appUrl } from '@/lib/requestInfo';
+import { getClientDict } from '@/lib/i18n/server';
+import { I18nProvider } from '@/lib/i18n/client';
 import './globals.css';
+import { getT } from '@/lib/i18n/server';
 
 // Archivo s osou šírky (wdth) – úzky šikmý rez na nadpisy, normálny na text.
 // next/font si písmo stiahne pri builde a servíruje ho z našej domény (CSP font-src 'self').
@@ -38,19 +41,22 @@ const displayWide = localFont({
   preload: false,
 });
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return {
   metadataBase: new URL(appUrl() ?? 'http://localhost:3000'),
   title: {
-    default: 'I-SPORT COMPLEX – športový komplex Košice',
-    template: '%s · I-SPORT COMPLEX',
+    default: t('I-SPORT COMPLEX – športový komplex Košice'),
+    template: t('%s · I-SPORT COMPLEX'),
   },
-  description: 'Športový komplex v Košiciach: tréningová ľadová plocha s online rezerváciou, futbalové ihrisko, bufet a skyboxy, pripravujeme wellness a posilňovňu.',
+  description: t('Športový komplex v Košiciach: tréningová ľadová plocha s online rezerváciou, futbalové ihrisko, bufet a skyboxy, pripravujeme wellness a posilňovňu.'),
   // autor webu – <meta name="author"> a <link rel="author" href="/humans.txt">
-  authors: [{ name: 'Matúš Bereš', url: '/humans.txt' }],
-  creator: 'Matúš Bereš',
+  authors: [{ name: t('Matúš Bereš'), url: '/humans.txt' }],
+  creator: t('Matúš Bereš'),
   // web pridaný na plochu iPhonu sa otvorí na celú obrazovku s vlastným názvom
   appleWebApp: { capable: true, title: 'I-SPORT', statusBarStyle: 'black' },
 };
+}
 
 export const viewport: Viewport = {
   themeColor: '#0A0A0A',
@@ -58,21 +64,25 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const t = await getT();
   // Prečítanie hlavičiek prepne stránky na dynamické vykresľovanie,
   // aby Next.js pridal jednorazový nonce z proxy.ts ku každému skriptu.
   await headers();
+  const { locale, dict } = await getClientDict();
 
   return (
-    <html lang="sk" className={`${archivo.variable} ${display.variable} ${displayWide.variable}`}>
+    <html lang={locale} className={`${archivo.variable} ${display.variable} ${displayWide.variable}`}>
       <body>
+        <I18nProvider locale={locale} dict={dict}>
         <a href="#obsah" className="sr-only skip">
-          Preskočiť na obsah
+          {t('Preskočiť na obsah')}
         </a>
         <SiteChrome header={<Header />} bookingHeader={<BookingHeader />} footer={<Footer />}>
           {children}
         </SiteChrome>
         <Analytics />
         <PhotoGuard />
+        </I18nProvider>
       </body>
     </html>
   );

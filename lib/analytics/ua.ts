@@ -1,3 +1,4 @@
+import { msg } from '@/lib/i18n/translate';
 // Hrubé rozpoznanie zariadenia a prehliadača z User-Agent. Žiadny fingerprinting.
 const BOT = /bot|crawl|spider|slurp|bing|yandex|baidu|duckduck|facebookexternalhit|embedly|preview|headless|lighthouse|pagespeed|gtmetrix|pingdom|uptime|monitor|curl|wget|python|axios|node-fetch|go-http|java\/|httpclient|okhttp|scrapy|phantom|selenium|playwright|puppeteer/i;
 
@@ -18,7 +19,7 @@ export function browser(ua: string): string {
   if (/firefox|fxios/i.test(ua)) return 'Firefox';
   if (/chrome|crios/i.test(ua)) return 'Chrome';
   if (/safari/i.test(ua)) return 'Safari';
-  return 'Iný';
+  return msg('Iný');
 }
 
 export function os(ua: string): string {
@@ -27,19 +28,19 @@ export function os(ua: string): string {
   if (/windows/i.test(ua)) return 'Windows';
   if (/mac os x|macintosh/i.test(ua)) return 'macOS';
   if (/linux/i.test(ua)) return 'Linux';
-  return 'Iný';
+  return msg('Iný');
 }
 
 // Zdroj návštevy z domény odkazujúcej stránky.
 export function sourceOf(refHost: string | null, utm: string | null): string {
   if (utm) return utm.toLowerCase().slice(0, 40);
-  if (!refHost) return 'Priamo';
+  if (!refHost) return msg('Priamo');
   const h = refHost.toLowerCase();
   if (/google\./.test(h)) return 'Google';
-  if (/bing\.|duckduckgo|seznam|yahoo|ecosia/.test(h)) return 'Vyhľadávače';
+  if (/bing\.|duckduckgo|seznam|yahoo|ecosia/.test(h)) return msg('Vyhľadávače');
   if (/facebook|fb\.|instagram|messenger/.test(h)) return 'Facebook / Instagram';
   if (/tiktok/.test(h)) return 'TikTok';
   if (/youtube|youtu\.be/.test(h)) return 'YouTube';
-  if (/whatsapp|t\.me|telegram|viber/.test(h)) return 'Messengery';
-  return 'Odkazy';
+  if (/whatsapp|t\.me|telegram|viber/.test(h)) return msg('Messengery');
+  return msg('Odkazy');
 }

@@ -2,19 +2,20 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useT } from '@/lib/i18n/client';
 
 export type QbSlot = { hour: number; ok: boolean; past: boolean; price: number };
-export type QbDay = { iso: string; short: string; num: string; long: string; name: string; date: string; slots: QbSlot[] };
+export type QbDay = { iso: string; short: string; today: boolean; num: string; long: string; name: string; date: string; slots: QbSlot[] };
 
 const pad = (h: number) => `${String(h).padStart(2, '0')}:00`;
 const eur = (v: number) => `${v.toLocaleString('sk-SK')} €`;
-const word = (n: number) => (n === 1 ? 'voľná' : n >= 2 && n <= 4 ? 'voľné' : 'voľných');
 
 // Rezervácia na úvode – jedna sekcia, dva pohľady:
 //  • Deň: dlaždice dní (s počtom voľných hodín) a dlaždice časov; prvé ťuknutie = začiatok, ďalšie neskoršie voľné = koniec.
 //  • Týždeň: celý týždeň na jeden pohľad (na mobile zoznam dní s najbližšími časmi), voľná hodina vedie rovno do rezervácie.
 // Večerná (vyššia) cena má žltú linku. Súhrn vpravo pokračuje rovno na údaje.
 export function QuickBook({ days, showersEnabled, showerPrice, maxHours }: { days: QbDay[]; showersEnabled: boolean; showerPrice: number; maxHours: number }) {
+  const t = useT();
   const first = Math.max(
     0,
     days.findIndex((d) => d.slots.some((s) => s.ok)),
@@ -51,28 +52,28 @@ export function QuickBook({ days, showersEnabled, showerPrice, maxHours }: { day
   return (
     <div className="qb3">
       <div className="shd qb3__head">
-        <h2 className="disp shd__t">Rozpis ľadu</h2>
-        <div className="qb3__tabs" role="tablist" aria-label="Zobrazenie">
+        <h2 className="disp shd__t">{t('Rozpis ľadu')}</h2>
+        <div className="qb3__tabs" role="tablist" aria-label={t('Zobrazenie')}>
           <button type="button" role="tab" aria-selected={view === 'day'} onClick={() => setView('day')}>
-            Deň
+            {t('Deň')}
           </button>
           <button type="button" role="tab" aria-selected={view === 'week'} onClick={() => setView('week')}>
-            Týždeň
+            {t('Týždeň')}
           </button>
         </div>
         <span className="shd__line" aria-hidden="true" />
         <Link href="/cennik" className="shd__more">
-          Cenník a storno
+          {t('Cenník a storno')}
         </Link>
       </div>
       <div className="qb3__l">
         <div className="qb3__bar">
-          <p className="qb3__info">{view === 'day' ? (day ? `${day.short === 'Dnes' ? 'Dnes' : day.long} · ${nowFree} ${word(nowFree)} ${nowFree === 1 ? 'hodina' : nowFree >= 2 && nowFree <= 4 ? 'hodiny' : 'hodín'}` : '') : 'Ťukni na zelenú hodinu a rovno ju rezervuješ'}</p>
+          <p className="qb3__info">{view === 'day' ? (day ? `${day.today ? t('Dnes') : day.long} · ${t.n(nowFree, '{n} voľná hodina|{n} voľné hodiny|{n} voľných hodín')}` : '') : t('Ťukni na zelenú hodinu a rovno ju rezervuješ')}</p>
         </div>
 
         {view === 'day' ? (
           <>
-            <div className="qb3__days" role="group" aria-label="Deň">
+            <div className="qb3__days" role="group" aria-label={t('Deň')}>
               {days.map((d, i) => {
                 const n = freeCount(d);
                 return (
@@ -81,7 +82,7 @@ export function QuickBook({ days, showersEnabled, showerPrice, maxHours }: { day
                     type="button"
                     className="qb3__day"
                     aria-pressed={i === di}
-                    aria-label={`${d.long}, ${n} ${word(n)}`}
+                    aria-label={`${d.long}, ${t.n(n, '{n} voľná|{n} voľné|{n} voľných')}`}
                     onClick={() => {
                       setDi(i);
                       setStart(null);
@@ -90,12 +91,12 @@ export function QuickBook({ days, showersEnabled, showerPrice, maxHours }: { day
                   >
                     <small>{d.short}</small>
                     <b className="disp">{d.num}</b>
-                    <i className={n ? '' : 'is-none'}>{n ? `${n} ${word(n)}` : 'plno'}</i>
+                    <i className={n ? '' : 'is-none'}>{n ? t.n(n, '{n} voľná|{n} voľné|{n} voľných') : t('plno')}</i>
                   </button>
                 );
               })}
             </div>
-            <div className="qb3__slots" role="group" aria-label="Hodiny dňa">
+            <div className="qb3__slots" role="group" aria-label={t('Hodiny dňa')}>
               {day?.slots
                 .filter((s) => !s.past)
                 .map((s) => (
@@ -108,19 +109,20 @@ export function QuickBook({ days, showersEnabled, showerPrice, maxHours }: { day
                     onClick={() => pick(s.hour)}
                   >
                     <b className="disp">{pad(s.hour)}</b>
-                    <span>{s.ok ? eur(s.price) : 'obsadené'}</span>
+                    <span>{s.ok ? eur(s.price) : t('obsadené')}</span>
                   </button>
                 ))}
             </div>
-            {day && !day.slots.some((s) => !s.past) ? <p className="qb3__none">Na dnes je po tréningoch – vyber iný deň.</p> : null}
+            {day && !day.slots.some((s) => !s.past) ? <p className="qb3__none">{t('Na dnes je po tréningoch – vyber iný deň.')}</p> : null}
             <p className="qb3__hint">
               {day?.slots.some((s) => s.price > base) ? (
                 <>
                   <i aria-hidden="true" />
-                  vyššia (večerná) cena ·{' '}
+                  {t('vyššia (večerná) cena ·')}{' '}
+                
                 </>
               ) : null}
-              ďalším ťuknutím na neskorší čas vyberieš viac hodín
+              {t('ďalším ťuknutím na neskorší čas vyberieš viac hodín')}
             </p>
           </>
         ) : (
@@ -129,23 +131,23 @@ export function QuickBook({ days, showersEnabled, showerPrice, maxHours }: { day
       </div>
 
       <div className="qb3__sum" aria-live="polite">
-        <span className="eb eb--muted">Tvoja rezervácia</span>
+        <span className="eb eb--muted">{t('Tvoja rezervácia')}</span>
         <span className="qb3__when">
-          <span>{day ? `${day.short === 'Dnes' ? 'Dnes · ' : ''}${day.long}` : ''}</span>
-          <span className={`disp qb3__time${hours ? '' : ' is-empty'}`}>{hours ? `${pad(start!)} – ${pad(start! + hours)}` : 'Vyber hodinu'}</span>
+          <span>{day ? `${day.today ? `${t('Dnes')} · ` : ''}${day.long}` : ''}</span>
+          <span className={`disp qb3__time${hours ? '' : ' is-empty'}`}>{hours ? `${pad(start!)} – ${pad(start! + hours)}` : t('Vyber hodinu')}</span>
         </span>
         <div className="qb3__rows">
           <span>
-            <span>Celá plocha{hours ? ` · ${hours} h` : ''}</span>
+            <span>{t('Celá plocha')}{hours ? t(' · {hours} h', { hours }) : ''}</span>
             <b>{hours ? eur(ice) : '—'}</b>
           </span>
           <span>
-            <span>Šatňa a úprava ľadu</span>
-            <b className="is-green">v cene</b>
+            <span>{t('Šatňa a úprava ľadu')}</span>
+            <b className="is-green">{t('v cene')}</b>
           </span>
           {showersEnabled ? (
             <label className="qb3__sw">
-              <span>Sprchy pre tím</span>
+              <span>{t('Sprchy pre tím')}</span>
               <span className="qb3__swr">
                 <b>+ {eur(showerPrice)}</b>
                 <input type="checkbox" role="switch" className="sw" checked={showers} onChange={(e) => setShowers(e.target.checked)} />
@@ -154,11 +156,11 @@ export function QuickBook({ days, showersEnabled, showerPrice, maxHours }: { day
           ) : null}
         </div>
         <span className="qb3__total">
-          <b>Spolu s DPH</b>
+          <b>{t('Spolu s DPH')}</b>
           <span className="disp">{hours ? eur(total) : '—'}</span>
         </span>
         <Link href={href} className="sbtn sbtn--block">
-          {hours ? 'Pokračovať' : 'Všetky časy'}
+          {hours ? t('Pokračovať') : t('Všetky časy')}
           <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="3" />
           </svg>
@@ -169,6 +171,7 @@ export function QuickBook({ days, showersEnabled, showerPrice, maxHours }: { day
 }
 
 function Week({ days }: { days: QbDay[] }) {
+  const t = useT();
   const hours = days[0]?.slots.map((s) => s.hour) ?? [];
   return (
     <>
@@ -177,7 +180,7 @@ function Week({ days }: { days: QbDay[] }) {
           <thead>
             <tr>
               <th scope="col">
-                <span className="sr-only">Deň</span>
+                <span className="sr-only">{t('Deň')}</span>
               </th>
               {hours.map((h) => (
                 <th key={h} scope="col">
@@ -196,14 +199,14 @@ function Week({ days }: { days: QbDay[] }) {
                 {d.slots.map((s) => (
                   <td key={s.hour}>
                     {s.ok ? (
-                      <Link href={`/rezervacia?datum=${d.iso}&cas=${s.hour}`} className="qb3__c is-free" aria-label={`${d.name} ${pad(s.hour)}, voľné, ${eur(s.price)}`}>
+                      <Link href={`/rezervacia?datum=${d.iso}&cas=${s.hour}`} className="qb3__c is-free" aria-label={t('{name} {pad}, voľné, {eur}', { name: d.name, pad: pad(s.hour), eur: eur(s.price) })}>
                         <span className="qb3__tip" aria-hidden="true">
                           <b>{pad(s.hour)}</b>
                           {eur(s.price)}
                         </span>
                       </Link>
                     ) : (
-                      <span className={`qb3__c ${s.past ? 'is-past' : 'is-busy'}`} aria-label={`${d.name} ${pad(s.hour)}, ${s.past ? 'prebehlo' : 'obsadené'}`} />
+                      <span className={`qb3__c ${s.past ? 'is-past' : 'is-busy'}`} aria-label={`${d.name} ${pad(s.hour)}, ${s.past ? t('prebehlo') : t('obsadené')}`} />
                     )}
                   </td>
                 ))}
@@ -214,15 +217,15 @@ function Week({ days }: { days: QbDay[] }) {
         <div className="qb3__leg" aria-hidden="true">
           <span>
             <i className="is-free" />
-            voľné
+            {t('voľné')}
           </span>
           <span>
             <i className="is-busy" />
-            obsadené
+            {t('obsadené')}
           </span>
           <span>
             <i className="is-past" />
-            prebehlo
+            {t('prebehlo')}
           </span>
         </div>
       </div>
@@ -235,18 +238,18 @@ function Week({ days }: { days: QbDay[] }) {
               <span className="qb3__mday">
                 {d.name}
                 <small>
-                  {d.date} · {free.length ? `${free.length} voľ.` : 'plno'}
+                  {d.date} · {free.length ? t('{length} voľ.', { length: free.length }) : t('plno')}
                 </small>
               </span>
               <span className="qb3__mchips">
                 {free.slice(0, 3).map((s) => (
-                  <Link key={s.hour} href={`/rezervacia?datum=${d.iso}&cas=${s.hour}`} className="qb3__chip" aria-label={`${d.name} ${pad(s.hour)}, voľné`}>
+                  <Link key={s.hour} href={`/rezervacia?datum=${d.iso}&cas=${s.hour}`} className="qb3__chip" aria-label={t('{name} {pad}, voľné', { name: d.name, pad: pad(s.hour) })}>
                     {pad(s.hour)}
                   </Link>
                 ))}
               </span>
               {free.length > 3 ? (
-                <Link href={`/rezervacia?datum=${d.iso}`} className="qb3__more" aria-label={`${d.name}: ďalších ${free.length - 3} voľných časov`}>
+                <Link href={`/rezervacia?datum=${d.iso}`} className="qb3__more" aria-label={t('{name}: ďalších {v} voľných časov', { name: d.name, v: free.length - 3 })}>
                   +{free.length - 3}
                 </Link>
               ) : null}

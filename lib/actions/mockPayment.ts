@@ -8,9 +8,11 @@ import { getBaseUrl } from '@/lib/requestInfo';
 import { getSessionUser } from '@/lib/session';
 import { randomToken } from '@/lib/crypto';
 import { str } from '@/lib/validate';
+import { getT } from '@/lib/i18n/server';
 
 // Tlačidlá testovacej brány. Fungujú len keď PAYMENTS_PROVIDER=mock (nikdy na produkcii).
 export async function mockPayAction(form: FormData): Promise<void> {
+  const t = await getT();
   const provider = getProvider();
   if (provider?.id !== 'mock') redirect('/');
   const user = await getSessionUser();
@@ -24,7 +26,7 @@ export async function mockPayAction(form: FormData): Promise<void> {
     redirect(`/rezervacia/${p.booking.code}?platba=ok`);
   }
   if (outcome === 'fail') {
-    await markUnsuccessful(ref, 'FAILED', 'Testovacia platba zlyhala', base);
+    await markUnsuccessful(ref, 'FAILED', t('Testovacia platba zlyhala'), base);
     redirect(`/rezervacia/${p.booking.code}?platba=zlyhala`);
   }
   redirect(`/rezervacia/${p.booking.code}?platba=zrusena`);

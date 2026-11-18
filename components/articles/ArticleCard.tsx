@@ -1,15 +1,17 @@
 import Link from 'next/link';
 import { CloudImage } from '@/components/CloudImage';
 import { articleImage, fmtDuration, fmtShortDate, type ArticleCard as Card } from '@/lib/articles/queries';
+import { getT } from '@/lib/i18n/server';
 
-export function VideoBadge({ seconds }: { seconds: number | null }) {
+export async function VideoBadge({ seconds }: { seconds: number | null }) {
+  const t = await getT();
   if (seconds === null) return null;
   return (
     <span className="ac__vid">
       <svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M7 4v16l13-8z" fill="currentColor" />
       </svg>
-      Video{seconds > 0 ? ` ${fmtDuration(seconds)}` : ''}
+      {t('Video')}{seconds > 0 ? ` ${fmtDuration(seconds)}` : ''}
     </span>
   );
 }
@@ -28,7 +30,8 @@ export function CoverImg({ a, ratio, sizes, priority, className }: { a: Card; ra
 }
 
 // Karta článku v mriežke
-export function ArticleCard({ a }: { a: Card }) {
+export async function ArticleCard({ a }: { a: Card }) {
+  const t = await getT();
   return (
     <article className="ac">
       <Link href={`/aktuality/${a.slug}`} className="ac__link">
@@ -37,11 +40,11 @@ export function ArticleCard({ a }: { a: Card }) {
           <VideoBadge seconds={a.videoSeconds} />
         </span>
         <span className="ac__body">
-          <span className="ac__cat">{a.categoryLabel}</span>
+          <span className="ac__cat">{t(a.categoryLabel)}</span>
           <h3 className="ac__title">{a.title}</h3>
           {a.perex ? <span className="ac__perex">{a.perex}</span> : null}
           <span className="ac__meta">
-            <time dateTime={a.date.toISOString()}>{fmtShortDate(a.date)}</time> · {a.readMinutes} min čítania
+            <time dateTime={a.date.toISOString()}>{fmtShortDate(a.date, t)}</time> {' '}{t('· {readMinutes} min čítania', { readMinutes: a.readMinutes })} 
           </span>
         </span>
       </Link>

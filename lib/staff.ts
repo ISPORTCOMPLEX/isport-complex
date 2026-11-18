@@ -1,6 +1,7 @@
 import 'server-only';
 import { notFound, redirect } from 'next/navigation';
 import { getSessionUser, type SessionUser } from './session';
+import { msg } from '@/lib/i18n/translate';
 
 // Personál a oprávnenia. Zákazník ani neprihlásený návštevník administráciu neuvidí (404).
 // Každý člen personálu musí mať zapnuté dvojstupňové overenie.
@@ -30,11 +31,11 @@ const PERMS: Record<string, Permission[]> = {
 };
 
 export const ROLE_LABEL: Record<string, string> = {
-  CUSTOMER: 'Zákazník',
-  CLUB_MANAGER: 'Manažér klubu',
-  RECEPTION: 'Recepcia',
-  ACCOUNTANT: 'Účtovníctvo',
-  ADMIN: 'Administrátor',
+  CUSTOMER: msg('Zákazník'),
+  CLUB_MANAGER: msg('Manažér klubu'),
+  RECEPTION: msg('Recepcia'),
+  ACCOUNTANT: msg('Účtovníctvo'),
+  ADMIN: msg('Administrátor'),
 };
 
 export function isStaff(role: string): boolean {

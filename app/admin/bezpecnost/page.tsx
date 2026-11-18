@@ -4,8 +4,12 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requireStaff } from '@/lib/staff';
 import { AdmHead, Empty, Panel, Stat, EVENT_LABEL, fmtDateTime, reasonText } from '@/components/admin/ui';
+import { getT } from '@/lib/i18n/server';
 
-export const metadata: Metadata = { title: 'Bezpečnosť' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Bezpečnosť') };
+}
 
 const PER_PAGE = 50;
 const BOT_REASONS = ['honeypot', 'too-fast', 'no-stamp', 'bad-stamp'];
@@ -14,6 +18,7 @@ type Props = { searchParams: Promise<{ typ?: string | string[]; vysledok?: strin
 const one = (v: string | string[] | undefined) => (typeof v === 'string' ? v : '');
 
 export default async function BezpecnostPage({ searchParams }: Props) {
+  const t = await getT();
   await requireStaff('security.view', '/admin/bezpecnost');
   const sp = await searchParams;
   const typ = Object.keys(EVENT_LABEL).includes(one(sp.typ)) ? one(sp.typ) : '';
@@ -57,64 +62,64 @@ export default async function BezpecnostPage({ searchParams }: Props) {
 
   return (
     <div className="adm__stack">
-      <AdmHead title="Bezpečnosť" sub="Prihlásenia, registrácie a zastavené útoky" />
+      <AdmHead title={t('Bezpečnosť')} sub={t('Prihlásenia, registrácie a zastavené útoky')} />
 
       <div className="adm-stats">
-        <Stat label="Úspešné prihlásenia" value={okLogins} note="za 24 h" tone="ok" />
-        <Stat label="Neúspešné prihlásenia" value={badLogins} note="za 24 h" tone={badLogins > 20 ? 'red' : undefined} />
-        <Stat label="Zastavení boti" value={bots} note="skryté pole a časová pasca, 24 h" />
-        <Stat label="Dočasné e-maily" value={disposable} note="odmietnuté registrácie, 24 h" />
+        <Stat label={t('Úspešné prihlásenia')} value={okLogins} note={t('za 24 h')} tone="ok" />
+        <Stat label={t('Neúspešné prihlásenia')} value={badLogins} note={t('za 24 h')} tone={badLogins > 20 ? 'red' : undefined} />
+        <Stat label={t('Zastavení boti')} value={bots} note={t('skryté pole a časová pasca, 24 h')} />
+        <Stat label={t('Dočasné e-maily')} value={disposable} note={t('odmietnuté registrácie, 24 h')} />
       </div>
 
       <div className="adm-grid adm-grid--wide">
-        <Panel title="Záznamy">
+        <Panel title={t('Záznamy')}>
           <form className="adm-filterbar" action="/admin/bezpecnost">
-            <select name="typ" defaultValue={typ} className="adm-select" aria-label="Typ udalosti">
-              <option value="">Všetky typy</option>
+            <select name="typ" defaultValue={typ} className="adm-select" aria-label={t('Typ udalosti')}>
+              <option value="">{t('Všetky typy')}</option>
               {Object.entries(EVENT_LABEL).map(([k, v]) => (
                 <option key={k} value={k}>
-                  {v}
+                  {t(v)}
                 </option>
               ))}
             </select>
-            <select name="vysledok" defaultValue={vysledok} className="adm-select" aria-label="Výsledok">
-              <option value="">Úspech aj chyba</option>
-              <option value="ok">Len úspešné</option>
-              <option value="chyba">Len neúspešné</option>
+            <select name="vysledok" defaultValue={vysledok} className="adm-select" aria-label={t('Výsledok')}>
+              <option value="">{t('Úspech aj chyba')}</option>
+              <option value="ok">{t('Len úspešné')}</option>
+              <option value="chyba">{t('Len neúspešné')}</option>
             </select>
-            <input name="ip" defaultValue={ip} placeholder="IP adresa" className="adm-input" aria-label="IP adresa" maxLength={64} />
-            <button className="btn btn--sm">Filtrovať</button>
+            <input name="ip" defaultValue={ip} placeholder={t('IP adresa')} className="adm-input" aria-label={t('IP adresa')} maxLength={64} />
+            <button className="btn btn--sm">{t('Filtrovať')}</button>
             {typ || vysledok || ip ? (
               <Link href="/admin/bezpecnost" className="link-red">
-                Zrušiť filter
+                {t('Zrušiť filter')}
               </Link>
             ) : null}
           </form>
 
           {events.length === 0 ? (
-            <Empty>Žiadne záznamy.</Empty>
+            <Empty>{t('Žiadne záznamy.')}</Empty>
           ) : (
             <div className="adm-table-wrap">
               <table className="adm-table">
                 <thead>
                   <tr>
-                    <th>Čas</th>
-                    <th>Udalosť</th>
-                    <th>Výsledok</th>
-                    <th>E-mail / účet</th>
+                    <th>{t('Čas')}</th>
+                    <th>{t('Udalosť')}</th>
+                    <th>{t('Výsledok')}</th>
+                    <th>{t('E-mail / účet')}</th>
                     <th>IP</th>
                   </tr>
                 </thead>
                 <tbody>
                   {events.map((e) => (
                     <tr key={e.id}>
-                      <td className="nowrap">{fmtDateTime(e.createdAt)}</td>
-                      <td>{EVENT_LABEL[e.type] ?? e.type}</td>
+                      <td className="nowrap">{fmtDateTime(e.createdAt, t)}</td>
+                      <td>{EVENT_LABEL[e.type] ? t(EVENT_LABEL[e.type]) : e.type}</td>
                       <td>
-                        <span className={`adm-dot ${e.ok ? 'adm-dot--ok' : 'adm-dot--bad'}`} /> {e.ok ? 'OK' : 'Chyba'}
-                        {e.reason ? <small className="muted"> · {reasonText(e.reason)}</small> : null}
+                        <span className={`adm-dot ${e.ok ? 'adm-dot--ok' : 'adm-dot--bad'}`} /> {e.ok ? 'OK' : t('Chyba')}
+                        {e.reason ? <small className="muted"> · {reasonText(e.reason, t)}</small> : null}
                       </td>
-                      <td>{e.userId ? <Link href={`/admin/zakaznici/${e.userId}`}>{e.email ?? 'účet'}</Link> : (e.email ?? <span className="muted">—</span>)}</td>
+                      <td>{e.userId ? <Link href={`/admin/zakaznici/${e.userId}`}>{e.email ?? t('účet')}</Link> : (e.email ?? <span className="muted">—</span>)}</td>
                       <td>{e.ip ? <Link href={href({ ip: e.ip, p: 1 })}>{e.ip}</Link> : '—'}</td>
                     </tr>
                   ))}
@@ -123,19 +128,20 @@ export default async function BezpecnostPage({ searchParams }: Props) {
             </div>
           )}
           {pages > 1 ? (
-            <nav className="adm-pager" aria-label="Stránkovanie">
-              {page > 1 ? <Link href={href({ p: page - 1 })}>← Novšie</Link> : <span />}
+            <nav className="adm-pager" aria-label={t('Stránkovanie')}>
+              {page > 1 ? <Link href={href({ p: page - 1 })}>{t('← Novšie')}</Link> : <span />}
               <span className="muted">
-                Strana {page} z {pages}
+                {t('Strana {page} z {pages}', { page, pages })} 
+              
               </span>
-              {page < pages ? <Link href={href({ p: page + 1 })}>Staršie →</Link> : <span />}
+              {page < pages ? <Link href={href({ p: page + 1 })}>{t('Staršie →')}</Link> : <span />}
             </nav>
           ) : null}
         </Panel>
 
-        <Panel title="Najviac neúspechov (24 h)">
+        <Panel title={t('Najviac neúspechov (24 h)')}>
           {topIps.length === 0 ? (
-            <Empty>Žiadne neúspešné pokusy.</Empty>
+            <Empty>{t('Žiadne neúspešné pokusy.')}</Empty>
           ) : (
             <ul className="adm-iplist">
               {topIps.map((r) => (
@@ -146,7 +152,7 @@ export default async function BezpecnostPage({ searchParams }: Props) {
               ))}
             </ul>
           )}
-          <p className="muted adm-note">Limity a zámky účtov fungujú automaticky. Pri trvalom útoku z jednej adresy ju zablokujeme vo Verceli (Firewall).</p>
+          <p className="muted adm-note">{t('Limity a zámky účtov fungujú automaticky. Pri trvalom útoku z jednej adresy ju zablokujeme vo Verceli (Firewall).')}</p>
         </Panel>
       </div>
     </div>

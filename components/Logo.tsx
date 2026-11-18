@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { LOCKUP, MARK } from './brandPaths';
+import { getT } from '@/lib/i18n/server';
 
 // Logo v3 – monogram IS (červené „I“ so špicom, „S“) a nápis I-SPORT / COMPLEX.
 // Všetko ako krivky, takže logo vyzerá rovnako bez ohľadu na načítané písmo.
@@ -31,9 +32,10 @@ export function LogoLockup({ height = 40, tone = 'dark', title = 'I-SPORT COMPLE
   );
 }
 
-export function Logo() {
+export async function Logo() {
+  const t = await getT();
   return (
-    <Link href="/" className="logo" aria-label="I-SPORT COMPLEX, domov">
+    <Link href="/" className="logo" aria-label={t('I-SPORT COMPLEX, domov')}>
       <LogoLockup />
     </Link>
   );

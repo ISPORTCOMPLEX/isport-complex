@@ -2,6 +2,7 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useRef } from 'react';
+import { useT } from '@/lib/i18n/client';
 
 // Drobnosti, ktoré robia web „živým“ – všetko len ako vylepšenie (bez JavaScriptu web funguje rovnako):
 //  • krátke vysunutie novej stránky po prechode (bez čakania na snímku stránky – nič nesekne),
@@ -19,6 +20,7 @@ const THEME: [string, string][] = [
 const BASE = '#0A0A0A';
 
 export function Polish() {
+  const tr = useT();
   const pathname = usePathname();
   const search = useSearchParams();
 

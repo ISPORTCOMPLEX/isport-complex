@@ -13,8 +13,11 @@ import { requireStaff } from '@/lib/staff';
 import { getSite } from '@/lib/siteSettings';
 import { isEmail, normalizeEmail, normalizePhone, isPhone, str } from '@/lib/validate';
 import { sendInquiryNotification, sendInquiryReceipt } from '@/lib/email';
+import { getT, tFor } from '@/lib/i18n/server';
+import { LOCALE_NAMES } from '@/lib/i18n/config';
 
 export async function createInquiryAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const t = await getT();
   const { ip } = await getRequestInfo();
   const type = str(form, 'type', 10) === 'CLUB' ? 'CLUB' : 'CONTACT';
   const values = {
@@ -28,17 +31,17 @@ export async function createInquiryAction(_prev: FormState, form: FormData): Pro
     slots: str(form, 'slots', 300),
   };
   const guard = checkFormGuard(form);
-  if (!guard.ok) return { error: 'Formulár sa nepodarilo odoslať. Obnov stránku a skús to znova.', values };
+  if (!guard.ok) return { error: t('Formulár sa nepodarilo odoslať. Obnov stránku a skús to znova.'), values };
   const limit = await hitLimit(`inquiry:ip:${ip}`, 5, 60 * 60);
-  if (!limit.ok) return { error: `Odoslal si veľa správ. Skús to o ${minutes(limit.retryAfterSec)} min alebo nám zavolaj.`, values };
+  if (!limit.ok) return { error: t('Odoslal si veľa správ. Skús to o {minutes} min alebo nám zavolaj.', { minutes: minutes(limit.retryAfterSec) }), values };
 
   const errors: Record<string, string> = {};
-  if (values.name.length < 2) errors.name = 'Zadaj meno.';
-  if (!isEmail(values.email)) errors.email = 'Zadaj platný e-mail.';
-  if (values.phone && !isPhone(values.phone)) errors.phone = 'Neplatný telefón.';
-  if (type === 'CLUB' && values.organization.length < 2) errors.organization = 'Zadaj názov klubu alebo firmy.';
-  if (values.message.length < 10) errors.message = 'Napíš nám aspoň pár slov.';
-  if (Object.keys(errors).length) return { error: 'Skontroluj označené polia.', errors, values };
+  if (values.name.length < 2) errors.name = t('Zadaj meno.');
+  if (!isEmail(values.email)) errors.email = t('Zadaj platný e-mail.');
+  if (values.phone && !isPhone(values.phone)) errors.phone = t('Neplatný telefón.');
+  if (type === 'CLUB' && values.organization.length < 2) errors.organization = t('Zadaj názov klubu alebo firmy.');
+  if (values.message.length < 10) errors.message = t('Napíš nám aspoň pár slov.');
+  if (Object.keys(errors).length) return { error: t('Skontroluj označené polia.'), errors, values };
 
   const user = await getSessionUser();
   const inquiry = await prisma.inquiry.create({
@@ -48,7 +51,7 @@ export async function createInquiryAction(_prev: FormState, form: FormData): Pro
       email: values.email,
       phone: values.phone || null,
       organization: values.organization || null,
-      subject: type === 'CLUB' ? 'Sezónny prenájom ľadu' : values.subject || 'Správa z webu',
+      subject: type === 'CLUB' ? t('Sezónny prenájom ľadu') : values.subject || t('Správa z webu'),
       message: values.message,
       details: type === 'CLUB' ? { obdobie: values.term, terminy: values.slots } : undefined,
       userId: user?.id ?? null,
@@ -61,22 +64,25 @@ export async function createInquiryAction(_prev: FormState, form: FormData): Pro
   const notifyTo = site.notifyEmail || site.email;
   try {
     if (notifyTo) {
+      // upozornenie pre halu – vždy po slovensky; uvedieme jazyk, v ktorom zákazník písal
       await sendInquiryNotification(
+        tFor('sk'),
         notifyTo,
         `${base}/admin/dopyty/${inquiry.id}`,
-        [
-          { label: 'Typ', value: type === 'CLUB' ? 'Klub / sezónny prenájom' : 'Kontakt' },
-          { label: 'Meno', value: values.name },
-          { label: 'E-mail', value: values.email },
-          ...(values.phone ? [{ label: 'Telefón', value: values.phone }] : []),
-          ...(values.organization ? [{ label: 'Organizácia', value: values.organization }] : []),
-          ...(values.term ? [{ label: 'Obdobie', value: values.term }] : []),
-          ...(values.slots ? [{ label: 'Termíny', value: values.slots }] : []),
+        (h) => [
+          { label: h('Typ'), value: type === 'CLUB' ? h('Klub / sezónny prenájom') : h('Kontakt') },
+          { label: h('Meno'), value: values.name },
+          { label: h('E-mail'), value: values.email },
+          ...(values.phone ? [{ label: h('Telefón'), value: values.phone }] : []),
+          ...(values.organization ? [{ label: h('Organizácia'), value: values.organization }] : []),
+          ...(values.term ? [{ label: h('Obdobie'), value: values.term }] : []),
+          ...(values.slots ? [{ label: h('Termíny'), value: values.slots }] : []),
+          ...(t.locale !== 'sk' ? [{ label: h('Jazyk webu'), value: LOCALE_NAMES[t.locale] }] : []),
         ],
         values.message,
       );
     }
-    await sendInquiryReceipt(values.email, values.name.split(' ')[0], base);
+    await sendInquiryReceipt(t, values.email, values.name.split(' ')[0], base);
   } catch (err) {
     console.error('[email:inquiry]', err);
   }

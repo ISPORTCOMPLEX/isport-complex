@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useT } from '@/lib/i18n/client';
 
 // Tlačidlá pod adresou: Navigovať + na počítači Kopírovať adresu, na mobile Zavolať (ak je telefón).
 export function LocationActions({ links, address, phone = '' }: { links: { directions: string; google: string; waze: string }; address: string; phone?: string }) {
+  const t = useT();
   const [mobile, setMobile] = useState(false);
   const [copied, setCopied] = useState(false);
   useEffect(() => {
@@ -21,15 +23,15 @@ export function LocationActions({ links, address, phone = '' }: { links: { direc
   return (
     <div className="loc2__btns">
       <a href={links.directions} target="_blank" rel="noopener noreferrer" className="sbtn sbtn--md">
-        Navigovať<span className="sr-only"> (otvorí sa v novom okne)</span>
+        {t('Navigovať')}<span className="sr-only"> {' '}{t('(otvorí sa v novom okne)')}</span>
       </a>
       {mobile && phone ? (
         <a href={`tel:${phone.replace(/\s/g, '')}`} className="sbtn sbtn--md sbtn--ghost">
-          Zavolať
+          {t('Zavolať')}
         </a>
       ) : (
         <button type="button" className="sbtn sbtn--md sbtn--ghost" onClick={copy} aria-live="polite">
-          {copied ? 'Skopírované' : 'Kopírovať adresu'}
+          {copied ? t('Skopírované') : t('Kopírovať adresu')}
         </button>
       )}
     </div>

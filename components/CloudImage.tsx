@@ -1,3 +1,5 @@
+'use client';
+
 import type { WebPhoto } from '@/lib/media';
 
 // Fotka webu: AVIF / WebP / JPEG podľa prehliadača, viac veľkostí, lenivé načítanie.

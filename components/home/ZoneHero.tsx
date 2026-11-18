@@ -7,6 +7,7 @@ import { ComplexSky } from '@/components/home/ComplexSky';
 import { ComplexWeather } from '@/components/home/ComplexWeather';
 import { CLEAR, scene, type Weather } from '@/lib/sky';
 import type { Zone } from '@/components/home/ComplexExplorer';
+import { useT } from '@/lib/i18n/client';
 
 // Hero podstránky: ilustrácia areálu priblížená na danú časť, s rovnakým časom a počasím ako na hlavnej stránke.
 const VIEW: Record<Zone | 'all', string> = {
@@ -20,6 +21,7 @@ const VIEW: Record<Zone | 'all', string> = {
 };
 
 export function ZoneHero({ zone, now: initialNow, weather = CLEAR, bare = false }: { zone: Zone | 'all'; now: number; weather?: Weather; bare?: boolean }) {
+  const t = useT();
   const [now, setNow] = useState(initialNow);
   useEffect(() => {
     setNow(Date.now());
@@ -36,7 +38,7 @@ export function ZoneHero({ zone, now: initialNow, weather = CLEAR, bare = false 
       </div>
       {zone === 'all' || bare ? null : (
         <Link href={`/?areal=${zone}#komplex`} className="band2__where">
-          Ukázať v areáli
+          {t('Ukázať v areáli')}
           <span aria-hidden="true">→</span>
         </Link>
       )}

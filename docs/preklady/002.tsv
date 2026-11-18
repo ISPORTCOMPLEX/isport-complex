@@ -1,0 +1,150 @@
+250	Company and bank transfer payments	Firma a platby převodem	Firma und Zahlungen per Überweisung	Cég és átutalásos fizetés
+251	Companies and groups of friends	Firmy a party	Firmen und Freundesgruppen	Cégek és baráti társaságok
+252	Fitness	Fitness	Fitness	Fitnesz
+253	Fitness and wellness	Fitness a wellness	Fitness und Wellness	Fitnesz és wellness
+254	The form could not be submitted. Reload the page and try again.	Formulář se nepodařilo odeslat. Obnov stránku a zkus to znovu.	Das Formular konnte nicht gesendet werden. Lade die Seite neu und versuche es erneut.	Az űrlapot nem sikerült elküldeni. Töltsd újra az oldalt, és próbáld újra.
+255	Text formatting	Formátování textu	Textformatierung	Szövegformázás
+256	Photo	Fotka	Foto	Fotó
+257	The photo must be JPG, PNG, WebP, AVIF or HEIC.	Fotka musí být JPG, PNG, WebP, AVIF nebo HEIC.	Das Foto muss JPG, PNG, WebP, AVIF oder HEIC sein.	A fotó JPG, PNG, WebP, AVIF vagy HEIC lehet.
+258	The photo did not meet the rules and was removed.	Fotka nesplňuje pravidla a byla odstraněna.	Das Foto entsprach nicht den Regeln und wurde entfernt.	A fotó nem felelt meg a szabályoknak, ezért eltávolítottuk.
+259	The photo was not found in Cloudinary.	Fotka se v Cloudinary nenašla.	Das Foto wurde in Cloudinary nicht gefunden.	A fotó nem található a Cloudinaryben.
+260	Photo {n} from the article {title}	Fotka {n} z článku {title}	Foto {n} aus dem Artikel {title}	{n}. fotó a(z) {title} cikkből
+261	Photo {v} of {length}{v2}	Fotka {v} z {length}{v2}	Foto {v} von {length}{v2}	{v}. fotó / {length}{v2}
+262	Photo {v} of {n}	Fotka {v} z {n}	Foto {v} von {n}	{v}. fotó / {n}
+263	Photos	Fotky	Fotos	Fotók
+264	Photos of I-SPORT COMPLEX Košice – ice rink, skyboxes, snack bar, pitch, gym and wellness.	Fotky I-SPORT COMPLEX Košice – ledová plocha, skyboxy, bufet, hřiště, posilovna a wellness.	Fotos von I-SPORT COMPLEX Košice – Eisfläche, Skyboxen, Imbiss, Spielfeld, Fitnessraum und Wellness.	Fotók az I-SPORT COMPLEX Košice-ről – jégpálya, skyboxok, büfé, pálya, edzőterem és wellness.
+265	We will add interior photos before opening.	Fotky interiéru přidáme před otevřením.	Fotos vom Innenbereich fügen wir vor der Eröffnung hinzu.	A belső terekről nyitás előtt teszünk fel fotókat.
+266	Interior photos coming soon.	Fotky interiéru brzy přidáme.	Fotos vom Innenbereich folgen bald.	Belső fotók hamarosan.
+267	Photos have alternative text. The illustration of the complex on the home page has a text description, and each part of it is also available as a normal link.	Fotky mají alternativní text. Ilustrace komplexu na úvodní stránce má textový popis a každá její část je dostupná i jako běžný odkaz.	Fotos haben Alternativtexte. Die Illustration des Komplexes auf der Startseite hat eine Textbeschreibung, und jeder Teil ist auch als normaler Link verfügbar.	A fotóknak van alternatív szövegük. A kezdőlapon lévő komplexum-illusztrációnak szöveges leírása van, és minden része hagyományos hivatkozásként is elérhető.
+268	Photos coming soon.	Fotky připravujeme.	Fotos folgen in Kürze.	A fotók hamarosan érkeznek.
+269	Photos · {title}	Fotky · {title}	Fotos · {title}	Fotók · {title}
+270	Photo: snack bar	Foto: bufet	Foto: Imbiss	Fotó: büfé
+271	Photo: pitch	Foto: hřiště	Foto: Spielfeld	Fotó: pálya
+272	Photo: skybox	Foto: skybox	Foto: Skybox	Fotó: skybox
+273	Football	Fotbalové	Fußball-	Futball-
+274	Football pitch	Fotbalové hřiště	Fußballplatz	Futballpálya
+275	Gallery · {length} photos	Galerie · {length} fotek	Galerie · {length} Fotos	Galéria · {length} fotó
+276	Google Play	Google Play	Google Play	Google Play
+277	Google and sharing	Google a sdílení	Google und Teilen	Google és megosztás
+278	H Subheading	H Mezititulek	H Zwischenüberschrift	H Alcím
+279	Hall 1	Hala 1	Halle 1	1-es csarnok
+280	Hall 1 · upper floor	Hala 1 · patro	Halle 1 · Obergeschoss	1-es csarnok · emelet
+281	Hall 1 · ground floor	Hala 1 · přízemí	Halle 1 · Erdgeschoss	1-es csarnok · földszint
+282	Hall 2 · upper floor	Hala 2 · patro	Halle 2 · Obergeschoss	2-es csarnok · emelet
+283	Hall 2 · ground floor	Hala 2 · přízemí	Halle 2 · Erdgeschoss	2-es csarnok · földszint
+284	The hall may cancel a booking for operational reasons (e.g. equipment failure). In that case it will offer a replacement slot or refund the price paid in full.	Hala může rezervaci zrušit z provozních důvodů (např. porucha technologie). V takovém případě nabídne náhradní termín nebo vrátí zaplacenou cenu v plné výši.	Die Halle kann eine Buchung aus betrieblichen Gründen stornieren (z. B. technische Störung). In diesem Fall bietet sie einen Ersatztermin an oder erstattet den gezahlten Preis vollständig.	A csarnok üzemeltetési okokból (pl. műszaki hiba) lemondhatja a foglalást. Ilyenkor pótidőpontot ajánl, vagy a kifizetett árat teljes egészében visszatéríti.
+285	Password	Heslo	Passwort	Jelszó
+286	The password is too long (max. 72 bytes).	Heslo je příliš dlouhé (max. 72 bajtů).	Das Passwort ist zu lang (max. 72 Bytes).	A jelszó túl hosszú (max. 72 bájt).
+287	Password changed. We have signed you out on other devices.	Heslo je změněno. Na ostatních zařízeních jsme tě odhlásili.	Passwort geändert. Auf anderen Geräten haben wir dich abgemeldet.	A jelszó megváltozott. A többi eszközön kijelentkeztettünk.
+288	Password changed. Sign in with your new password.	Heslo je změněno. Přihlas se novým heslem.	Passwort geändert. Melde dich mit dem neuen Passwort an.	A jelszó megváltozott. Jelentkezz be az új jelszóval.
+289	The password must have at least 8 characters.	Heslo musí mít alespoň 8 znaků.	Das Passwort muss mindestens 8 Zeichen haben.	A jelszónak legalább 8 karakterből kell állnia.
+290	The password must contain a lowercase letter.	Heslo musí obsahovat malé písmeno.	Das Passwort muss einen Kleinbuchstaben enthalten.	A jelszónak tartalmaznia kell kisbetűt.
+291	The password must contain an uppercase letter.	Heslo musí obsahovat velké písmeno.	Das Passwort muss einen Großbuchstaben enthalten.	A jelszónak tartalmaznia kell nagybetűt.
+292	The password must contain a digit.	Heslo musí obsahovat číslici.	Das Passwort muss eine Ziffer enthalten.	A jelszónak tartalmaznia kell számjegyet.
+293	The password must not contain 5 identical characters in a row.	Heslo nesmí obsahovat 5 stejných znaků za sebou.	Das Passwort darf nicht 5 gleiche Zeichen hintereinander enthalten.	A jelszó nem tartalmazhat 5 egyforma karaktert egymás után.
+294	The password must not contain your e-mail.	Heslo nesmí obsahovat tvůj e-mail.	Das Passwort darf deine E-Mail-Adresse nicht enthalten.	A jelszó nem tartalmazhatja az e-mail-címed.
+295	The password must not contain your name.	Heslo nesmí obsahovat tvoje jméno.	Das Passwort darf deinen Namen nicht enthalten.	A jelszó nem tartalmazhatja a neved.
+296	The password is incorrect.	Heslo není správné.	Das Passwort ist falsch.	A jelszó helytelen.
+297	Password changed	Heslo změněno	Passwort geändert	Jelszó módosítva
+298	Repeat password	Heslo znovu	Passwort wiederholen	Jelszó újra
+299	The passwords do not match.	Hesla se neshodují.	Die Passwörter stimmen nicht überein.	A jelszavak nem egyeznek.
+300	History	Historie	Verlauf	Előzmények
+301	Version history	Historie verzí	Versionsverlauf	Verzióelőzmények
+302	Main	Hlavní	Haupt	Fő
+303	Main menu	Hlavní menu	Hauptmenü	Főmenü
+304	Hours of the day	Hodiny dne	Stunden des Tages	A nap órái
+305	Ice hours	Hodiny ledu	Eiszeiten	Jégidők
+306	Booking value	Hodnota rezervací	Buchungswert	Foglalások értéke
+307	Values are indicative for now (a notice will be shown on the website)	Hodnoty jsou zatím orientační (na webu se zobrazí upozornění)	Die Werte sind vorerst Richtwerte (auf der Website erscheint ein Hinweis)	Az értékek egyelőre tájékoztató jellegűek (a weboldalon figyelmeztetés jelenik meg)
+308	Done	Hotovo	Fertig	Kész
+309	Done! Your booking is confirmed. We have also sent the confirmation by e-mail.	Hotovo! Rezervace je potvrzená. Potvrzení jsme poslali i e-mailem.	Fertig! Deine Buchung ist bestätigt. Die Bestätigung haben wir dir auch per E-Mail geschickt.	Kész! A foglalás megerősítve. A visszaigazolást e-mailben is elküldtük.
+310	Done! Your booking is confirmed. You’ll find the QR code here and in My bookings.	Hotovo! Rezervace je potvrzená. QR kód najdeš tady i v Moje rezervace.	Fertig! Deine Buchung ist bestätigt. Den QR-Code findest du hier und unter Meine Buchungen.	Kész! A foglalás megerősítve. A QR-kódot itt és a Foglalásaim között találod.
+311	Search	Hledat	Suchen	Keresés
+312	Search name, e-mail or phone	Hledat jméno, e-mail nebo telefon	Name, E-Mail oder Telefon suchen	Név, e-mail vagy telefon keresése
+313	Search bookings	Hledat rezervaci	Buchung suchen	Foglalás keresése
+314	Search the administration	Hledat v administraci	In der Verwaltung suchen	Keresés az adminisztrációban
+315	Search customer	Hledat zákazníka	Kunden suchen	Ügyfél keresése
+316	Search articles	Hledat článek	Artikel suchen	Cikk keresése
+317	Search articles…	Hledat článek…	Artikel suchen…	Cikk keresése…
+318	Search…	Hledat…	Suchen…	Keresés…
+319	I-SPORT COMPLEX s.r.o.	I-SPORT COMPLEX s.r.o.	I-SPORT COMPLEX s.r.o.	I-SPORT COMPLEX s.r.o.
+320	I-SPORT COMPLEX – backup codes\n{join}\n	I-SPORT COMPLEX – záložní kódy\n{join}\n	I-SPORT COMPLEX – Backup-Codes\n{join}\n	I-SPORT COMPLEX – tartalék kódok\n{join}\n
+321	I-SPORT COMPLEX – sport, fun, community	I-SPORT COMPLEX – sport, zábava, komunita	I-SPORT COMPLEX – Sport, Spaß, Gemeinschaft	I-SPORT COMPLEX – sport, szórakozás, közösség
+322	I-SPORT COMPLEX – sports complex in Košice	I-SPORT COMPLEX – sportovní komplex Košice	I-SPORT COMPLEX – Sportkomplex Košice	I-SPORT COMPLEX – sportkomplexum, Kassa
+323	I-SPORT COMPLEX, home	I-SPORT COMPLEX, domů	I-SPORT COMPLEX, Startseite	I-SPORT COMPLEX, főoldal
+324	I-SPORT COMPLEX, hockey hall, Košice	I-SPORT COMPLEX, hokejová hala, Košice	I-SPORT COMPLEX, Eishockeyhalle, Košice	I-SPORT COMPLEX, jégcsarnok, Kassa
+325	I-SPORT on your phone	I-SPORT do mobilu	I-SPORT aufs Handy	I-SPORT a mobilodra
+326	I-SPORT on your phone	I-SPORT v mobilu	I-SPORT auf dem Handy	I-SPORT a mobilodon
+327	IP address	IP adresa	IP-Adresse	IP-cím
+328	Pitch	Hřiště	Spielfeld	Pálya
+329	Illustrative map	Ilustrační mapa	Illustrative Karte	Illusztratív térkép
+330	Illustration	Ilustrace	Illustration	Illusztráció
+331	Instagram	Instagram	Instagram	Instagram
+332	Internal note	Interní poznámka	Interne Notiz	Belső megjegyzés
+333	Other	Jiný	Andere	Egyéb
+334	Other system	Jiný systém	Anderes System	Egyéb rendszer
+335	VAT ID (IČ DPH)	DIČ (IČ DPH)	USt-IdNr. (IČ DPH)	Közösségi adószám (IČ DPH)
+336	Company ID (IČO)	IČO	Firmennummer (IČO)	Cégjegyzékszám (IČO)
+337	JPG, PNG, WebP, AVIF or HEIC from iPhone, up to 10 MB. Larger photos are resized automatically.	JPG, PNG, WebP, AVIF nebo HEIC z iPhonu, do 10 MB. Větší fotky se automaticky zmenší.	JPG, PNG, WebP, AVIF oder HEIC vom iPhone, bis 10 MB. Größere Fotos werden automatisch verkleinert.	JPG, PNG, WebP, AVIF vagy HEIC iPhone-ról, legfeljebb 10 MB. A nagyobb fotókat automatikusan kicsinyítjük.
+338	Language	Jazyk	Sprache	Nyelv
+339	Website language	Jazyk webu	Sprache der Website	A weboldal nyelve
+340	Is the locker room included?	Je šatna v ceně?	Ist die Kabine im Preis inbegriffen?	Benne van az öltöző az árban?
+341	One site, everything in one place	Jeden areál, všechno na místě	Ein Gelände, alles vor Ort	Egy helyen minden
+342	One invoice	Jedna faktura	Eine Rechnung	Egy számla
+343	One-off for the whole team	Jednorázově pro celý tým	Einmalig für das ganze Team	Egyszeri díj az egész csapatnak
+344	One monthly invoice per club, school or company, with a payment term. No payments for every single hour.	Jednou měsíční fakturou na klub, školu nebo firmu, se splatností. Žádné platby za každou hodinu.	Eine monatliche Rechnung pro Verein, Schule oder Firma, mit Zahlungsziel. Keine Zahlung für jede einzelne Stunde.	Havonta egy számla klubonként, iskolánként vagy cégenként, fizetési határidővel. Nem kell minden óráért külön fizetni.
+345	STEP {n} / 3	KROK {n} / 3	SCHRITT {n} / 3	{n}. LÉPÉS / 3
+346	Calendar	Kalendář	Kalender	Naptár
+347	Ice calendar	Kalendář ledu	Eiskalender	Jégnaptár
+348	Card, Apple Pay or Google Pay on the payment gateway’s secure page. We will hold the slot for you for 30 minutes.	Karta, Apple Pay nebo Google Pay na zabezpečené stránce platební brány. Termín ti podržíme 30 minut.	Karte, Apple Pay oder Google Pay auf der sicheren Seite des Zahlungsanbieters. Wir halten dir den Termin 30 Minuten frei.	Kártya, Apple Pay vagy Google Pay a fizetési kapu biztonságos oldalán. Az időpontot 30 percig fenntartjuk neked.
+349	By card or cash on arrival.	Kartou nebo hotově při příchodu.	Mit Karte oder bar bei Ankunft.	Kártyával vagy készpénzzel érkezéskor.
+350	Card online	Kartou online	Online mit Karte	Kártyával online
+351	Category	Kategorie	Kategorie	Kategória
+352	Category and tags	Kategorie a štítky	Kategorie und Schlagwörter	Kategória és címkék
+353	News categories	Kategorie aktualit	Kategorien der Neuigkeiten	Hírkategóriák
+354	News categories	Kategorie novinek	Kategorien der Neuigkeiten	Hírkategóriák
+355	Each one can be used once when you don’t have your phone. They are shown only now.	Každý se dá použít jednou, když nebudeš mít telefon. Zobrazují se jen teď.	Jeder kann einmal verwendet werden, wenn du dein Handy nicht hast. Sie werden nur jetzt angezeigt.	Mindegyik egyszer használható, ha nincs nálad a telefonod. Csak most jelennek meg.
+356	When should I arrive?	Kdy mám přijít?	Wann soll ich kommen?	Mikor érkezzek?
+357	When people visit the website	Kdy lidé web navštěvují	Wann die Website besucht wird	Mikor látogatják a weboldalt
+358	Camps and recruitment	Kempy a nábor	Camps und Nachwuchs	Táborok és toborzás
+359	Once you fill in at least one link, the “I-SPORT on your phone” block appears in the website footer.	Když vyplníš alespoň jeden odkaz, v patičce webu se zobrazí blok „I-SPORT v mobilu“.	Sobald du mindestens einen Link ausfüllst, erscheint in der Fußzeile der Block „I-SPORT auf dem Handy“.	Ha legalább egy hivatkozást kitöltesz, a lábléc­ben megjelenik az „I-SPORT a mobilodon” blokk.
+360	Click a spot on the site – we’ll zoom in and show photos	Klikni na místo v areálu – přiblížíme ho a ukážeme fotky	Klicke auf einen Ort im Gelände – wir zoomen hinein und zeigen Fotos	Kattints egy helyre a területen – ráközelítünk és fotókat mutatunk
+361	Club	Klub	Verein	Klub
+362	Club, school or company	Klub, škola nebo firma	Verein, Schule oder Firma	Klub, iskola vagy cég
+363	Clubs	Kluby	Vereine	Klubok
+364	Clubs and schools	Kluby a školy	Vereine und Schulen	Klubok és iskolák
+365	Complex	Komplex	Komplex	Komplexum
+366	To	Komu	An	Címzett
+367	Draft	Koncept	Entwurf	Piszkozat
+368	Drafts	Koncepty	Entwürfe	Piszkozatok
+369	Conditioning for players and the public.	Kondiční příprava pro hráče i veřejnost.	Konditionstraining für Spieler und die Öffentlichkeit.	Erőnléti edzés játékosoknak és a nagyközönségnek.
+370	Contact	Kontakt	Kontakt	Kapcsolat
+371	Contact and hall	Kontakt a hala	Kontakt und Halle	Kapcsolat és csarnok
+372	Contact and account	Kontakt a správa	Kontakt und Verwaltung	Kapcsolat és fiók
+373	Contact for the training day	Kontakt na den tréninku	Kontakt für den Trainingstag	Kapcsolattartó az edzés napjára
+374	Contact, address and opening hours of I-SPORT COMPLEX, Jarmočná 2627/10, Košice – Juh.	Kontakt, adresa a otevírací doba I-SPORT COMPLEX, Jarmočná 2627/10, Košice – Juh.	Kontakt, Adresse und Öffnungszeiten von I-SPORT COMPLEX, Jarmočná 2627/10, Košice – Juh.	Az I-SPORT COMPLEX elérhetősége, címe és nyitvatartása: Jarmočná 2627/10, Kassa – Juh.
+375	Contact details	Kontaktní údaje	Kontaktdaten	Elérhetőségek
+376	Contacts, opening hours and billing details appear on the website immediately.	Kontakty, otevírací doba a fakturační údaje se hned zobrazí na webu.	Kontakte, Öffnungszeiten und Rechnungsdaten erscheinen sofort auf der Website.	Az elérhetőségek, a nyitvatartás és a számlázási adatok azonnal megjelennek a weboldalon.
+377	Copy address	Kopírovat adresu	Adresse kopieren	Cím másolása
+378	Copy link	Kopírovat odkaz	Link kopieren	Link másolása
+379	How much are the showers?	Kolik stojí sprchy?	Was kosten die Duschen?	Mennyibe kerül a zuhany?
+380	Countries	Země	Länder	Országok
+381	Shorter	Kratší	Kürzer	Rövidebb
+382	Step {step} of 3	Krok {step} ze 3	Schritt {step} von 3	{step}. lépés / 3
+383	Booking steps	Kroky rezervace	Buchungsschritte	A foglalás lépései
+384	A short silent video (10–30 s, e.g. training on the ice) loops on the home page. Choose from videos uploaded to articles.	Krátké video bez zvuku (10–30 s, např. trénink na ledě) se v úvodu přehrává dokola. Vybírá se z videí nahraných do článků.	Ein kurzes Video ohne Ton (10–30 s, z. B. Training auf dem Eis) läuft auf der Startseite in Schleife. Gewählt wird aus Videos, die in Artikel hochgeladen wurden.	Egy rövid, hang nélküli videó (10–30 mp, pl. edzés a jégen) ismétlődve fut a kezdőlapon. A cikkekbe feltöltött videók közül választható.
+385	Who	Kdo	Wer	Ki
+386	Who changed what and when in the administration. Records cannot be edited or deleted.	Kdo, co a kdy změnil v administraci. Záznamy nelze upravit ani smazat.	Wer was wann in der Verwaltung geändert hat. Einträge können weder bearbeitet noch gelöscht werden.	Ki, mit és mikor módosított az adminisztrációban. A bejegyzések nem szerkeszthetők és nem törölhetők.
+387	Italic	Kurzíva	Kursiv	Dőlt
+388	Code	Kód	Code	Kód
+389	Error code: {digest}	Kód chyby: {digest}	Fehlercode: {digest}	Hibakód: {digest}
+390	The code doesn’t match. Check the time on your phone and enter the current code.	Kód nesedí. Zkontroluj čas v telefonu a zadej aktuální kód.	Der Code stimmt nicht. Prüfe die Uhrzeit auf deinem Handy und gib den aktuellen Code ein.	A kód nem egyezik. Ellenőrizd az időt a telefonodon, és add meg az aktuális kódot.
+391	The code is incorrect or has already been used.	Kód není správný nebo už byl použit.	Der Code ist falsch oder wurde bereits verwendet.	A kód helytelen, vagy már felhasználták.
+392	The code is incorrect.	Kód není správný.	Der Code ist falsch.	A kód helytelen.
+393	Booking code	Kód rezervace	Buchungscode	Foglalási kód
+394	Code from the app	Kód z aplikace	Code aus der App	Kód az alkalmazásból
+395	Code from the app or a backup code	Kód z aplikace nebo záložní kód	Code aus der App oder Backup-Code	Kód az alkalmazásból vagy tartalék kód
+396	The code from the app is incorrect.	Kód z aplikace není správný.	Der Code aus der App ist falsch.	Az alkalmazásból származó kód helytelen.
+397	Code, name, team, phone or e-mail	Kód, jméno, tým, telefon nebo e-mail	Code, Name, Team, Telefon oder E-Mail	Kód, név, csapat, telefon vagy e-mail
+398	Code, number, name, team, phone or e-mail	Kód, číslo, jméno, tým, telefon nebo e-mail	Code, Nummer, Name, Team, Telefon oder E-Mail	Kód, szám, név, csapat, telefon vagy e-mail
+399	Bin	Koš	Papierkorb	Kuka

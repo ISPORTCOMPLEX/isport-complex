@@ -10,13 +10,18 @@ import { euros, fmtDayLong, hallTime, isIsoDate, pad2 } from '@/lib/booking/time
 import { BookingForm } from '@/components/booking/BookingForm';
 import { getProvider } from '@/lib/payments';
 import { RzBand } from '@/components/booking/RzBand';
+import { getT } from '@/lib/i18n/server';
 
-export const metadata: Metadata = { title: 'Údaje k rezervácii', robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Údaje k rezervácii'), robots: { index: false } };
+}
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 const one = (v: string | string[] | undefined) => (typeof v === 'string' ? v : '');
 
 export default async function UdajePage({ searchParams }: Props) {
+  const t = await getT();
   const sp = await searchParams;
   const iso = one(sp.datum);
   const startHour = Number.parseInt(one(sp.od), 10);
@@ -29,26 +34,26 @@ export default async function UdajePage({ searchParams }: Props) {
   const self = `/rezervacia/udaje?datum=${iso}&od=${startHour}&hodiny=${hours}&sprchy=${sp1}${presun ? `&presun=${presun}` : ''}`;
   const user = await requireUser(self);
 
-  let problem = isIsoDate(iso) ? validateSlot(settings, iso, startHour, hours) : 'Neplatný dátum.';
+  let problem = isIsoDate(iso) ? validateSlot(settings, iso, startHour, hours, t) : t('Neplatný dátum.');
   const old = presun ? await prisma.booking.findUnique({ where: { code: presun } }) : null;
   if (presun && (!old || old.userId !== user.id || old.status !== 'CONFIRMED' || old.paymentStatus === 'PAID' || old.startsAt.getTime() - Date.now() < settings.cancelFreeHours * 3600000)) {
-    problem = 'Túto rezerváciu už nie je možné presunúť online. Kontaktuj recepciu.';
+    problem = t('Túto rezerváciu už nie je možné presunúť online. Kontaktuj recepciu.');
   }
   if (!problem) {
     const slots = await dayAvailability(settings, iso);
     const wanted = slots.filter((s) => s.hour >= startHour && s.hour < startHour + hours);
-    if (wanted.length !== hours || !wanted.every((s) => s.free)) problem = 'Vybraný čas už nie je voľný.';
+    if (wanted.length !== hours || !wanted.every((s) => s.free)) problem = t('Vybraný čas už nie je voľný.');
   }
 
   if (problem) {
     return (
       <>
-        <RzBand crumbs={[{ href: '/', label: 'Domov' }, { href: '/rezervacia', label: 'Rezervácia' }]} title="Termín nie je dostupný" />
+        <RzBand crumbs={[{ href: '/', label: t('Domov') }, { href: '/rezervacia', label: t('Rezervácia') }]} title={t('Termín nie je dostupný')} />
         <section className="dk2 rz-dk">
           <div className="wrap rz-narrow">
             <p className="rz-lead">{problem}</p>
             <Link href={isIsoDate(iso) ? `/rezervacia?datum=${iso}&sprchy=${sp1}` : '/rezervacia'} className="btn u-start">
-              Vybrať iný čas
+              {t('Vybrať iný čas')}
             </Link>
           </div>
         </section>
@@ -70,15 +75,15 @@ export default async function UdajePage({ searchParams }: Props) {
   return (
     <>
       <RzBand
-        crumbs={[{ href: '/', label: 'Domov' }, { href: `/rezervacia?datum=${iso}&cas=${startHour}&sprchy=${sp1}`, label: 'Rezervácia' }, { label: 'Údaje' }]}
-        title={old ? `Presun ${old.code}` : 'Dokončenie'}
+        crumbs={[{ href: '/', label: t('Domov') }, { href: `/rezervacia?datum=${iso}&cas=${startHour}&sprchy=${sp1}`, label: t('Rezervácia') }, { label: t('Údaje') }]}
+        title={old ? t('Presun {code}', { code: old.code }) : t('Dokončenie')}
       />
       <div className="wrap rz2">
         <div className="rz2__grid">
           <div className="rz2__main dk2">
-            <section className="rz2__step" aria-label="Údaje">
+            <section className="rz2__step" aria-label={t('Údaje')}>
               <h2 className="rz2__h">
-                <span className="disp">Údaje a platba</span>
+                <span className="disp">{t('Údaje a platba')}</span>
               </h2>
               <div className="rz2__card">
                 <BookingForm
@@ -96,44 +101,44 @@ export default async function UdajePage({ searchParams }: Props) {
               </div>
             </section>
           </div>
-          <aside className="rz2__aside rz2__aside--keep" aria-label="Súhrn rezervácie">
+          <aside className="rz2__aside rz2__aside--keep" aria-label={t('Súhrn rezervácie')}>
             <div className="rz2__sum">
               <div className="rz2__bar">
-                <span className="wide-display">Tvoja rezervácia</span>
-                <span>KROK 2 / 3</span>
+                <span className="wide-display">{t('Tvoja rezervácia')}</span>
+                <span>{t('KROK {n} / 3', { n: 2 })}</span>
               </div>
               <div className="rz2__body">
                 <span className="rz2__when">
-                  <span>{fmtDayLong(start)}</span>
+                  <span>{fmtDayLong(start, t)}</span>
                   <span className="disp rz2__range">
                     {pad2(startHour)} – {pad2(startHour + hours)}
                   </span>
                 </span>
                 <div className="rz2__rows">
                   <span>
-                    <span>Celá ľadová plocha · {hours} h</span>
+                    <span>{t('Celá ľadová plocha · {hours} h', { hours })} </span>
                     <b>{euros(ice)}</b>
                   </span>
                   <span>
-                    <span>Šatňa a úprava ľadu</span>
-                    <b className="is-green">v cene</b>
+                    <span>{t('Šatňa a úprava ľadu')}</span>
+                    <b className="is-green">{t('v cene')}</b>
                   </span>
                   {settings.showersEnabled ? (
                     <span>
-                      <span>Sprchy</span>
-                      <b>{showers ? euros(extra) : 'bez spŕch'}</b>
+                      <span>{t('Sprchy')}</span>
+                      <b>{showers ? euros(extra) : t('bez spŕch')}</b>
                     </span>
                   ) : null}
                 </div>
                 <div className="rz2__total">
                   <span>
-                    <b>Spolu</b>
-                    <small>vrátane DPH</small>
+                    <b>{t('Spolu')}</b>
+                    <small>{t('vrátane DPH')}</small>
                   </span>
                   <span className="disp">{euros(ice + extra)}</span>
                 </div>
                 <Link href={`/rezervacia?datum=${iso}&cas=${startHour}&sprchy=${sp1}${presun ? `&presun=${presun}` : ''}`} className="rz2__change">
-                  Zmeniť termín alebo sprchy
+                  {t('Zmeniť termín alebo sprchy')}
                 </Link>
               </div>
             </div>

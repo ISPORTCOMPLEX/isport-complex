@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { CloudImage } from '@/components/CloudImage';
 import type { WebPhoto } from '@/lib/media';
 import type { IceToday } from '@/lib/booking/iceToday';
+import { useT } from '@/lib/i18n/client';
 
 type Panel = 'lad' | 'komplex';
 export type MegaPhotos = { lad: WebPhoto | null; skyboxy: WebPhoto | null; bufet: WebPhoto | null; ihrisko: WebPhoto | null; fitness: WebPhoto | null };
@@ -30,6 +31,7 @@ function Photo({ p, sizes }: { p: WebPhoto | null; sizes: string }) {
 // Hlavné menu na počítači: Novinky · Ľadová plocha ▾ · Komplex ▾ · Pre kluby · Fotky · Kontakt.
 // Ľad a Komplex rozbalia panel na celú šírku (myšou aj klávesnicou, Esc zavrie).
 export function MegaNav({ ice, photos }: { ice: IceToday; photos: MegaPhotos }) {
+  const tr = useT();
   const pathname = usePathname() ?? '/';
   const [open, setOpen] = useState<Panel | null>(null);
   const timer = useRef<number | undefined>(undefined);
@@ -89,15 +91,15 @@ export function MegaNav({ ice, photos }: { ice: IceToday; photos: MegaPhotos }) 
     </Link>
   );
 
-  const iceTitle = ice.day === 'zajtra' ? 'Ľad zajtra' : 'Ľad dnes';
+  const iceTitle = ice.day === 'zajtra' ? tr('Ľad zajtra') : tr('Ľad dnes');
 
   return (
     <div className="mm" ref={root}>
-      <nav aria-label="Hlavné menu" className="mm__nav">
+      <nav aria-label={tr('Hlavné menu')} className="mm__nav">
         {link('/aktuality', 'Novinky')}
-        {trigger('lad', 'Ľadová plocha', under(pathname, ICE_PATHS))}
+        {trigger('lad', tr('Ľadová plocha'), under(pathname, ICE_PATHS))}
         {trigger('komplex', 'Komplex', under(pathname, KOMPLEX_PATHS))}
-        {link('/pre-kluby', 'Pre kluby')}
+        {link('/pre-kluby', tr('Pre kluby'))}
         {link('/fotky', 'Fotky')}
         {link('/kontakt', 'Kontakt')}
       </nav>
@@ -109,31 +111,31 @@ export function MegaNav({ ice, photos }: { ice: IceToday; photos: MegaPhotos }) 
           <div className="mm__col">
             <Link href="/ladova-plocha" className="mm__ln">
               <b>
-                Ľadová plocha <i aria-hidden="true">→</i>
+                {tr('Ľadová plocha')}{' '}<i aria-hidden="true">→</i>
               </b>
-              <span>Celá tréningová plocha na prenájom pre kluby, školy, firmy aj partie.</span>
+              <span>{tr('Celá tréningová plocha na prenájom pre kluby, školy, firmy aj partie.')}</span>
             </Link>
             <Link href="/rezervacia" className="mm__ln">
               <b>
-                Rezervácia online <i aria-hidden="true">→</i>
+                {tr('Rezervácia online')}{' '}<i aria-hidden="true">→</i>
               </b>
-              <span>Voľné hodiny hneď, potvrdenie s QR kódom do telefónu.</span>
+              <span>{tr('Voľné hodiny hneď, potvrdenie s QR kódom do telefónu.')}</span>
             </Link>
           </div>
           <div className="mm__col">
             <Link href="/cennik" className="mm__ln">
               <b>
-                Cenník <i aria-hidden="true">→</i>
+                {tr('Cenník')}{' '}<i aria-hidden="true">→</i>
               </b>
               <span>
-                Mimo špičky {eur(ice.offPeak)}, špička a víkend {eur(ice.peak)} za hodinu.
+                {tr('Mimo špičky {eur}, špička a víkend {eur2} za hodinu.', { eur: eur(ice.offPeak), eur2: eur(ice.peak) })} 
               </span>
             </Link>
             <Link href="/pre-kluby" className="mm__ln">
               <b>
-                Pre kluby <i aria-hidden="true">→</i>
+                {tr('Pre kluby')}{' '}<i aria-hidden="true">→</i>
               </b>
-              <span>Sezónny prenájom s pevnými časmi a mesačnou fakturáciou.</span>
+              <span>{tr('Sezónny prenájom s pevnými časmi a mesačnou fakturáciou.')}</span>
             </Link>
           </div>
           <Link href="/rezervacia" className="mm__card">
@@ -142,7 +144,7 @@ export function MegaNav({ ice, photos }: { ice: IceToday; photos: MegaPhotos }) 
             <span className="mm__card-tx">
               <span className="mm__live">
                 <i aria-hidden="true" />
-                Naživo z rezervácií
+                {tr('Naživo z rezervácií')}
               </span>
               <strong className="cond">{iceTitle}</strong>
               {ice.hours.length ? (
@@ -153,10 +155,10 @@ export function MegaNav({ ice, photos }: { ice: IceToday; photos: MegaPhotos }) 
                   {ice.hours.length > 4 ? <span>+{ice.hours.length - 4}</span> : null}
                 </span>
               ) : (
-                <span className="mm__full">Najbližšie voľné časy nájdeš v rezervácii</span>
+                <span className="mm__full">{tr('Najbližšie voľné časy nájdeš v rezervácii')}</span>
               )}
               <span className="mm__go">
-                Rezervovať ľad <span aria-hidden="true">→</span>
+                {tr('Rezervovať ľad')}{' '}<span aria-hidden="true">→</span>
               </span>
             </span>
           </Link>
@@ -166,15 +168,15 @@ export function MegaNav({ ice, photos }: { ice: IceToday; photos: MegaPhotos }) 
       <div id="mm-komplex" className={`mm__panel${open === 'komplex' ? ' is-open' : ''}`} hidden={open !== 'komplex'} onPointerEnter={keep} onPointerLeave={hoverLeave}>
         <div className="wrap mm__tiles">
           {[
-            { href: '/bufet-skyboxy', name: 'Skyboxy', text: 'Presklené boxy nad ľadom', p: photos.skyboxy },
-            { href: '/bufet-skyboxy', name: 'Bufet', text: 'Občerstvenie priamo v hale', p: photos.bufet },
-            { href: '/ihrisko', name: 'Futbalové ihrisko', text: 'Vonkajšie ihrisko pri komplexe', p: photos.ihrisko },
-            { href: '/fitness-wellness', name: 'Fitness a wellness', text: 'Posilňovňa a regenerácia', p: photos.fitness, soon: true },
+            { href: '/bufet-skyboxy', name: tr('Skyboxy'), text: tr('Presklené boxy nad ľadom'), p: photos.skyboxy },
+            { href: '/bufet-skyboxy', name: tr('Bufet'), text: tr('Občerstvenie priamo v hale'), p: photos.bufet },
+            { href: '/ihrisko', name: tr('Futbalové ihrisko'), text: tr('Vonkajšie ihrisko pri komplexe'), p: photos.ihrisko },
+            { href: '/fitness-wellness', name: tr('Fitness a wellness'), text: tr('Posilňovňa a regenerácia'), p: photos.fitness, soon: true },
           ].map((t) => (
             <Link key={t.name} href={t.href} className="mm__tile">
               <span className="mm__tile-im">
                 <Photo p={t.p} sizes="300px" />
-                {t.soon ? <span className="mm__soon">Pripravujeme</span> : null}
+                {t.soon ? <span className="mm__soon">{tr('Pripravujeme')}</span> : null}
               </span>
               <span className="mm__tile-tx">
                 <b>
