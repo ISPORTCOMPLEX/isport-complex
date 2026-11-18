@@ -1,7 +1,7 @@
 // Testy redakčného systému bez databázy: čistenie textu (XSS), bloky, adresy článkov a videí.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sanitizeInline, safeHref, slugify, youtubeIdFrom, normalizeBlocks, normalizeCover, readMinutes, galleryImages } from '../lib/articles/blocks.ts';
+import { sanitizeInline, safeHref, slugify, youtubeIdFrom, normalizeBlocks, normalizeCover, readMinutes, galleryImages, xPostUrl } from '../lib/articles/blocks.ts';
 import { parseVideoPath } from '../lib/cloudinary.ts';
 
 test('text: povolené formátovanie ostane', () => {
@@ -119,4 +119,15 @@ test('dočasné e-maily: bežní poskytovatelia prejdú', () => {
   for (const d of ['gmail.com', 'outlook.com', 'azet.sk', 'centrum.sk', 'zoznam.sk', 'seznam.cz', 'icloud.com', 'proton.me', 'isport-complex.sk', 'stuba.sk'])
     assert.equal(isDisposableDomain(d), false, d);
   assert.deepEqual(domainAndParents('a.b.mailinator.com'), ['a.b.mailinator.com', 'b.mailinator.com', 'mailinator.com']);
+});
+
+test('príspevok z X: len odkaz na konkrétny príspevok', () => {
+  assert.equal(xPostUrl('https://x.com/HCKosice/status/1858123456789012345'), 'https://x.com/HCKosice/status/1858123456789012345');
+  assert.equal(xPostUrl('https://twitter.com/hc_kosice/status/1858123456789012345?s=20'), 'https://x.com/hc_kosice/status/1858123456789012345');
+  assert.equal(xPostUrl('x.com/meno/status/12345678'), 'https://x.com/meno/status/12345678');
+  assert.equal(xPostUrl('https://x.com/meno'), null);
+  assert.equal(xPostUrl('https://evil.example/x.com/a/status/123456'), null);
+  assert.equal(xPostUrl('javascript:alert(1)'), null);
+  const b = normalizeBlocks([{ type: 'xpost', url: 'https://x.com/a/status/123456', text: '<script>x</script>Ahoj', author: 'A' }])[0];
+  assert.equal(b?.type, 'xpost');
 });

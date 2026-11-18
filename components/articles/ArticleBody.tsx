@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { CloudImage } from '@/components/CloudImage';
-import { sanitizeInline, type Block } from '@/lib/articles/blocks';
+import { sanitizeInline, xHandle, type Block } from '@/lib/articles/blocks';
 import { articleImage, fmtDuration, videoPoster, videoSrc } from '@/lib/articles/queries';
 import { YouTube } from './YouTube';
 import { getT } from '@/lib/i18n/server';
@@ -85,6 +85,28 @@ export async function ArticleBody({ slug, blocks, title }: { slug: string; block
               <figure key={b.id} className="ab__fig">
                 <YouTube id={b.youtubeId} title={b.caption || title} />
                 {b.caption ? <figcaption>{b.caption}</figcaption> : null}
+              </figure>
+            );
+          case 'xpost':
+            return (
+              <figure key={b.id} className="ab__xp">
+                <a href={b.url} target="_blank" rel="noopener noreferrer nofollow" className="ab__xp-card">
+                  <span className="ab__xp-head">
+                    <span className="ab__xp-x" aria-hidden="true">𝕏</span>
+                    <span className="ab__xp-who">
+                      {b.author ? <b>{b.author}</b> : null}
+                      <span>@{xHandle(b.url)}</span>
+                    </span>
+                  </span>
+                  {b.text ? <span className="ab__xp-text">{b.text}</span> : null}
+                  <span className="ab__xp-foot">
+                    {b.date ? <span>{b.date}</span> : null}
+                    <span className="ab__xp-go">
+                      {t('Zobraziť príspevok na X')} <span aria-hidden="true">→</span>
+                      <span className="sr-only"> {t('(otvorí sa v novom okne)')}</span>
+                    </span>
+                  </span>
+                </a>
               </figure>
             );
           case 'quote':

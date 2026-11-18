@@ -13,6 +13,7 @@ export type Block =
   | { id: string; type: 'youtube'; youtubeId: string; caption: string }
   | { id: string; type: 'quote'; text: string; author: string }
   | { id: string; type: 'button'; label: string; href: string }
+  | { id: string; type: 'xpost'; url: string; author: string; text: string; date: string }
   | { id: string; type: 'divider' };
 
 export type BlockType = Block['type'];
@@ -127,6 +128,14 @@ export function youtubeIdFrom(input: string): string | null {
   return m ? m[1] : null;
 }
 
+// Príspevok zo siete X: len odkaz na konkrétny príspevok (x.com alebo twitter.com/…/status/číslo).
+// Na webe sa zobrazí ako karta bez cudzieho skriptu – text príspevku vloží autor článku sám.
+export function xPostUrl(input: string): string | null {
+  const m = /^(?:https?:\/\/)?(?:www\.|mobile\.)?(?:x|twitter)\.com\/([A-Za-z0-9_]{1,15})\/status(?:es)?\/(\d{5,25})/i.exec(input.trim());
+  return m ? `https://x.com/${m[1]}/status/${m[2]}` : null;
+}
+export const xHandle = (url: string) => /x\.com\/([A-Za-z0-9_]{1,15})\//.exec(url)?.[1] ?? '';
+
 const blockId = (v: unknown) => (typeof v === 'string' && /^[\w-]{4,40}$/.test(v) ? v : Math.random().toString(36).slice(2, 12));
 
 export function normalizeBlock(raw: unknown): Block | null {
@@ -168,6 +177,10 @@ export function normalizeBlock(raw: unknown): Block | null {
       const href = safeHref(str(o.href, 500)) ?? '/rezervacia';
       return { id, type: 'button', label: plainText(str(o.label, 80)) || 'Rezervovať ľad', href };
     }
+    case 'xpost': {
+      const url = xPostUrl(str(o.url, 300));
+      return url ? { id, type: 'xpost', url, author: plainText(str(o.author, 80)), text: plainText(str(o.text, 1200)), date: plainText(str(o.date, 40)) } : null;
+    }
     case 'divider':
       return { id, type: 'divider' };
     default:
@@ -191,7 +204,7 @@ export function normalizeCover(raw: unknown): Cover | null {
 
 // Odhad času čítania (200 slov za minútu) – z textu, nadpisov a citátov.
 export function readMinutes(title: string, perex: string, blocks: Block[]): number {
-  const text = [title, perex, ...blocks.map((b) => (b.type === 'text' ? plainText(b.html) : b.type === 'heading' ? b.text : b.type === 'quote' ? b.text : ''))].join(' ');
+  const text = [title, perex, ...blocks.map((b) => (b.type === 'text' ? plainText(b.html) : b.type === 'heading' ? b.text : b.type === 'quote' ? b.text : b.type === 'xpost' ? b.text : ''))].join(' ');
   const words = text.split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 200));
 }

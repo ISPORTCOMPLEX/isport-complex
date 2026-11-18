@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CATEGORIES, sanitizeInline, youtubeIdFrom, type Block, type BlockType, type Cover } from '@/lib/articles/blocks';
+import { CATEGORIES, sanitizeInline, xHandle, xPostUrl, youtubeIdFrom, type Block, type BlockType, type Cover } from '@/lib/articles/blocks';
 import {
   listRevisionsAction,
   loadRevisionAction,
@@ -39,6 +39,7 @@ const NEW: Record<BlockType, () => Block | null> = {
   youtube: () => ({ id: uid(), type: 'youtube', youtubeId: '', caption: '' }),
   quote: () => ({ id: uid(), type: 'quote', text: '', author: '' }),
   button: () => ({ id: uid(), type: 'button', label: 'Rezervovať ľad', href: '/rezervacia' }),
+  xpost: () => ({ id: uid(), type: 'xpost', url: '', author: '', text: '', date: '' }),
   divider: () => ({ id: uid(), type: 'divider' }),
 };
 
@@ -443,6 +444,21 @@ function BlockEditor({ block, first, last, onChange, onMove, onRemove }: { block
           <input className="adm-input" value={block.href} placeholder="/rezervacia alebo https://…" maxLength={500} aria-label={tr('Adresa tlačidla')} onChange={(e) => onChange({ href: e.target.value })} />
         </div>
       ) : null}
+      {block.type === 'xpost' ? (
+        <div className="ed__fig ed__xp">
+          <input
+            className="adm-input"
+            defaultValue={block.url}
+            placeholder={tr('Odkaz na príspevok, napr. https://x.com/meno/status/…')}
+            aria-label={tr('Odkaz na príspevok z X')}
+            onBlur={(e) => onChange({ url: xPostUrl(e.target.value) ?? '' })}
+          />
+          {block.url ? <small className="ed__muted">@{xHandle(block.url)} · {tr('na webe sa ukáže ako karta s odkazom na X')}</small> : <small className="ed__muted">{tr('Skopíruj adresu príspevku z X (Zdieľať → Kopírovať odkaz) a vlož ju sem.')}</small>}
+          <input className="adm-input" value={block.author} placeholder={tr('Meno autora (nepovinné)')} maxLength={80} aria-label={tr('Meno autora príspevku')} onChange={(e) => onChange({ author: e.target.value })} />
+          <textarea className="textarea" value={block.text} rows={3} maxLength={1200} placeholder={tr('Text príspevku (nepovinné) – skopíruj ho z X, aby sa ukázal aj v článku')} aria-label={tr('Text príspevku')} onChange={(e) => onChange({ text: e.target.value })} />
+          <input className="adm-input" value={block.date} placeholder={tr('Dátum príspevku (nepovinné), napr. 18. 11. 2026')} maxLength={40} aria-label={tr('Dátum príspevku')} onChange={(e) => onChange({ date: e.target.value })} />
+        </div>
+      ) : null}
       {block.type === 'divider' ? <hr className="ed__hr" /> : null}
     </div>
   );
@@ -648,6 +664,9 @@ function AddBlock({ mediaReady, onAdd, onError }: { mediaReady: boolean; onAdd: 
       </button>
       <button type="button" onClick={() => simple('button')}>
         {tr('⬭ Tlačidlo')}
+      </button>
+      <button type="button" onClick={() => simple('xpost')}>
+        {tr('𝕏 Príspevok z X')}
       </button>
       <button type="button" onClick={() => simple('divider')}>
         {tr('— Oddeľovač')}

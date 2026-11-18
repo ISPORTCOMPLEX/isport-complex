@@ -5150,3 +5150,18 @@ a.is__c:hover { background: #0f1c30; color: var(--white); }
 .dk2 .pg-chip[aria-current='page'] { background: var(--navy); box-shadow: none; color: #fff; }
 .dk2 .pg-chip small { color: var(--muted); }
 .nw-lite .ac__noimg { background: linear-gradient(135deg, #16294a, #0b1626); color: rgba(255, 255, 255, 0.12); }
+
+/* ---------- článok: príspevok zo siete X (karta bez cudzieho skriptu) ---------- */
+.ab__xp { margin: 32px 0; }
+.ab__xp-card { display: flex; flex-direction: column; gap: 14px; max-width: 560px; padding: 20px 22px; border: 1px solid var(--edge, #d5dce3); border-radius: 12px; background: var(--surface, #fff); color: var(--text); text-decoration: none; transition: border-color 0.15s, box-shadow 0.15s; }
+.ab__xp-card:hover { border-color: var(--text); box-shadow: 0 12px 28px rgba(11, 22, 38, 0.12); color: var(--text); }
+.ab__xp-head { display: flex; align-items: center; gap: 12px; }
+.ab__xp-x { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: #0b0b0b; color: #fff; font-size: 20px; font-weight: 700; line-height: 1; }
+.ab__xp-who { display: flex; flex-direction: column; line-height: 1.25; }
+.ab__xp-who b { font-size: 16px; }
+.ab__xp-who span { font-size: 14px; color: var(--muted); }
+.ab__xp-text { font-size: 17px; line-height: 1.55; white-space: pre-line; }
+.ab__xp-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; padding-top: 12px; border-top: 1px solid var(--edge, #d5dce3); font-size: 14px; color: var(--muted); }
+.ab__xp-go { font-weight: 700; color: var(--text); }
+.ab__xp-card:hover .ab__xp-go { color: var(--red); }
+.ed__xp .textarea { min-height: 84px; }
