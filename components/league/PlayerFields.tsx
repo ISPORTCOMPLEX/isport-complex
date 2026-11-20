@@ -38,15 +38,15 @@ export function PlayerFields({ row, index, set, remove }: { row: PlayerRow; inde
         </label>
         <label>
           <span>{t('Rok narodenia')}</span>
-          <input name="playerYear" value={row.year} onChange={(e) => set({ year: digits(e.target.value, 4) })} inputMode="numeric" placeholder="2001" />
+          <input name="playerYear" value={row.year} onChange={(e) => set({ year: digits(e.target.value, 4) })} inputMode="numeric" />
         </label>
         <label>
           <span>{t('Výška (cm)')}</span>
-          <input name="playerHeight" value={row.height} onChange={(e) => set({ height: digits(e.target.value, 3) })} inputMode="numeric" placeholder="180" />
+          <input name="playerHeight" value={row.height} onChange={(e) => set({ height: digits(e.target.value, 3) })} inputMode="numeric" />
         </label>
         <label>
           <span>{t('Váha (kg)')}</span>
-          <input name="playerWeight" value={row.weight} onChange={(e) => set({ weight: digits(e.target.value, 3) })} inputMode="numeric" placeholder="80" />
+          <input name="playerWeight" value={row.weight} onChange={(e) => set({ weight: digits(e.target.value, 3) })} inputMode="numeric" />
         </label>
         <label>
           <span>{t('Hokejka')}</span>

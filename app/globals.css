@@ -5891,3 +5891,138 @@ a.is__c:hover { background: #0f1c30; color: var(--white); }
   .lgpf .lgreg__x { grid-row: 1; grid-column: 2; }
   .lgtm__rec { margin: 0; width: 100%; justify-content: space-between; }
 }
+
+/* ===== v30 · jednotné nadpisy (NHL štýl: Archivo 800, bežné písmo, bez kapitálok) =====
+   Zúžené kurzívne písmo ostáva len pre hlavný slogan na úvode a pre čísla (ceny, časy, skóre). */
+:is(.shd__t, .band2__title, .lgb__t, .nw__h1, .nw__feat-t, .pp__h, .pp__h2, .bx__title, .ps__ttl h2, .sec-title, .au2__title, .nf__title, .who3__t, .cxe__name, .acct__title, .ac-band__me strong, .ac__title, .nw__empty h2, .mm__card-tx strong, .mm__lg-hero strong, .dk2 .legal__body h2, .pt__row--head strong, .h-card, .rz-band__title, .ar__rel h2) {
+  font-family: var(--font-archivo), system-ui, sans-serif;
+  font-stretch: 100%;
+  font-style: normal;
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.shd__t { font-size: clamp(28px, 3vw, 40px); padding-left: 30px; }
+.shd__t::before { width: 14px; height: 14px; margin-top: -7px; }
+.band2__title, .lgb__t, .nw__h1, .rz-band__title { font-size: clamp(36px, 4.6vw, 60px); line-height: 1.05; }
+.au2__title { font-size: clamp(40px, 5vw, 64px); line-height: 1.05; }
+.nf__title { font-size: clamp(40px, 6vw, 76px); line-height: 1.05; }
+.acct__title { font-size: clamp(32px, 4vw, 48px); }
+.ac-band__me strong { font-size: clamp(26px, 3vw, 38px); }
+:is(.pp__h, .bx__title) { font-size: clamp(30px, 3.4vw, 44px); }
+:is(.pp__h2, .ps__ttl h2, .sec-title) { font-size: clamp(26px, 2.8vw, 36px); }
+.nw__feat-t { font-size: clamp(26px, 2.6vw, 36px); line-height: 1.12; }
+.who3__t { font-size: clamp(22px, 2vw, 28px); }
+.cxe__name { font-size: 26px; }
+.h-card { font-size: clamp(20px, 2vw, 26px); }
+.au2 .h-card { font-size: clamp(30px, 3vw, 40px); }
+.pt__row--head strong { font-size: 20px; }
+.dk2 .legal__body h2 { font-size: clamp(22px, 2.2vw, 28px); }
+.mm__card-tx strong, .mm__lg-hero strong { font-size: 30px; }
+.ps__ttl small { font-family: var(--font-archivo), system-ui, sans-serif; font-style: normal; font-weight: 700; font-size: 15px; color: var(--muted); -webkit-text-stroke: 0; }
+.lgb__t { margin-top: 14px; }
+/* štítky kategórií – bežné písmo */
+.ac__cat { font-family: var(--font-archivo), system-ui, sans-serif; font-style: normal; font-weight: 700; font-size: 12px; letter-spacing: 0.04em; }
+
+/* ===== v30 · Aktuality (zoznam) v štýle NHL ===== */
+.nw__band { background: linear-gradient(120deg, #0b1626, #13243d); }
+.nw__band::before { display: none; }
+.nw__band-in { padding-top: 40px; padding-bottom: 40px; }
+.nw__band p { color: #c7d2de; }
+.nw-lite .nw__feat-link { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); border-radius: 4px; background: #fff; box-shadow: none; }
+.nw-lite .nw__feat-link:hover { box-shadow: 0 10px 28px rgba(11, 22, 38, 0.1); }
+.nw-lite .nw__feat-img { min-height: 400px; }
+.nw-lite .nw__feat-tx { gap: 14px; padding: 32px; }
+.nw-lite .nw__feat-t { color: var(--text); }
+.nw-lite .nw__feat-link:hover .nw__feat-t { color: var(--red); }
+.nw-lite .nw__more { font-family: var(--font-archivo), system-ui, sans-serif; font-style: normal; font-weight: 700; font-size: 14px; letter-spacing: 0; text-transform: none; color: var(--text); }
+.nw-lite .ac__cat { align-self: flex-start; height: auto; padding: 0; border-radius: 0; background: none; color: var(--red-text); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; clip-path: none; }
+.nw-lite .ac__link { border: 0; border-radius: 4px; background: #fff; box-shadow: none; }
+.nw-lite .ac__link:hover { transform: none; box-shadow: 0 10px 28px rgba(11, 22, 38, 0.1); }
+.nw-lite .ac__img { aspect-ratio: 16 / 9; }
+.nw-lite .ac__body { gap: 8px; padding: 16px 18px 20px; }
+.nw-lite .ac__title { font-size: 19px; line-height: 1.25; letter-spacing: -0.01em; color: var(--text); }
+.nw-lite .ac__link:hover .ac__title { color: var(--red); }
+.nw-lite .ac__meta { font-size: 13px; }
+.nw-lite .nw__grid { gap: 24px; }
+.nw-lite .nw__chips a { font-family: var(--font-archivo), system-ui, sans-serif; font-style: normal; text-transform: none; letter-spacing: 0; }
+@media (max-width: 900px) { .nw-lite .nw__feat-link { grid-template-columns: 1fr; } .nw-lite .nw__feat-img { min-height: 0; aspect-ratio: 16 / 9; } .nw-lite .nw__feat-tx { padding: 20px; } }
+
+/* ===== v30 · prihlásenie, registrácia a Môj účet – svetlý obsah, tmavomodrý pás ===== */
+.au2__main, .acct.dk2 {
+  --bg: #eef1f4; --text: #0b1626; --text-2: #2b3846; --muted: #5d6b79; --faint: #7a8794; --faint-3: #9aa7b4;
+  --edge: #d5dce3; --edge-soft: #e3e8ed; --edge-mid: #cfd7df; --edge-hi: #cfd7df; --edge-strong: #c3ccd5;
+  --surface: #fff; --surface-2: #eef1f4; --surface-3: #e6ebf0; --red-text: #c40f17; --hi: none;
+  background: var(--paper); color: var(--text);
+}
+.au2 { background: var(--paper); }
+.au2__side { background-color: var(--navy); }
+.au2__side::before { background: linear-gradient(160deg, rgba(11, 22, 38, 0.96) 0%, rgba(11, 22, 38, 0.82) 50%, rgba(11, 22, 38, 0.95) 100%); }
+.au2__word { display: none; }
+.au2__title .red, .au2__title .is-red { color: #ff4d55; }
+.au2__points li { border-top-color: rgba(255, 255, 255, 0.12); }
+.au2__points li:last-child { border-bottom-color: rgba(255, 255, 255, 0.12); }
+.au2__points li span span { color: #9fb0c3; }
+.au2__addr { color: #9fb0c3; }
+.au2__form { padding: 36px 32px; border-radius: 6px; background: #fff; box-shadow: 0 1px 2px rgba(11, 22, 38, 0.06); }
+.au2__kick { font-family: var(--font-archivo), system-ui, sans-serif; font-style: normal; font-weight: 800; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red-text); }
+:is(.au2__main, .acct.dk2) .h-card { color: var(--text); }
+:is(.au2__main, .acct.dk2) .field label, :is(.au2__main, .acct.dk2) .field > label { font-size: 13px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--text); }
+:is(.au2__main, .acct.dk2) :is(.field input, .textarea, .field select) { height: 50px; border-radius: 4px; background: #fff; box-shadow: inset 0 0 0 1px var(--edge-mid); color: var(--text); }
+:is(.au2__main, .acct.dk2) .textarea { height: auto; }
+:is(.au2__main, .acct.dk2) :is(.field input, .textarea):hover { box-shadow: inset 0 0 0 1px #9aa7b4; }
+:is(.au2__main, .acct.dk2) :is(.field input, .textarea, .field select):focus { background: #fff; box-shadow: inset 0 0 0 2px var(--navy), 0 0 0 3px rgba(31, 79, 216, 0.15); }
+:is(.au2__main, .acct.dk2) .field--error input { box-shadow: inset 0 0 0 2px var(--red); }
+:is(.au2__main, .acct.dk2) .field__toggle { height: 38px; border-radius: 3px; background: var(--surface-2); color: var(--text); letter-spacing: 0; text-transform: none; font-family: var(--font-archivo), system-ui, sans-serif; font-style: normal; font-weight: 700; }
+:is(.au2__main, .acct.dk2) .btn { height: 50px; border-radius: 3px; clip-path: none; box-shadow: none; font-family: var(--font-archivo), system-ui, sans-serif; font-style: normal; font-weight: 700; font-size: 16px; letter-spacing: 0; text-transform: none; }
+:is(.au2__main, .acct.dk2) .btn--ghost { background: #fff; color: var(--text); border: 1px solid var(--edge-mid); }
+:is(.au2__main, .acct.dk2) .btn--danger { background: #fff; color: var(--red-text); border: 1px solid #f1b8bb; }
+:is(.au2__main, .acct.dk2) .btn--danger:hover { background: var(--red); color: #fff; }
+:is(.au2__main, .acct.dk2) .alert { border-radius: 4px; }
+:is(.au2__main, .acct.dk2) a:not(.btn):not(.card) { color: var(--red-text); }
+/* karty účtu */
+.acct.dk2 { padding: 40px 0 88px; }
+.acct.dk2::before { display: none; }
+.acct.dk2 :is(.card, .price-tile, .seg-card) { background: #fff; border: 0; border-radius: 6px; box-shadow: 0 1px 2px rgba(11, 22, 38, 0.06); clip-path: none; color: var(--text); }
+.acct.dk2 a.card:hover { box-shadow: 0 10px 28px rgba(11, 22, 38, 0.1); }
+.acct.dk2 a.card { color: var(--text) !important; }
+.acct.dk2 .card--red { background: linear-gradient(120deg, var(--navy), #1b2f4d); color: #fff !important; }
+.acct.dk2 .card--red::after { display: none; }
+.acct.dk2 .card--red .h-card, .acct.dk2 .card--red p { color: #fff; }
+.acct.dk2 .card--red .pill { background: var(--gold); border: 0; color: var(--gold-ink); font-family: var(--font-archivo), system-ui, sans-serif; font-style: normal; font-weight: 800; letter-spacing: 0.04em; clip-path: none; border-radius: 999px; }
+.acct.dk2 .card--red .round-arrow { background: var(--red); border: 0; color: #fff; clip-path: none; border-radius: 50%; }
+.acct.dk2 .acct__title .red { color: var(--red-text); }
+.acct.dk2 .status--ok { background: #e2f5ea; color: #0f7a3d; }
+.acct.dk2 .status--warn { background: #fff4d6; color: #7a5600; }
+.acct.dk2 .acct__events li { border-bottom-color: var(--edge-soft); }
+.acct.dk2 .muted { color: var(--muted); }
+/* pás účtu: tmavomodrý ako pri súťaži */
+.ac-band { background: linear-gradient(120deg, #0b1626, #13243d); }
+.ac-band .acct__avatar { border-radius: 50%; background: var(--red); clip-path: none; }
+.ac-band__me small { font-stretch: 100%; color: #9fb0c3; }
+.ac-band__me em { color: #c7d2de; }
+.ac-band .acct__nav { border-top-color: rgba(255, 255, 255, 0.1); }
+.ac-band .acct__nav a { font-family: var(--font-archivo), system-ui, sans-serif; font-stretch: 100%; font-style: normal; font-size: 15px; font-weight: 700; letter-spacing: 0; text-transform: none; color: #c7d2de; }
+.ac-band .acct__nav a[aria-current='page'] { color: #fff; box-shadow: inset 0 -3px 0 var(--red); background: none; }
+.ac-logout { border-radius: 4px; border-color: rgba(255, 255, 255, 0.25); color: #fff; font-family: var(--font-archivo), system-ui, sans-serif; font-style: normal; text-transform: none; letter-spacing: 0; clip-path: none; }
+.pt-extras strong { font-family: var(--font-archivo), system-ui, sans-serif; font-stretch: 100%; font-style: normal; font-weight: 800; text-transform: none; letter-spacing: -0.02em; font-size: 30px; line-height: 1.1; }
+/* malé popisky (päta, rezervácia) – bežné písmo */
+footer .wide-display, .rz2__bar .wide-display { font-family: var(--font-archivo), system-ui, sans-serif; font-style: normal; font-weight: 800; font-size: 12px; letter-spacing: 0.08em; }
+/* pohárik v tlačidle Súťaž väčší */
+.mm__item.mm__item--sutaz { gap: 8px; }
+.mm__item.mm__item--sutaz::before { width: 17px; height: 17px; }
+
+/* ===== v30 · administrácia v farbách webu ===== */
+.adm__main .adm__title, .adm__title { font-family: var(--font-archivo), system-ui, sans-serif; font-stretch: 100%; font-style: normal; font-weight: 800; text-transform: none; letter-spacing: -0.02em; line-height: 1.1; font-size: clamp(28px, 3vw, 38px); color: var(--ice-ink); }
+.adm__side { background: var(--navy); border-right-color: #1a2b45; }
+.adm__link { border-radius: 6px; color: #c7d2de; }
+.adm__link:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+.adm__link[aria-current='page'] { background: rgba(255, 255, 255, 0.1); color: #fff; }
+.adm__search input { border-radius: 6px; }
+.adm__avatar { border-radius: 50%; background: var(--red); }
+.adm__logout { border-radius: 6px; border-color: rgba(255, 255, 255, 0.2); color: #c7d2de; }
+.adm__foot { border-top-color: rgba(255, 255, 255, 0.1); }
+.adm__web, .adm__brand small, .adm__me small { color: #9fb0c3; }
+.adm__search { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.12); }
+.qb3__time.is-empty { font-family: var(--font-archivo), system-ui, sans-serif; font-style: normal; font-weight: 800; text-transform: none; letter-spacing: -0.01em; font-size: 28px; }
