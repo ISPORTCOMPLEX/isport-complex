@@ -442,7 +442,7 @@ export async function saveMyTeamAction(_prev: TeamFormState, form: FormData): Pr
   const photos = await Promise.all(roster.map((p) => (p.photo ? verifyOwnImg(safeJson(p.photo), user.id).catch(() => null) : Promise.resolve(null))));
   const { Prisma } = await import('@prisma/client');
   await prisma.$transaction([
-    prisma.leagueTeam.update({ where: { id: team.id }, data: { logo } }),
+    prisma.leagueTeam.update({ where: { id: team.id }, data: { logo: logo ?? undefined } }),
     ...(removed.length ? [prisma.leaguePlayer.deleteMany({ where: { id: { in: removed.map((p) => p.id) }, teamId: team.id } })] : []),
     ...roster.map((p, i) => {
       const data = { name: p.name, number: p.number, position: p.position, birthYear: p.birthYear, heightCm: p.heightCm, weightKg: p.weightKg, shoots: p.shoots, photo: photos[i] ?? Prisma.DbNull };
