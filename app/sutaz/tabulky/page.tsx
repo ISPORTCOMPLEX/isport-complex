@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { LeagueEmpty, TeamBadge } from '@/components/league/ui';
 import { standings } from '@/lib/league/calc';
 import { loadLeague } from '@/lib/league/data';
@@ -57,10 +58,10 @@ export default async function TabulkyPage() {
               <tr key={r.team.id}>
                 <td className="lgtb__rk">{i + 1}</td>
                 <th scope="row" className="lgtb__tm">
-                  <span className="lgtb__team">
+                  <Link href={`/sutaz/tim/${r.team.id}`} className="lgtb__team">
                     <TeamBadge team={r.team} size="sm" />
                     {r.team.name}
-                  </span>
+                  </Link>
                 </th>
                 <td>{r.gp}</td>
                 <td>{r.w}</td>

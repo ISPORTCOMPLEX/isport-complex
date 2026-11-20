@@ -6,9 +6,10 @@ import { Field } from '@/components/forms/Field';
 import { FormAlert } from '@/components/forms/FormAlert';
 import { SubmitButton } from '@/components/forms/SubmitButton';
 import { registerTeamAction, type TeamFormState } from '@/lib/actions/league';
+import { ImageUpload, type Uploaded } from '@/components/league/ImageUpload';
+import { PlayerFields, emptyPlayer, type PlayerRow } from '@/components/league/PlayerFields';
 import { useT } from '@/lib/i18n/client';
 
-type Row = { key: number; name: string; number: string; pos: string };
 const COLORS = ['#e30613', '#1f4fd8', '#0f7a3d', '#f5b301', '#0b1626', '#7a2bd8', '#e86a10', '#00a3c4'];
 
 // Prihláška tímu so súpiskou. Odosiela sa bez obnovenia stránky – vyplnené údaje pri chybe ostanú.
@@ -16,9 +17,10 @@ export function TeamRegisterForm({ name, email, phone }: { name: string; email: 
   const t = useT();
   const [state, action] = useActionState<TeamFormState, FormData>(registerTeamAction, {});
   const [color, setColor] = useState(COLORS[0]);
-  const [rows, setRows] = useState<Row[]>(() => Array.from({ length: 8 }, (_, i) => ({ key: i, name: '', number: '', pos: i === 0 ? 'G' : i < 3 ? 'D' : 'F' })));
+  const [logo, setLogo] = useState<Uploaded | null>(null);
+  const [rows, setRows] = useState<PlayerRow[]>(() => Array.from({ length: 6 }, (_, i) => emptyPlayer(i, i === 0 ? 'G' : i < 3 ? 'D' : 'F')));
   const e = state.errors ?? {};
-  const set = (key: number, patch: Partial<Row>) => setRows((r) => r.map((x) => (x.key === key ? { ...x, ...patch } : x)));
+  const set = (key: number, patch: Partial<PlayerRow>) => setRows((r) => r.map((x) => (x.key === key ? { ...x, ...patch } : x)));
 
   if (state.done)
     return (
@@ -44,6 +46,14 @@ export function TeamRegisterForm({ name, email, phone }: { name: string; email: 
       <FormAlert error={state.error} />
       <fieldset className="lgreg__set">
         <legend>{t('Tím')}</legend>
+        <div className={`lgreg__logo${e.logo ? ' is-err' : ''}`}>
+          <input type="hidden" name="logo" value={logo ? JSON.stringify(logo.img) : ''} />
+          <ImageUpload kind="logo" value={logo} onChange={setLogo} label={t('Nahrať logo tímu')} empty={<span className="lgup__ph">{t('Logo')}</span>} />
+          <p>
+            <b>{t('Logo tímu je povinné.')}</b> {t('Najlepšie štvorcové PNG s priehľadným pozadím, aspoň 400 × 400 px.')}
+          </p>
+        </div>
+        {e.logo ? <p className="field__err">{e.logo}</p> : null}
         <div className="lgreg__grid">
           <Field label={t('Názov tímu')} name="name" required maxLength={60} error={e.name} />
           <Field label={t('Skratka (2 – 4 znaky)')} name="short" required maxLength={4} error={e.short} placeholder="KES" />
@@ -75,36 +85,19 @@ export function TeamRegisterForm({ name, email, phone }: { name: string; email: 
 
       <fieldset className="lgreg__set">
         <legend>{t('Súpiska')}</legend>
-        <p className="lgreg__hint">{t('Aspoň 5 hráčov, najviac 30. Prázdne riadky sa ignorujú.')}</p>
+        <p className="lgreg__hint">{t('Aspoň 5 hráčov, najviac 30. Ku každému hráčovi vyplň meno, rok narodenia, výšku, váhu, hokejku a post. Fotka je nepovinná – bez nej sa ukáže silueta. Prázdne riadky sa ignorujú.')}</p>
         {e.roster ? (
           <p className="field__err" role="alert">
             {e.roster}
           </p>
         ) : null}
         <div className="lgreg__roster">
-          <div className="lgreg__rh" aria-hidden="true">
-            <span>{t('Meno hráča')}</span>
-            <span>{t('Číslo')}</span>
-            <span>{t('Post')}</span>
-            <span />
-          </div>
           {rows.map((r, i) => (
-            <div key={r.key} className="lgreg__row">
-              <input name="playerName" value={r.name} onChange={(ev) => set(r.key, { name: ev.target.value })} maxLength={80} aria-label={t('Meno hráča {n}', { n: i + 1 })} placeholder={t('Meno a priezvisko')} />
-              <input name="playerNumber" value={r.number} onChange={(ev) => set(r.key, { number: ev.target.value.replace(/\D/g, '').slice(0, 2) })} inputMode="numeric" aria-label={t('Číslo dresu hráča {n}', { n: i + 1 })} placeholder="#" />
-              <select name="playerPos" value={r.pos} onChange={(ev) => set(r.key, { pos: ev.target.value })} aria-label={t('Post hráča {n}', { n: i + 1 })}>
-                <option value="F">{t('Útočník')}</option>
-                <option value="D">{t('Obranca')}</option>
-                <option value="G">{t('Brankár')}</option>
-              </select>
-              <button type="button" className="lgreg__x" onClick={() => setRows((x) => x.filter((y) => y.key !== r.key))} aria-label={t('Odstrániť hráča {n}', { n: i + 1 })} disabled={rows.length <= 1}>
-                ×
-              </button>
-            </div>
+            <PlayerFields key={r.key} row={r} index={i} set={(patch) => set(r.key, patch)} remove={rows.length > 1 ? () => setRows((x) => x.filter((y) => y.key !== r.key)) : undefined} />
           ))}
         </div>
         {rows.length < 30 ? (
-          <button type="button" className="lgreg__add" onClick={() => setRows((x) => [...x, { key: Math.max(-1, ...x.map((y) => y.key)) + 1, name: '', number: '', pos: 'F' }])}>
+          <button type="button" className="lgreg__add" onClick={() => setRows((x) => [...x, emptyPlayer(Math.max(-1, ...x.map((y) => y.key)) + 1)])}>
             + {t('Pridať hráča')}
           </button>
         ) : null}
@@ -121,7 +114,7 @@ export function TeamRegisterForm({ name, email, phone }: { name: string; email: 
       <label className={`lgreg__consent${e.consent ? ' is-err' : ''}`}>
         <input type="checkbox" name="consent" value="1" />
         <span>
-          {t('Súhlasím so spracovaním uvedených údajov na účely súťaže. Mená hráčov a štatistiky sa po schválení tímu zobrazia na webe.')}{' '}
+          {t('Súhlasím so spracovaním uvedených údajov na účely súťaže a mám súhlas hráčov (pri neplnoletých ich zákonných zástupcov), že sa ich meno, vek, výška, váha, fotka a štatistiky po schválení tímu zobrazia na webe.')}{' '}
           <Link href="/ochrana-osobnych-udajov">{t('Ochrana osobných údajov')}</Link>
         </span>
       </label>

@@ -138,10 +138,10 @@ export default async function SutazPage() {
                   <tr key={r.team.id}>
                     <td>{i + 1}</td>
                     <th scope="row">
-                      <span className="lgtb__team">
+                      <Link href={`/sutaz/tim/${r.team.id}`} className="lgtb__team">
                         <TeamBadge team={r.team} size="sm" />
                         {r.team.name}
-                      </span>
+                      </Link>
                     </th>
                     <td>{r.gp}</td>
                     <td>

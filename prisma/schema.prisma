@@ -477,6 +477,7 @@ model LeagueTeam {
   short        String // skratka 2–4 znaky (napr. KES)
   city         String    @default("")
   color        String    @default("#1f4fd8")
+  logo         Json? // { publicId, version, width, height } – nahrané pri registrácii
   status       String    @default("PENDING") // PENDING | APPROVED | REJECTED
   contactName  String
   contactEmail String
@@ -502,6 +503,11 @@ model LeaguePlayer {
   name        String
   number      Int?
   position    String       @default("F") // F útočník | D obranca | G brankár
+  birthYear   Int?
+  heightCm    Int?
+  weightKg    Int?
+  shoots      String       @default("") // L ľavák | R pravák
+  photo       Json? // { publicId, version, width, height } – nepovinná fotka (inak silueta)
   createdAt   DateTime     @default(now())
   team        LeagueTeam   @relation(fields: [teamId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   goals       LeagueGoal[] @relation("LeagueScorer")

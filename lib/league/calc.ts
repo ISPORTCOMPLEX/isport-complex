@@ -1,8 +1,8 @@
 // Výpočty súťaže – tabuľka (body podľa IIHF), štatistiky hráčov a gólmanov, priebežné skóre gólov.
 // Čisté funkcie bez databázy (testy v tests/league.test.ts).
 
-export type LTeam = { id: string; name: string; short: string; color: string; city?: string };
-export type LPlayer = { id: string; teamId: string; name: string; number: number | null; position: string };
+export type LTeam = { id: string; name: string; short: string; color: string; city?: string; logo?: string | null };
+export type LPlayer = { id: string; teamId: string; name: string; number: number | null; position: string; photo?: string | null; birthYear?: number | null; heightCm?: number | null; weightKg?: number | null; shoots?: string };
 export type LGame = {
   id: string;
   homeId: string;

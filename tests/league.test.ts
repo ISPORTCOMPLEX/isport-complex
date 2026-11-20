@@ -109,3 +109,17 @@ test('odohrané zápasy hráča podľa súpisky', () => {
   assert.equal(sk.p1.gp, 1); // v prvom zápase nebol na súpiske
   assert.equal(sk.p2.gp, 2);
 });
+
+import { checkPlayer, rosterFrom } from '../lib/league/roster.ts';
+
+test('súpiska: údaje hráča', () => {
+  const ok = { name: 'Ján Novák', number: 9, position: 'F', birthYear: 2000, heightCm: 182, weightKg: 84, shoots: 'L', photo: '' };
+  assert.equal(checkPlayer(ok, 2026), null);
+  assert.ok(checkPlayer({ ...ok, heightCm: NaN }, 2026));
+  assert.ok(checkPlayer({ ...ok, shoots: '' }, 2026));
+  assert.ok(checkPlayer({ ...ok, birthYear: 2025 }, 2026));
+  const form: Record<string, string[]> = { playerName: ['Ján Novák', '', '  '], playerNumber: ['9', '', ''], playerPos: ['F', 'F', 'D'], playerYear: ['2000', '', ''], playerHeight: ['182', '', ''], playerWeight: ['84', '', ''], playerShoots: ['L', '', ''], playerPhoto: ['', '', ''] };
+  const r = rosterFrom((k) => form[k] ?? []);
+  assert.equal(r.length, 1); // prázdne riadky preč
+  assert.equal(r[0].heightCm, 182);
+});

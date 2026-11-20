@@ -14,10 +14,19 @@ import { isEmail, isPhone, normalizeEmail, normalizePhone, str, checked } from '
 import { getT, MAIL_SK_EN } from '@/lib/i18n/server';
 import { checkReport, compareReports, readGoals, readIds, type ReportInput } from '@/lib/league/report';
 import { sendLeagueResultEmail } from '@/lib/email';
+import { checkPlayer, rosterFrom } from '@/lib/league/roster';
+import { verifyOwnImg } from '@/lib/league/images';
 
 export type TeamFormState = { error?: string; errors?: Record<string, string>; done?: boolean };
 
 const POSITIONS = ['F', 'D', 'G'];
+const safeJson = (v: string): unknown => {
+  try {
+    return JSON.parse(v);
+  } catch {
+    return null;
+  }
+};
 const isId = (v: string) => /^[a-z0-9]{10,40}$/i.test(v);
 const clean = (v: string) => v.replace(/[\u0000-\u001F\u007F​-‏‪-‮⁦-⁩]/g, '').replace(/\s+/g, ' ').trim();
 
@@ -36,13 +45,13 @@ export async function registerTeamAction(_prev: TeamFormState, form: FormData): 
   const contactEmail = normalizeEmail(str(form, 'contactEmail', 254));
   const contactPhone = normalizePhone(str(form, 'contactPhone', 30));
   const note = str(form, 'note', 1000).trim();
-  const names = form.getAll('playerName').map((v) => clean(String(v)).slice(0, 80));
-  const numbers = form.getAll('playerNumber').map((v) => String(v).trim());
-  const positions = form.getAll('playerPos').map((v) => String(v));
-  const roster = names
-    .map((n, i) => ({ name: n, number: numbers[i] === '' || numbers[i] === undefined ? null : Number(numbers[i]), position: POSITIONS.includes(positions[i]) ? positions[i] : 'F' }))
-    .filter((p) => p.name.length > 0);
-
+  const roster = rosterFrom((k) => form.getAll(k).map((v) => String(v)));
+  let logoRaw: unknown = null;
+  try {
+    logoRaw = JSON.parse(str(form, 'logo', 2000) || 'null');
+  } catch {
+    logoRaw = null;
+  }
   const errors: Record<string, string> = {};
   if (name.length < 2 || name.length > 60) errors.name = t('Zadaj názov tímu (2 – 60 znakov).');
   if (!/^[A-Z0-9ÁČĎÉÍĹĽŇÓÔŔŠŤÚÝŽ]{2,4}$/.test(short)) errors.short = t('Skratka má 2 – 4 písmená alebo číslice, napr. KES.');
@@ -51,11 +60,14 @@ export async function registerTeamAction(_prev: TeamFormState, form: FormData): 
   if (contactPhone && !isPhone(contactPhone)) errors.contactPhone = t('Neplatný telefón.');
   if (roster.length < 5) errors.roster = t('Súpiska potrebuje aspoň 5 hráčov.');
   else if (roster.length > 30) errors.roster = t('Súpiska môže mať najviac 30 hráčov.');
-  else if (roster.some((p) => p.number !== null && (!Number.isInteger(p.number) || p.number < 0 || p.number > 99))) errors.roster = t('Čísla dresov musia byť 0 – 99.');
   else {
+    const bad = roster.map((p, i) => ({ i, e: checkPlayer(p) })).find((x) => x.e);
     const nums = roster.map((p) => p.number).filter((n): n is number => n !== null);
-    if (new Set(nums).size !== nums.length) errors.roster = t('Dvaja hráči majú rovnaké číslo dresu.');
+    if (bad) errors.roster = t('Hráč {n}: {e}.', { n: bad.i + 1, e: t(bad.e as string) });
+    else if (new Set(nums).size !== nums.length) errors.roster = t('Dvaja hráči majú rovnaké číslo dresu.');
   }
+  const logo = logoRaw ? await verifyOwnImg(logoRaw, user.id) : null;
+  if (!logo) errors.logo = t('Nahraj logo tímu.');
   if (!checked(form, 'consent')) errors.consent = t('Potvrď súhlas so spracovaním údajov.');
   if (Object.keys(errors).length) return { error: t('Skontroluj označené polia.'), errors };
 
@@ -73,6 +85,9 @@ export async function registerTeamAction(_prev: TeamFormState, form: FormData): 
       : { error: t('Skontroluj označené polia.'), errors: { name: t('Tím s týmto názvom je už prihlásený.') } };
   }
 
+  // fotky hráčov (nepovinné) – len tie, ktoré používateľ naozaj nahral
+  const photos = await Promise.all(roster.map((p) => (p.photo ? verifyOwnImg(safeJson(p.photo), user.id).catch(() => null) : Promise.resolve(null))));
+  const players = roster.map((p, i) => ({ name: p.name, number: p.number, position: p.position, birthYear: p.birthYear, heightCm: p.heightCm, weightKg: p.weightKg, shoots: p.shoots, photo: photos[i] ?? undefined }));
   await prisma.leagueTeam.create({
     data: {
       name,
@@ -84,7 +99,8 @@ export async function registerTeamAction(_prev: TeamFormState, form: FormData): 
       contactPhone,
       note,
       userId: user.id,
-      players: { create: roster.map((p) => ({ name: p.name, number: p.number, position: p.position })) },
+      logo: logo ?? undefined,
+      players: { create: players },
     },
   });
   revalidatePath('/admin/sutaz');
@@ -385,4 +401,55 @@ export async function submitReportAction(_prev: ReportState, form: FormData): Pr
   revalidatePath('/sutaz', 'layout');
   for (const r of recipients) await sendLeagueResultEmail(MAIL_SK_EN(), r.contactEmail, r.contactName, `${base}/sutaz/vysledky`, 'ok', matchName, rowsFor(input.homeScore, input.awayScore)).catch(() => undefined);
   return { done: 'confirmed', at: Date.now() };
+}
+
+// ───────── Úprava tímu vedúcim (logo, súpiska, fotky hráčov) ─────────
+export async function saveMyTeamAction(_prev: TeamFormState, form: FormData): Promise<TeamFormState> {
+  const t = await getT();
+  const user = await getSessionUser();
+  if (!user) return { error: t('Prihlás sa, prosím.') };
+  await ensureLeagueTables();
+  const teamId = str(form, 'teamId', 40);
+  const team = isId(teamId) ? await prisma.leagueTeam.findFirst({ where: { id: teamId, userId: user.id }, include: { players: { select: { id: true, name: true } } } }) : null;
+  if (!team) return { error: t('Tím sa nenašiel.') };
+  const limit = await hitLimit(`league:team-save:${user.id}`, 30, 60 * 60);
+  if (!limit.ok) return { error: t('Priveľa pokusov. Skús to o chvíľu.') };
+
+  const roster = rosterFrom((k) => form.getAll(k).map((v) => String(v)));
+  const errors: Record<string, string> = {};
+  const logo = await verifyOwnImg(safeJson(str(form, 'logo', 2000)), user.id);
+  if (!logo) errors.logo = t('Tím musí mať logo.');
+  if (roster.length < 5) errors.roster = t('Súpiska potrebuje aspoň 5 hráčov.');
+  else if (roster.length > 30) errors.roster = t('Súpiska môže mať najviac 30 hráčov.');
+  else {
+    const bad = roster.map((p, i) => ({ i, e: checkPlayer(p) })).find((x) => x.e);
+    const nums = roster.map((p) => p.number).filter((n): n is number => n !== null);
+    if (bad) errors.roster = t('Hráč {n}: {e}.', { n: bad.i + 1, e: t(bad.e as string) });
+    else if (new Set(nums).size !== nums.length) errors.roster = t('Dvaja hráči majú rovnaké číslo dresu.');
+  }
+  // hráči, ktorí zmizli zo súpisky – odstrániť sa dajú len bez gólov, asistencií a zápasov v bráne
+  const own = new Set(team.players.map((p) => p.id));
+  const kept = new Set(roster.map((p) => p.id).filter((id): id is string => !!id && own.has(id)));
+  const removed = team.players.filter((p) => !kept.has(p.id));
+  if (removed.length) {
+    const ids = removed.map((p) => p.id);
+    const used = await prisma.leagueGoal.findFirst({ where: { OR: [{ scorerId: { in: ids } }, { assist1Id: { in: ids } }, { assist2Id: { in: ids } }] }, select: { scorerId: true, assist1Id: true, assist2Id: true } });
+    const goalie = await prisma.leagueGame.findFirst({ where: { OR: [{ homeGoalieId: { in: ids } }, { awayGoalieId: { in: ids } }] }, select: { id: true } });
+    if (used || goalie) errors.roster = t('Niektorého z odstránených hráčov nemožno vymazať – má v súťaži góly, asistencie alebo zápasy v bráne.');
+  }
+  if (Object.keys(errors).length) return { error: t('Skontroluj označené polia.'), errors };
+
+  const photos = await Promise.all(roster.map((p) => (p.photo ? verifyOwnImg(safeJson(p.photo), user.id).catch(() => null) : Promise.resolve(null))));
+  const { Prisma } = await import('@prisma/client');
+  await prisma.$transaction([
+    prisma.leagueTeam.update({ where: { id: team.id }, data: { logo } }),
+    ...(removed.length ? [prisma.leaguePlayer.deleteMany({ where: { id: { in: removed.map((p) => p.id) }, teamId: team.id } })] : []),
+    ...roster.map((p, i) => {
+      const data = { name: p.name, number: p.number, position: p.position, birthYear: p.birthYear, heightCm: p.heightCm, weightKg: p.weightKg, shoots: p.shoots, photo: photos[i] ?? Prisma.DbNull };
+      return p.id && own.has(p.id) ? prisma.leaguePlayer.update({ where: { id: p.id }, data }) : prisma.leaguePlayer.create({ data: { ...data, teamId: team.id } });
+    }),
+  ]);
+  revalidatePath('/sutaz', 'layout');
+  revalidatePath('/admin/sutaz');
+  return { done: true };
 }

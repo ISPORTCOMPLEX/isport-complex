@@ -37,7 +37,7 @@ export function GameCard({ game, home, away, lines, players, t }: { game: LGame;
               const asts = [g.assist1Id ? `${pl(g.assist1Id)?.name ?? '—'} (${g.a1N})` : '', g.assist2Id ? `${pl(g.assist2Id)?.name ?? '—'} (${g.a2N})` : ''].filter(Boolean);
               return (
                 <li key={g.id} className="lgc__g">
-                  <PlayerAvatar player={{ name: s?.name ?? team.short }} team={team} />
+                  <PlayerAvatar player={{ name: s?.name ?? team.short, photo: s?.photo }} team={team} />
                   <span className="lgc__gt">
                     <span className="lgc__gs">
                       <b>{s ? s.name : t('Neznámy strelec')}</b>

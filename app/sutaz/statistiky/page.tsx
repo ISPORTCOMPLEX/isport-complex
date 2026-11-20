@@ -27,6 +27,7 @@ export default async function StatistikyPage() {
     ink: inkOn(r.row.team.color),
     initials: initials(r.row.player.name),
     sub: sub(r.row.player, r.row.team),
+    photo: r.row.player.photo ?? null,
   });
   const skaters = skaterStats(L.players, L.teams, L.games, L.goals);
   const empty = t('Zatiaľ bez štatistík – pribudnú po prvých zápasoch.');
@@ -55,6 +56,8 @@ export default async function StatistikyPage() {
     ink: inkOn(r.row.team.color),
     initials: r.row.team.short,
     sub: t.n(r.row.gp, '{n} zápas|{n} zápasy|{n} zápasov'),
+    photo: r.row.team.logo ?? null,
+    logo: true,
   });
   const teamTabs: StatTab[] = [
     { label: t('Strelené góly'), unit: t('Góly na zápas'), rows: rank(st, (s) => s.gf / s.gp).map((r) => trow(r, num(r.row.gf / r.row.gp, 2))), empty },

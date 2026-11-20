@@ -1,11 +1,22 @@
 import Link from 'next/link';
 import { Dyn } from '@/components/Dyn';
-import { initials, inkOn, safeColor, type LPlayer, type LTeam } from '@/lib/league/calc';
+import { inkOn, safeColor, type LPlayer, type LTeam } from '@/lib/league/calc';
 import type { T } from '@/lib/i18n/translate';
+import { Silhouette } from '@/components/league/Silhouette';
+import { logoUrl, readImg } from '@/lib/league/images';
 
-// Odznak tímu: kruh vo farbe tímu so skratkou (tímy nemajú logá – nič nekreslíme za ne).
-export function TeamBadge({ team, size = 'md' }: { team: Pick<LTeam, 'short' | 'color' | 'name'>; size?: 'sm' | 'md' | 'lg' }) {
+// Odznak tímu: logo tímu v kruhu, bez loga kruh vo farbe tímu so skratkou.
+// logo = adresa (z loadLeague) alebo uložený obrázok z databázy
+export function TeamBadge({ team, size = 'md' }: { team: Pick<LTeam, 'short' | 'color' | 'name'> & { logo?: unknown }; size?: 'sm' | 'md' | 'lg' }) {
   const c = safeColor(team.color);
+  const src = typeof team.logo === 'string' ? team.logo : logoUrl(readImg(team.logo));
+  if (src)
+    return (
+      <span className={`lgt lgt--${size} lgt--logo`} aria-hidden="true">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt="" loading="lazy" />
+      </span>
+    );
   return (
     <Dyn as="span" className={`lgt lgt--${size}`} css={{ '--tc': c, '--ti': inkOn(c) }} aria-hidden="true">
       {team.short}
@@ -13,12 +24,19 @@ export function TeamBadge({ team, size = 'md' }: { team: Pick<LTeam, 'short' | '
   );
 }
 
-// Avatar hráča: iniciály vo farbe jeho tímu
-export function PlayerAvatar({ player, team, size = 'md' }: { player: Pick<LPlayer, 'name'>; team: Pick<LTeam, 'color'>; size?: 'md' | 'lg' }) {
+// Hráč: fotka, bez nej silueta na farbe tímu
+export function PlayerAvatar({ player, team, size = 'md' }: { player: Pick<LPlayer, 'name'> & { photo?: string | null }; team: Pick<LTeam, 'color'>; size?: 'md' | 'lg' }) {
   const c = safeColor(team.color);
+  if (player.photo)
+    return (
+      <span className={`lga lga--${size} lga--photo`} aria-hidden="true">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={player.photo} alt="" loading="lazy" />
+      </span>
+    );
   return (
     <Dyn as="span" className={`lga lga--${size}`} css={{ '--tc': c, '--ti': inkOn(c) }} aria-hidden="true">
-      {initials(player.name)}
+      <Silhouette />
     </Dyn>
   );
 }

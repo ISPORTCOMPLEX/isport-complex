@@ -97,7 +97,7 @@ export function imageUrl(cloud: string, publicId: string, version: number, w: nu
 // Verejná adresa fotky na našej doméne: /obrazky/<šírka>/<pomer>/<formát>/v<verzia>/<id>
 // Prehliadač aj návštevník vidia len náš web; odkiaľ fotka pochádza, nezistí.
 export const IMG_WIDTHS = [480, 800, 1200, 1600, 2000] as const;
-export const IMG_RATIOS = ['4:3', '16:10', '2:1', '16:9'] as const;
+export const IMG_RATIOS = ['4:3', '16:10', '2:1', '16:9', '1:1'] as const;
 // 360° panoráma potrebuje väčšiu šírku (len bez orezania, len JPG)
 export const PANO_WIDTH = 4000;
 export function photoPath(publicId: string, version: number, w: number, ratio: string | undefined, fmt: ImgFormat): string {

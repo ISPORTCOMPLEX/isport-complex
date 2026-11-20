@@ -73,6 +73,9 @@ export default async function MojTimPage() {
                   <h2>{team.name}</h2>
                   <span className={`lgreg-st lgreg-st--${team.status.toLowerCase()}`}>{t(STATUS_LABEL[team.status] ?? team.status)}</span>
                 </div>
+                <Link href={`/sutaz/moj-tim/tim/${team.id}`} className="lgbtn lgmy__edit">
+                  {t('Logo a súpiska')}
+                </Link>
                 {todo ? <span className="lgmy__todo">{t.n(todo, '{n} zápas čaká na zápis|{n} zápasy čakajú na zápis|{n} zápasov čaká na zápis')}</span> : null}
               </div>
               {team.status !== 'APPROVED' ? (

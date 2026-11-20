@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { Dyn } from '@/components/Dyn';
 import { useT } from '@/lib/i18n/client';
+import { Silhouette } from '@/components/league/Silhouette';
 
-export type StatRow = { key: string; rank: number; tie: boolean; name: string; value: string; color: string; ink: string; initials: string; sub: string };
+export type StatRow = { key: string; rank: number; tie: boolean; name: string; value: string; color: string; ink: string; initials: string; sub: string; photo?: string | null; logo?: boolean };
 export type StatTab = { label: string; unit: string; rows: StatRow[]; empty: string };
 
 // Box lídrov ako na NHL.com: záložky, vľavo líder (iniciály vo farbe tímu, veľké číslo), vpravo top 10.
@@ -40,9 +41,16 @@ export function StatBox({ title, note, tabs }: { title: string; note?: string; t
       {lead ? (
         <div className="lgs__body" role="tabpanel">
           <div className="lgs__lead">
-            <Dyn as="span" className="lgs__av" css={{ '--tc': lead.color, '--ti': lead.ink }} aria-hidden="true">
-              {lead.initials}
-            </Dyn>
+            {lead.photo ? (
+              <span className={`lgs__av lgs__av--img${lead.logo ? ' lgs__av--logo' : ''}`} aria-hidden="true">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={lead.photo} alt="" />
+              </span>
+            ) : (
+              <Dyn as="span" className="lgs__av" css={{ '--tc': lead.color, '--ti': lead.ink }} aria-hidden="true">
+                {lead.logo ? lead.initials : <Silhouette />}
+              </Dyn>
+            )}
             <b className="lgs__name">{lead.name}</b>
             <span className="lgs__sub">{lead.sub}</span>
             <span className="lgs__unit">{cur.unit}</span>
